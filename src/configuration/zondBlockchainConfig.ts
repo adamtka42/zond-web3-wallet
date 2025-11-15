@@ -1,36 +1,62 @@
-export const ZOND_BLOCKCHAIN = {
-  LOCAL: {
-    id: "LOCAL",
-    isConfigurationRequired: true,
-    ipAddress: "http://127.0.0.1",
-    port: "8543",
-    name: "Local",
-    description:
-      "Connect to a locally running zond blockchain node. You should have a blockchain running in your machine.",
+const ZOND_MAINNET_DATA = {
+  chainId: "0x1",
+  chainName: "Zond Mainnet",
+  rpcUrls: ["http://127.0.0.1:8545"],
+  blockExplorerUrls: ["https://www.theqrl.org/markets/"],
+  nativeCurrency: {
+    name: "Quanta",
+    symbol: "ZND",
+    decimals: 18,
   },
-  TEST_NET: {
-    id: "TEST_NET",
-    isConfigurationRequired: true,
-    ipAddress: "http://127.0.0.1",
-    port: "8544",
-    name: "Testnet",
-    description:
-      "Connect to the zond testnet. Specify the IP address and port number of the testnet.",
-  },
-  MAIN_NET: {
-    id: "MAIN_NET",
-    isConfigurationRequired: false,
-    ipAddress: "http://127.0.0.1",
-    port: "8545",
-    name: "Mainnet",
-    description:
-      "Connect to the zond mainnet. The real zond blockchain network.",
-  },
+  iconUrls: ["icons/chains/zond_mainnet.svg"],
 };
 
-export type BlockchainType = keyof typeof ZOND_BLOCKCHAIN;
-export type BlockchainDetailsType = {
-  blockchain: BlockchainType;
-  ipAddress: string;
-  port: string;
+const ZOND_TESTNET_DATA = {
+  chainId: "0x7e7e",
+  chainName: "Zond Testnet",
+  rpcUrls: ["http://209.250.255.226:8545"],
+  blockExplorerUrls: ["https://www.theqrl.org/markets/"],
+  nativeCurrency: {
+    name: "Quanta",
+    symbol: "ZND",
+    decimals: 18,
+  },
+  iconUrls: ["icons/chains/zond_testnet.svg"],
 };
+
+export type BlockchainBaseDataType = typeof ZOND_MAINNET_DATA;
+
+export type BlockchainAdditionalDataType = {
+  defaultRpcUrl: string;
+  defaultBlockExplorerUrl: string;
+  defaultIconUrl: string;
+  isTestnet: boolean;
+  defaultWsRpcUrl: string;
+  isCustomChain: boolean;
+};
+
+export type BlockchainDataType = BlockchainBaseDataType &
+  BlockchainAdditionalDataType;
+
+export const ZOND_BLOCKCHAINS: BlockchainDataType[] = [
+  {
+    ...ZOND_MAINNET_DATA,
+    defaultRpcUrl: ZOND_MAINNET_DATA.rpcUrls[0],
+    defaultBlockExplorerUrl: ZOND_MAINNET_DATA.blockExplorerUrls[0],
+    defaultIconUrl: ZOND_MAINNET_DATA.iconUrls[0],
+    isTestnet: false,
+    defaultWsRpcUrl: "http://localhost:3000",
+    isCustomChain: false,
+  },
+  {
+    ...ZOND_TESTNET_DATA,
+    defaultRpcUrl: ZOND_TESTNET_DATA.rpcUrls[0],
+    defaultBlockExplorerUrl: ZOND_TESTNET_DATA.blockExplorerUrls[0],
+    defaultIconUrl: ZOND_TESTNET_DATA.iconUrls[0],
+    isTestnet: true,
+    defaultWsRpcUrl: "http://localhost:3000",
+    isCustomChain: false,
+  },
+];
+
+export const DEFAULT_BLOCKCHAIN = ZOND_BLOCKCHAINS[0];

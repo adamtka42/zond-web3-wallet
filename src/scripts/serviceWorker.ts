@@ -9,6 +9,7 @@ import {
   ZOND_POST_MESSAGE_STREAM,
   ZOND_WALLET_PROVIDER_NAME,
 } from "./constants/streamConstants";
+import LockManager, { LOCK_MANAGER_MESSAGES } from "./lockManager/lockManager";
 import { appendSenderDataMiddleware } from "./middlewares/appendSenderDataMiddleware";
 import { blockUnSupportedMethodsMiddleware } from "./middlewares/blockUnSupportedMethodsMiddleware";
 import { restrictedMethodsMiddleware } from "./middlewares/restrictedMethodsMiddleware";
@@ -46,8 +47,9 @@ const registerScripts = async () => {
 };
 
 const prepareListeners = () => {
+  // Listening to storage for displaying the badge in the extension.
   browser.storage.onChanged.addListener(async () => {
-    const storedDAppRequestData = await StorageUtil.getDAppRequestData();
+    const storedDAppRequestData = await StorageUtil.getDAppsRequestData();
     if (!!storedDAppRequestData) {
       // If there is a pending request, the badge with 1 notification will be displayed.
       browser.action.setBadgeText({ text: "1" });
@@ -56,6 +58,8 @@ const prepareListeners = () => {
       browser.action.setBadgeText({ text: "" });
     }
   });
+  // Listening for messages related to the wallet locking.
+  browser.runtime.onMessage.addListener(LockManager.lockManagerListener);
 };
 
 /**
@@ -147,11 +151,20 @@ const establishContenScriptConnection = () => {
   });
 };
 
+const establishLockManagerConnection = () => {
+  browser.runtime.onConnect.addListener((port) => {
+    if (port.name === LOCK_MANAGER_MESSAGES.PORT) {
+      port.postMessage({ name: LOCK_MANAGER_MESSAGES.IS_LOCK_MANAGER_READY });
+    }
+  });
+};
+
 const initializeServiceWorker = async () => {
   try {
     await registerScripts();
     prepareListeners();
     establishContenScriptConnection();
+    establishLockManagerConnection();
   } catch (error) {
     console.warn(
       "ZondWeb3Wallet: Failed to initialize the service worker\n",

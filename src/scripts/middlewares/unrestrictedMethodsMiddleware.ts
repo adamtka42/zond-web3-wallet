@@ -4,6 +4,27 @@ import { Json, JsonRpcRequest } from "@theqrl/zond-wallet-provider/utils";
 import browser from "webextension-polyfill";
 import { UNRESTRICTED_METHODS } from "../constants/requestConstants";
 import { EXTENSION_MESSAGES } from "../constants/streamConstants";
+import { checkUrlOriginHasBeenConnected } from "../utils/restrictedMethodsMiddlewareUtils";
+
+const ZOND_WALLET_DAPP_CONNECTION_REQUIRED_METHODS: string[] = [
+  UNRESTRICTED_METHODS.ZOND_ACCOUNTS,
+];
+
+// a precheck to determine if the request can proceed
+const checkRequestCanProceed = async (req: JsonRpcRequest<JsonRpcRequest>) => {
+  if (ZOND_WALLET_DAPP_CONNECTION_REQUIRED_METHODS.includes(req.method)) {
+    const originConnectResult = await checkUrlOriginHasBeenConnected(
+      req?.senderData?.url ?? "",
+    );
+    if (!originConnectResult.canProceed) {
+      return originConnectResult;
+    }
+  }
+  return {
+    canProceed: true,
+    proceedError: providerErrors.unsupportedMethod(),
+  };
+};
 
 const getUnrestrictedMethodResult = async (
   req: JsonRpcRequest<JsonRpcRequest>,
@@ -28,6 +49,14 @@ export const unrestrictedMethodsMiddleware: JsonRpcMiddleware<
       requestedMethod as UnrestrictedMethodValue,
     )
   ) {
+    // check if the request can proceed
+    const { canProceed, proceedError } = await checkRequestCanProceed(req);
+    if (!canProceed) {
+      // @ts-ignore
+      res.error = proceedError;
+      return end();
+    }
+
     try {
       res.result = await getUnrestrictedMethodResult(req);
     } catch (error: any) {
@@ -35,7 +64,7 @@ export const unrestrictedMethodsMiddleware: JsonRpcMiddleware<
         message: error?.message,
       });
     }
-    end();
+    return end();
   } else {
     next();
   }

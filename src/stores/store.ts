@@ -2,13 +2,16 @@ import { createContext, useContext } from "react";
 import DAppRequestStore from "./dAppRequestStore";
 import SettingsStore from "./settingsStore";
 import ZondStore from "./zondStore";
+import LockStore from "./lockStore";
 
 class Store {
+  lockStore;
   settingsStore;
   dAppRequestStore;
   zondStore;
 
   constructor() {
+    this.lockStore = new LockStore();
     this.settingsStore = new SettingsStore();
     this.dAppRequestStore = new DAppRequestStore();
     this.zondStore = new ZondStore();

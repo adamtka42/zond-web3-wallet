@@ -1,51 +1,96 @@
 import {
-  BlockchainDetailsType,
-  BlockchainType,
-  ZOND_BLOCKCHAIN,
+  BlockchainDataType,
+  DEFAULT_BLOCKCHAIN,
+  ZOND_BLOCKCHAINS,
 } from "@/configuration/zondBlockchainConfig";
 import {
   ConnectedAccountsDataType,
   DAppRequestType,
+  TokenContractType,
 } from "@/scripts/middlewares/middlewareTypes";
+import { KeyStore } from "@theqrl/web3";
 import browser from "webextension-polyfill";
 
-const ACTIVE_PAGE_IDENTIFIER = "ACTIVE_PAGE";
-const BLOCKCHAIN_SELECTION_IDENTIFIER = "BLOCKCHAIN_SELECTION";
+const KEYSTORES_IDENTIFIER = "KEYSTORES";
+
+const ACCOUNTS_IDENTIFIER = "ACCOUNTS";
+const ALL_ACCOUNTS_IDENTIFIER = "ALL_ACCOUNTS";
 const ACTIVE_ACCOUNT_IDENTIFIER = "ACTIVE_ACCOUNT";
-const ACCOUNT_LIST_IDENTIFIER = "ACCOUNT_LIST";
+
+const BLOCKCHAINS_IDENTIFIER = "BLOCKCHAINS";
+const ALL_BLOCKCHAINS_IDENTIFIER = "ALL_BLOCKCHAINS";
+const ACTIVE_BLOCKCHAIN_IDENTIFIER = "ACTIVE_BLOCKCHAIN";
+
+const DAPPS_IDENTIFIER = "DAPPS";
+const ALL_DAPPS_IDENTIFIER = "ALL_DAPPS";
+const DAPPS_REQUEST_DATA_IDENTIFIER = "DAPPS_REQUEST_DATA";
+
+const TOKENS_IDENTIFIER = "TOKENS";
+const ALL_TOKENS_IDENTIFIER = "ALL_TOKENS";
+
+const ACTIVE_PAGE_IDENTIFIER = "ACTIVE_PAGE";
+
 const TRANSACTION_VALUES_IDENTIFIER = "TRANSACTION_VALUES";
-const TOKENS_LIST_IDENTIFIER = "TOKENS_LIST";
-const DAPP_REQUEST_DATA_IDENTIFIER = "DAPP_REQUEST_DATA";
-const CONNECTED_ACCOUNTS_DATA_IDENTIFIER = "CONNECTED_ACCOUNTS_DATA";
 
 type TransactionValuesType = {
   receiverAddress?: string;
   amount?: number;
-  mnemonicPhrases?: string;
   tokenDetails?: {
     isZrc20Token: boolean;
     tokenContractAddress: string;
     tokenDecimals: number;
-    tokenIcon: string;
+    tokenImage: string;
     tokenBalance: string;
     tokenName: string;
     tokenSymbol: string;
   };
 };
 
+export const LockState = Object.freeze({
+  LOCKED: "LOCKED",
+  UNLOCKED: "UNLOCKED",
+});
+
+type LockStateType = (typeof LockState)[keyof typeof LockState];
+
 /**
  * A utility for storing and retrieving states of different components to and from the browser storage.
  */
 class StorageUtil {
   /**
+   * A function for storing the keystore data.
+   * Call the getKeystore function to retrieve the stored value, and clearKeystore for clearing the stored value.
+   */
+  static async setKeystores(keystores: KeyStore[]) {
+    await browser.storage.local.set({
+      [KEYSTORES_IDENTIFIER]: JSON.stringify(keystores),
+    });
+  }
+
+  static async getKeystores() {
+    const storageData = await browser.storage.local.get(KEYSTORES_IDENTIFIER);
+    const keyStores = storageData?.[KEYSTORES_IDENTIFIER];
+    return (keyStores ? JSON.parse(keyStores) : []) as KeyStore[];
+  }
+
+  static async clearKeystores() {
+    await browser.storage.local.remove(KEYSTORES_IDENTIFIER);
+  }
+
+  static async updateLockStateTimeStamp(lockState: LockStateType) {
+    const lockStatusIdentifier = `LOCK_MANAGER_${lockState}_TIMESTAMP`;
+    await browser.storage.local.set({
+      [lockStatusIdentifier]: Date.now(),
+    });
+  }
+
+  /**
    * A function for storing the transaction state values, so that the user need not fill in the field values if the extension is closed and opened again.
    * Call the getTransactionValues fuction to retieve the stored value.
    */
-  static async setTransactionValues(
-    blockchain: string,
-    transactionValues: TransactionValuesType,
-  ) {
-    const transactionValuesIdentifier = `${blockchain}_${TRANSACTION_VALUES_IDENTIFIER}`;
+  static async setTransactionValues(transactionValues: TransactionValuesType) {
+    const { chainId } = await this.getActiveBlockChain();
+    const transactionValuesIdentifier = `${chainId}_${TRANSACTION_VALUES_IDENTIFIER}`;
     const transactionValuesWithDefaultValues = {
       receiverAddress: transactionValues.receiverAddress ?? "",
       amount: transactionValues.amount ?? 0,
@@ -56,12 +101,12 @@ class StorageUtil {
     });
   }
 
-  static async getTransactionValues(blockchain: string) {
-    const transactionValuesIdentifier = `${blockchain}_${TRANSACTION_VALUES_IDENTIFIER}`;
+  static async getTransactionValues() {
+    const { chainId } = await this.getActiveBlockChain();
+    const transactionValuesIdentifier = `${chainId}_${TRANSACTION_VALUES_IDENTIFIER}`;
     let transactionValues: TransactionValuesType = {
       receiverAddress: "",
       amount: 0,
-      mnemonicPhrases: "",
     };
 
     const storedTransactionValues = await browser.storage.local.get(
@@ -77,83 +122,124 @@ class StorageUtil {
     return transactionValues;
   }
 
-  static async clearTransactionValues(blockchain: string) {
-    const transactionValuesIdentifier = `${blockchain}_${TRANSACTION_VALUES_IDENTIFIER}`;
+  static async clearTransactionValues() {
+    const { chainId } = await this.getActiveBlockChain();
+    const transactionValuesIdentifier = `${chainId}_${TRANSACTION_VALUES_IDENTIFIER}`;
     await browser.storage.local.remove(transactionValuesIdentifier);
   }
 
   /**
    * A function for storing the accounts created and imported within the zond web3 wallet extension.
-   * Call the getAccountList function to retrieve the stored value.
+   * Call the getAllAccounts function to retrieve the stored value.
    */
-  static async setAccountList(blockchain: string, accountList: string[]) {
-    const blockChainAccountListIdentifier = `${blockchain}_${ACCOUNT_LIST_IDENTIFIER}`;
+  static async setAllAccounts(accountList: string[]) {
+    const existing = (await browser.storage.local.get(ACCOUNTS_IDENTIFIER))?.[
+      ACCOUNTS_IDENTIFIER
+    ];
     await browser.storage.local.set({
-      [blockChainAccountListIdentifier]: accountList,
+      [ACCOUNTS_IDENTIFIER]: {
+        ...existing,
+        [ALL_ACCOUNTS_IDENTIFIER]: accountList,
+      },
     });
   }
 
-  static async getAccountList(blockchain: string) {
-    const blockChainAccountListIdentifier = `${blockchain}_${ACCOUNT_LIST_IDENTIFIER}`;
-    const storedAccountList = await browser.storage.local.get(
-      blockChainAccountListIdentifier,
-    );
-
-    return Object.keys(storedAccountList).length
-      ? storedAccountList[blockChainAccountListIdentifier]
-      : [];
+  static async getAllAccounts() {
+    const storedAllAccounts = (
+      await browser.storage.local.get(ACCOUNTS_IDENTIFIER)
+    )?.[ACCOUNTS_IDENTIFIER];
+    return (storedAllAccounts?.[ALL_ACCOUNTS_IDENTIFIER] ?? []) as string[];
   }
 
   /**
    * A function for storing the active account in the wallet.
    * Call the getActiveAccount function to retrieve the stored value, and clearActiveAccount for clearing the stored value.
    */
-  static async setActiveAccount(blockchain: string, activeAccount?: string) {
-    const blockChainAccountIdentifier = `${blockchain}_${ACTIVE_ACCOUNT_IDENTIFIER}`;
+  static async setActiveAccount(activeAccount?: string) {
     if (activeAccount) {
+      const existing = (await browser.storage.local.get(ACCOUNTS_IDENTIFIER))?.[
+        ACCOUNTS_IDENTIFIER
+      ];
       await browser.storage.local.set({
-        [blockChainAccountIdentifier]: activeAccount ?? "",
+        [ACCOUNTS_IDENTIFIER]: {
+          ...existing,
+          [ACTIVE_ACCOUNT_IDENTIFIER]: activeAccount ?? "",
+        },
       });
     } else {
-      await browser.storage.local.remove(blockChainAccountIdentifier);
+      await this.clearActiveAccount();
     }
   }
 
-  static async getActiveAccount(blockchain: string) {
-    const blockChainAccountIdentifier = `${blockchain}_${ACTIVE_ACCOUNT_IDENTIFIER}`;
-    const storedActiveAccount = await browser.storage.local.get(
-      blockChainAccountIdentifier,
-    );
-    return (storedActiveAccount?.[blockChainAccountIdentifier] ?? "") as string;
+  static async getActiveAccount() {
+    const storedAccounts = (
+      await browser.storage.local.get(ACCOUNTS_IDENTIFIER)
+    )?.[ACCOUNTS_IDENTIFIER];
+    return (storedAccounts?.[ACTIVE_ACCOUNT_IDENTIFIER] ?? "") as string;
   }
 
-  static async clearActiveAccount(blockchain: string) {
-    const blockChainAccountIdentifier = `${blockchain}_${ACTIVE_ACCOUNT_IDENTIFIER}`;
-    await browser.storage.local.remove(blockChainAccountIdentifier);
+  static async clearActiveAccount() {
+    const storedAccounts =
+      (await browser.storage.local.get(ACCOUNTS_IDENTIFIER))?.[
+        ACCOUNTS_IDENTIFIER
+      ] ?? {};
+    delete storedAccounts?.[ACTIVE_ACCOUNT_IDENTIFIER];
+    await browser.storage.local.set({
+      [ACCOUNTS_IDENTIFIER]: storedAccounts,
+    });
+  }
+
+  /**
+   * A function for storing all the available blockchains.
+   * Call the getAllBlockChains function to retrieve all the stored blockchains.
+   */
+  static async setAllBlockChains(blockchains: BlockchainDataType[]) {
+    const existing = (
+      await browser.storage.local.get(BLOCKCHAINS_IDENTIFIER)
+    )?.[BLOCKCHAINS_IDENTIFIER];
+    await browser.storage.local.set({
+      [BLOCKCHAINS_IDENTIFIER]: {
+        ...existing,
+        [ALL_BLOCKCHAINS_IDENTIFIER]: blockchains,
+      },
+    });
+  }
+
+  static async getAllBlockChains() {
+    const storedBlockchains = (
+      await browser.storage.local.get(BLOCKCHAINS_IDENTIFIER)
+    )?.[BLOCKCHAINS_IDENTIFIER];
+    return (storedBlockchains?.[ALL_BLOCKCHAINS_IDENTIFIER] ??
+      ZOND_BLOCKCHAINS) as BlockchainDataType[];
   }
 
   /**
    * A function for storing the blockchain selection.
-   * Call the getBlockChain function to retrieve the stored value.
+   * Call the getActiveBlockChain function to retrieve the stored value.
    */
-  static async setBlockChain(selectedBlockchainDeails: BlockchainDetailsType) {
+  static async setActiveBlockChain(selectedBlockchainId: string) {
+    const existing = (
+      await browser.storage.local.get(BLOCKCHAINS_IDENTIFIER)
+    )?.[BLOCKCHAINS_IDENTIFIER];
     await browser.storage.local.set({
-      [BLOCKCHAIN_SELECTION_IDENTIFIER]: selectedBlockchainDeails,
+      [BLOCKCHAINS_IDENTIFIER]: {
+        ...existing,
+        [ACTIVE_BLOCKCHAIN_IDENTIFIER]: selectedBlockchainId,
+      },
     });
   }
 
-  static async getBlockChain() {
-    const DEFAULT_BLOCKCHAIN: BlockchainDetailsType = {
-      blockchain: ZOND_BLOCKCHAIN.MAIN_NET.id as BlockchainType,
-      ipAddress: ZOND_BLOCKCHAIN.MAIN_NET.ipAddress,
-      port: ZOND_BLOCKCHAIN.MAIN_NET.port,
-    };
-    const storedBlockchainDetails = await browser.storage.local.get(
-      BLOCKCHAIN_SELECTION_IDENTIFIER,
+  static async getActiveBlockChain() {
+    const storedBlockchains = (
+      await browser.storage.local.get(BLOCKCHAINS_IDENTIFIER)
+    )?.[BLOCKCHAINS_IDENTIFIER];
+    const blockchains = await this.getAllBlockChains();
+    const existingChain = blockchains.find(
+      (chain) =>
+        chain.chainId.toLowerCase() ===
+        storedBlockchains?.[ACTIVE_BLOCKCHAIN_IDENTIFIER]?.toLowerCase(),
     );
-
-    return (storedBlockchainDetails?.[BLOCKCHAIN_SELECTION_IDENTIFIER] ??
-      DEFAULT_BLOCKCHAIN) as BlockchainDetailsType;
+    return existingChain ?? DEFAULT_BLOCKCHAIN;
   }
 
   /**
@@ -184,114 +270,153 @@ class StorageUtil {
    * Call the getTokenContractsList function to retrieve the stored value, and clearFromTokenList for clearing the stored value.
    */
   static async setTokenContractsList(
-    blockchain: string,
     accountAddress: string,
-    contractAddress: string,
+    tokenContract: TokenContractType,
   ) {
-    const tokensListIdentifier = `${blockchain}_${TOKENS_LIST_IDENTIFIER}_${accountAddress.toUpperCase()}`;
-    let storedTokensList = await this.getTokenContractsList(
-      blockchain,
-      accountAddress,
-    );
-    storedTokensList.push(contractAddress);
+    const { chainId } = await this.getActiveBlockChain();
 
-    await browser.storage.local.set({
-      [tokensListIdentifier]: Array.from(new Set(storedTokensList)),
-    });
+    const storageData = await browser.storage.local.get(TOKENS_IDENTIFIER);
+    if (!storageData[TOKENS_IDENTIFIER]) {
+      storageData[TOKENS_IDENTIFIER] = {};
+    }
+    if (!storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER]) {
+      storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER] = {};
+    }
+    if (
+      !storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER][accountAddress]
+    ) {
+      storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER][accountAddress] =
+        {};
+    }
+    if (
+      !storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER][accountAddress][
+        chainId
+      ]
+    ) {
+      storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER][accountAddress][
+        chainId
+      ] = {};
+    }
+    const storedTokenContracts =
+      await this.getTokenContractsList(accountAddress);
+    storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER][accountAddress][
+      chainId
+    ].tokens = [
+      ...storedTokenContracts?.filter(
+        (token) => token.address !== tokenContract.address,
+      ),
+      tokenContract,
+    ];
+
+    await browser.storage.local.set(storageData);
   }
 
-  static async getTokenContractsList(
-    blockchain: string,
-    accountAddress: string,
-  ) {
-    const tokensListIdentifier = `${blockchain}_${TOKENS_LIST_IDENTIFIER}_${accountAddress.toUpperCase()}`;
-    const storedTokensList =
-      await browser.storage.local.get(tokensListIdentifier);
+  static async getTokenContractsList(accountAddress: string) {
+    const { chainId } = await this.getActiveBlockChain();
 
-    return (storedTokensList?.[tokensListIdentifier] ?? []) as string[];
+    const storageData = await browser.storage.local.get(TOKENS_IDENTIFIER);
+    const storedTokenContracts =
+      storageData?.[TOKENS_IDENTIFIER]?.[ALL_TOKENS_IDENTIFIER]?.[
+        accountAddress
+      ]?.[chainId]?.tokens ?? [];
+
+    return storedTokenContracts as TokenContractType[];
   }
 
   static async clearFromTokenContractsList(
-    blockchain: string,
     accountAddress: string,
     contractAddress: string,
   ) {
-    const tokensListIdentifier = `${blockchain}_${TOKENS_LIST_IDENTIFIER}_${accountAddress.toUpperCase()}`;
-    let storedTokensList = await this.getTokenContractsList(
-      blockchain,
-      accountAddress,
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(TOKENS_IDENTIFIER);
+    const storedTokenContracts =
+      await this.getTokenContractsList(accountAddress);
+    storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER][accountAddress][
+      chainId
+    ].tokens = storedTokenContracts.filter(
+      (token) => token.address !== contractAddress,
     );
 
-    await browser.storage.local.set({
-      [tokensListIdentifier]: Array.from(
-        new Set(
-          storedTokensList.filter((address) => address !== contractAddress),
-        ),
-      ),
-    });
+    await browser.storage.local.set({ ...storageData });
   }
 
   /**
    * A function for storing the request info temporarily by the dApp, which will be read by the zond web3 wallet.
-   * Call the getDAppRequestData function to retrieve the stored value, and clearFromTokenList for clearing the stored value.
+   * Call the getDAppsRequestData function to retrieve the stored value, and clearDAppsRequestData for clearing the stored value.
    */
-  static async setDAppRequestData(data: DAppRequestType) {
-    const blockChain = await this.getBlockChain();
-    const dAppRequestDataIdentifier = `${blockChain}_${DAPP_REQUEST_DATA_IDENTIFIER}`;
+  static async setDAppsRequestData(dAppsRequestData: DAppRequestType) {
     await browser.storage.session.set({
-      [dAppRequestDataIdentifier]: data,
+      [DAPPS_IDENTIFIER]: {
+        [DAPPS_REQUEST_DATA_IDENTIFIER]: dAppsRequestData,
+      },
     });
   }
 
-  static async getDAppRequestData() {
-    const blockChain = await this.getBlockChain();
-    const dAppRequestDataIdentifier = `${blockChain}_${DAPP_REQUEST_DATA_IDENTIFIER}`;
-    const storedDAppRequestData = await browser.storage.session.get(
-      dAppRequestDataIdentifier,
-    );
-    return storedDAppRequestData[dAppRequestDataIdentifier] as
+  static async getDAppsRequestData() {
+    const storedDAppsRequestData = (
+      await browser.storage.session.get(DAPPS_IDENTIFIER)
+    )?.[DAPPS_IDENTIFIER];
+    return storedDAppsRequestData?.[DAPPS_REQUEST_DATA_IDENTIFIER] as
       | DAppRequestType
       | undefined;
   }
 
-  static async clearDAppRequestData() {
-    const blockChain = await this.getBlockChain();
-    const dAppRequestDataIdentifier = `${blockChain}_${DAPP_REQUEST_DATA_IDENTIFIER}`;
-    await browser.storage.session.remove(dAppRequestDataIdentifier);
+  static async clearDAppsRequestData() {
+    const storedDAppsRequestData =
+      (await browser.storage.session.get(DAPPS_IDENTIFIER))?.[
+        DAPPS_IDENTIFIER
+      ] ?? {};
+    delete storedDAppsRequestData?.[DAPPS_REQUEST_DATA_IDENTIFIER];
+    await browser.storage.session.set({
+      [DAPPS_IDENTIFIER]: storedDAppsRequestData,
+    });
   }
 
   /**
    * A function for storing the connected accounts info temporarily, which will be read by method like 'zond_accounts'.
-   * Call the getConnectedAccountsData function to retrieve the stored value, and clearConnectedAccountsData for clearing the stored value.
+   * Call the getDAppsConnectedAccountsData function to retrieve the stored value, and clearDAppsConnectedAccountsData for clearing the stored value.
    */
-  static async setConnectedAccountsData(data: ConnectedAccountsDataType) {
+  static async setDAppsConnectedAccountsData(data: ConnectedAccountsDataType) {
     const urlOrigin = data.urlOrigin;
-    const blockChain = await this.getBlockChain();
-    const connectedAccountsDataIdentifier = `${blockChain}_${urlOrigin}_${CONNECTED_ACCOUNTS_DATA_IDENTIFIER}`;
-    const updatedConnectedAccountsData: ConnectedAccountsDataType = {
-      urlOrigin,
-      accounts: data.accounts,
-    };
-    await browser.storage.local.set({
-      [connectedAccountsDataIdentifier]: updatedConnectedAccountsData,
-    });
+
+    const storageData = await browser.storage.local.get(DAPPS_IDENTIFIER);
+    if (!storageData[DAPPS_IDENTIFIER]) {
+      storageData[DAPPS_IDENTIFIER] = {};
+    }
+    if (!storageData[DAPPS_IDENTIFIER][ALL_DAPPS_IDENTIFIER]) {
+      storageData[DAPPS_IDENTIFIER][ALL_DAPPS_IDENTIFIER] = {};
+    }
+    if (!storageData[DAPPS_IDENTIFIER][ALL_DAPPS_IDENTIFIER][urlOrigin]) {
+      storageData[DAPPS_IDENTIFIER][ALL_DAPPS_IDENTIFIER][urlOrigin] = {};
+    }
+    storageData[DAPPS_IDENTIFIER][ALL_DAPPS_IDENTIFIER][urlOrigin].urlOrigin =
+      urlOrigin;
+    storageData[DAPPS_IDENTIFIER][ALL_DAPPS_IDENTIFIER][urlOrigin].accounts =
+      data.accounts;
+    storageData[DAPPS_IDENTIFIER][ALL_DAPPS_IDENTIFIER][urlOrigin].blockchains =
+      data.blockchains;
+    storageData[DAPPS_IDENTIFIER][ALL_DAPPS_IDENTIFIER][urlOrigin].permissions =
+      data.permissions;
+
+    await browser.storage.local.set(storageData);
   }
 
-  static async getConnectedAccountsData(urlOrigin: string) {
-    const blockChain = await this.getBlockChain();
-    const connectedAccountsDataIdentifier = `${blockChain}_${urlOrigin}_${CONNECTED_ACCOUNTS_DATA_IDENTIFIER}`;
-    const storedConnectedAccountsData = await browser.storage.local.get(
-      connectedAccountsDataIdentifier,
-    );
-    return storedConnectedAccountsData[connectedAccountsDataIdentifier] as
-      | ConnectedAccountsDataType
-      | undefined;
+  static async getDAppsConnectedAccountsData(urlOrigin: string = "") {
+    const storageData = await browser.storage.local.get(DAPPS_IDENTIFIER);
+    return storageData?.[DAPPS_IDENTIFIER]?.[ALL_DAPPS_IDENTIFIER]?.[
+      urlOrigin
+    ] as ConnectedAccountsDataType | undefined;
   }
 
-  static async clearConnectedAccountsData(urlOrigin: string) {
-    const blockChain = await this.getBlockChain();
-    const connectedAccountsDataIdentifier = `${blockChain}_${urlOrigin}_${CONNECTED_ACCOUNTS_DATA_IDENTIFIER}`;
-    await browser.storage.local.remove(connectedAccountsDataIdentifier);
+  static async clearDAppsConnectedAccountsData(urlOrigin: string = "") {
+    const storageData = await browser.storage.local.get(DAPPS_IDENTIFIER);
+    delete storageData[DAPPS_IDENTIFIER]?.[ALL_DAPPS_IDENTIFIER]?.[urlOrigin];
+    await browser.storage.local.set(storageData);
+  }
+
+  static async clearAllData() {
+    await browser.storage.local.clear();
   }
 }
 

@@ -19,6 +19,6 @@ export const blockUnSupportedMethodsMiddleware: JsonRpcMiddleware<
     res.error = rpcErrors.methodNotFound({
       message: `The method "${req.method}" does not exist / is not available.`,
     });
-    end();
+    return end();
   }
 };

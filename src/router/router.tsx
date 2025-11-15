@@ -1,4 +1,3 @@
-import AllZRC20Tokens from "@/components/ZondWeb3Wallet/Body/AllZRC20Tokens/AllZRC20Tokens";
 import withSuspense from "@/functions/withSuspense";
 import { lazy } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
@@ -7,34 +6,97 @@ const ZondWeb3Wallet = withSuspense(
   lazy(() => import("@/components/ZondWeb3Wallet/ZondWeb3Wallet")),
 );
 const Home = withSuspense(
-  lazy(() => import("@/components/ZondWeb3Wallet/Body/Home/Home")),
+  lazy(
+    () =>
+      import("@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Home/Home"),
+  ),
 );
 const CreateAccount = withSuspense(
   lazy(
     () =>
-      import("@/components/ZondWeb3Wallet/Body/CreateAccount/CreateAccount"),
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/CreateAccount/CreateAccount"
+      ),
   ),
 );
 const ImportAccount = withSuspense(
   lazy(
     () =>
-      import("@/components/ZondWeb3Wallet/Body/ImportAccount/ImportAccount"),
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ImportAccount/ImportAccount"
+      ),
   ),
 );
 const ImportToken = withSuspense(
   lazy(
-    () => import("@/components/ZondWeb3Wallet/Body/ImportToken/ImportToken"),
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ImportToken/ImportToken"
+      ),
+  ),
+);
+const AllZRC20Tokens = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/AllZRC20Tokens/AllZRC20Tokens"
+      ),
   ),
 );
 const AccountList = withSuspense(
   lazy(
-    () => import("@/components/ZondWeb3Wallet/Body/AccountList/AccountList"),
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/AccountList/AccountList"
+      ),
+  ),
+);
+const DAppConnectivity = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/DAppConnectivity/DAppConnectivity"
+      ),
+  ),
+);
+const EditDAppConnectedAccounts = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/DAppConnectivity/ConnectivityWithWallet/DAppConnected/DAppConnectedAccounts/EditDAppConnectedAccounts/EditDAppConnectedAccounts"
+      ),
+  ),
+);
+const EditDAppConnectedBlockchains = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/DAppConnectivity/ConnectivityWithWallet/DAppConnected/DAppConnectedBlockchains/EditDAppConnectedBlockchains/EditDAppConnectedBlockchains"
+      ),
+  ),
+);
+const ChainConnectivity = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/ChainConnectivity"
+      ),
+  ),
+);
+const AddEditChain = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/NewChain/AddEditChain/AddEditChain"
+      ),
   ),
 );
 const TokenTransfer = withSuspense(
   lazy(
     () =>
-      import("@/components/ZondWeb3Wallet/Body/TokenTransfer/TokenTransfer"),
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/TokenTransfer/TokenTransfer"
+      ),
   ),
 );
 
@@ -46,6 +108,11 @@ export const ROUTES = {
   ALL_ZRC_20_TOKENS: "/all-zrc-20-tokens",
   TOKEN_TRANSFER: "/token-transfer",
   ACCOUNT_LIST: "/account-list",
+  DAPP_CONNECTIVITY: "/dapp-connectivity",
+  EDIT_DAPP_CONNECTED_ACCOUNTS: "/edit-dapp-connected-accounts",
+  EDIT_DAPP_CONNECTED_BLOCKCHAINS: "/edit-dapp-connected-blockchains",
+  CHAIN_CONNECTIVITY: "/chain-connectivity",
+  ADD_EDIT_CHAIN: "/add-edit-chain",
   DEFAULT: "*",
 };
 
@@ -81,6 +148,26 @@ const router = createMemoryRouter([
       {
         path: ROUTES.ACCOUNT_LIST,
         element: <AccountList />,
+      },
+      {
+        path: ROUTES.DAPP_CONNECTIVITY,
+        element: <DAppConnectivity />,
+      },
+      {
+        path: ROUTES.EDIT_DAPP_CONNECTED_ACCOUNTS,
+        element: <EditDAppConnectedAccounts />,
+      },
+      {
+        path: ROUTES.EDIT_DAPP_CONNECTED_BLOCKCHAINS,
+        element: <EditDAppConnectedBlockchains />,
+      },
+      {
+        path: ROUTES.CHAIN_CONNECTIVITY,
+        element: <ChainConnectivity />,
+      },
+      {
+        path: ROUTES.ADD_EDIT_CHAIN,
+        element: <AddEditChain />,
       },
     ],
   },

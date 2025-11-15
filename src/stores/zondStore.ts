@@ -1,7 +1,6 @@
 import {
-  BlockchainDetailsType,
-  BlockchainType,
-  ZOND_BLOCKCHAIN,
+  BlockchainDataType,
+  DEFAULT_BLOCKCHAIN,
 } from "@/configuration/zondBlockchainConfig";
 import { NATIVE_TOKEN_UNITS_OF_GAS } from "@/constants/nativeToken";
 import {
@@ -37,19 +36,19 @@ class ZondStore {
   zondConnection = {
     isConnected: false,
     isLoading: false,
-    blockchain: ZOND_BLOCKCHAIN.MAIN_NET.id as BlockchainType,
-    ipAddress: ZOND_BLOCKCHAIN.MAIN_NET.ipAddress,
-    port: ZOND_BLOCKCHAIN.MAIN_NET.port,
+    blockchain: DEFAULT_BLOCKCHAIN,
   };
   zondAccounts: ZondAccountsType = { accounts: [], isLoading: false };
   activeAccount: ActiveAccountType = { accountAddress: "" };
 
   constructor() {
     makeAutoObservable(this, {
+      initializeBlockchain: action.bound,
       zondInstance: observable.struct,
       zondConnection: observable.struct,
       zondAccounts: observable.struct,
       activeAccount: observable.struct,
+      refreshBlockchainData: action.bound,
       selectBlockchain: action.bound,
       setActiveAccount: action.bound,
       fetchZondConnection: action.bound,
@@ -66,15 +65,9 @@ class ZondStore {
   }
 
   async initializeBlockchain() {
-    const { blockchain, ipAddress, port } = await StorageUtil.getBlockChain();
-    this.zondConnection = {
-      ...this.zondConnection,
-      blockchain,
-      ipAddress,
-      port,
-    };
+    await this.refreshBlockchainData();
     const zondHttpProvider = new Web3.providers.HttpProvider(
-      `${ipAddress}:${port}`,
+      this.zondConnection.blockchain.defaultRpcUrl || "http://localhost",
     );
     const { zond } = new Web3({ provider: zondHttpProvider });
     this.zondInstance = zond;
@@ -84,16 +77,46 @@ class ZondStore {
     await this.validateActiveAccount();
   }
 
-  async selectBlockchain(selectedBlockchainDetails: BlockchainDetailsType) {
-    await StorageUtil.setBlockChain(selectedBlockchainDetails);
+  async addChain(chainData: BlockchainDataType) {
+    const newChain: BlockchainDataType = {
+      ...chainData,
+      chainId: chainData?.chainId?.trim(),
+      chainName: chainData?.chainName?.trim()?.substring(0, 100),
+    };
+    const blockchains = await StorageUtil.getAllBlockChains();
+    const chainFound = !!blockchains.find(
+      (chain) => chain.chainId.toLowerCase() === newChain.chainId.toLowerCase(),
+    );
+    return { chainFound, updatedChainList: [...blockchains, newChain] };
+  }
+
+  async editChain(chainData: BlockchainDataType) {
+    const editedChain = {
+      ...chainData,
+      chainId: chainData?.chainId?.trim(),
+      chainName: chainData?.chainName?.trim()?.substring(0, 100),
+    };
+    const blockchains = await StorageUtil.getAllBlockChains();
+    const updatedChainList: BlockchainDataType[] = blockchains.map((chain) =>
+      chain.chainId.toLowerCase() === editedChain?.chainId?.toLowerCase()
+        ? { ...chain, ...editedChain }
+        : chain,
+    );
+    return { updatedChainList };
+  }
+
+  async refreshBlockchainData() {
+    const blockchain = await StorageUtil.getActiveBlockChain();
+    this.zondConnection = { ...this.zondConnection, blockchain };
+  }
+
+  async selectBlockchain(chainId: string) {
+    await StorageUtil.setActiveBlockChain(chainId);
     await this.initializeBlockchain();
   }
 
   async setActiveAccount(activeAccount?: string) {
-    await StorageUtil.setActiveAccount(
-      this.zondConnection.blockchain,
-      activeAccount,
-    );
+    await StorageUtil.setActiveAccount(activeAccount);
     this.activeAccount = {
       ...this.activeAccount,
       accountAddress: activeAccount ?? "",
@@ -101,19 +124,14 @@ class ZondStore {
 
     let storedAccountList: string[] = [];
     try {
-      const accountListFromStorage = await StorageUtil.getAccountList(
-        this.zondConnection.blockchain,
-      );
+      const accountListFromStorage = await StorageUtil.getAllAccounts();
       storedAccountList = [...accountListFromStorage];
       if (activeAccount) {
         storedAccountList.push(activeAccount);
       }
       storedAccountList = [...new Set(storedAccountList)];
     } finally {
-      await StorageUtil.setAccountList(
-        this.zondConnection.blockchain,
-        storedAccountList,
-      );
+      await StorageUtil.setAllAccounts(storedAccountList);
       await this.fetchAccounts();
     }
   }
@@ -143,9 +161,7 @@ class ZondStore {
     this.zondAccounts = { ...this.zondAccounts, isLoading: true };
 
     let storedAccountsList: string[] = [];
-    const accountListFromStorage = await StorageUtil.getAccountList(
-      this.zondConnection.blockchain,
-    );
+    const accountListFromStorage = await StorageUtil.getAllAccounts();
     storedAccountsList = accountListFromStorage;
     try {
       const accountsWithBalance: ZondAccountsType["accounts"] =
@@ -187,16 +203,14 @@ class ZondStore {
 
   async validateActiveAccount() {
     this.activeAccount = { accountAddress: "" };
-    const storedActiveAccount = await StorageUtil.getActiveAccount(
-      this.zondConnection.blockchain,
-    );
+    const storedActiveAccount = await StorageUtil.getActiveAccount();
 
     const confirmedExistingActiveAccount =
       this.zondAccounts.accounts.find(
         (account) => account.accountAddress === storedActiveAccount,
       )?.accountAddress ?? "";
     if (!confirmedExistingActiveAccount) {
-      await StorageUtil.clearActiveAccount(this.zondConnection.blockchain);
+      await StorageUtil.clearActiveAccount();
     }
     runInAction(() => {
       this.activeAccount = {
@@ -312,7 +326,7 @@ class ZondStore {
           Number(balanceUnformatted) / Math.pow(10, Number(decimals));
         return {
           ...tokenDetails,
-          token: { name, symbol, decimals, totalSupply, balance },
+          token: { name, symbol, decimals, totalSupply, balance, image: "" },
         };
       } catch (error) {
         return {

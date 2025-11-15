@@ -13,6 +13,7 @@ export default defineConfig({
     webExtension({
       additionalInputs: ["src/scripts/inPageScript.ts"],
       disableAutoLaunch: true,
+      watchFilePaths: ["src"],
       transformManifest: (manifest) => {
         manifest.version = version;
         return manifest;

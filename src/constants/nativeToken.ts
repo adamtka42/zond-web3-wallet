@@ -1,5 +1,5 @@
 export const NATIVE_TOKEN = {
-  icon: "icons/qrl/default.png",
+  image: "icons/qrl/default.png",
   name: "Zond",
   symbol: "ZND",
   decimals: 8,

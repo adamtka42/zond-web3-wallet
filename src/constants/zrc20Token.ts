@@ -150,3 +150,5 @@ export const ZRC_20_CONTRACT_ABI = [
 ] as const;
 
 export const ZRC_20_TOKEN_UNITS_OF_GAS = 65000;
+
+export const ZRC_20_ITEMS_DISPLAY_LIMIT = 2;
