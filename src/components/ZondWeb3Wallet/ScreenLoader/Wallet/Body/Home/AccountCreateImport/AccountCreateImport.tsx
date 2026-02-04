@@ -10,7 +10,7 @@ import {
 import { ROUTES } from "@/router/router";
 import { useStore } from "@/stores/store";
 import { cva } from "class-variance-authority";
-import { Download, Logs, Plus, Send } from "lucide-react";
+import { Download, Logs, Plus, Send, Usb } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { Link, useLocation } from "react-router-dom";
 import ActiveAccountDisplay from "./ActiveAccountDisplay/ActiveAccountDisplay";
@@ -131,6 +131,12 @@ const AccountCreateImport = observer(() => {
             <Button className="w-full" type="button" variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Import an existing account
+            </Button>
+          </Link>
+          <Link className="w-full" to={ROUTES.IMPORT_LEDGER}>
+            <Button className="w-full" type="button" variant="outline">
+              <Usb className="mr-2 h-4 w-4" />
+              Connect Ledger
             </Button>
           </Link>
         </CardFooter>

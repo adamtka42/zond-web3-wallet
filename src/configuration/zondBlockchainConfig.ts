@@ -59,4 +59,4 @@ export const ZOND_BLOCKCHAINS: BlockchainDataType[] = [
   },
 ];
 
-export const DEFAULT_BLOCKCHAIN = ZOND_BLOCKCHAINS[0];
+export const DEFAULT_BLOCKCHAIN = ZOND_BLOCKCHAINS[1]; // Testnet

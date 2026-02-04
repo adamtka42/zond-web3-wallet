@@ -99,11 +99,20 @@ const TokenTransfer = withSuspense(
       ),
   ),
 );
+const ImportLedger = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ImportLedger/ImportLedger"
+      ),
+  ),
+);
 
 export const ROUTES = {
   HOME: "/",
   CREATE_ACCOUNT: "/create-account",
   IMPORT_ACCOUNT: "/import-account",
+  IMPORT_LEDGER: "/import-ledger",
   IMPORT_TOKEN: "/import-token",
   ALL_ZRC_20_TOKENS: "/all-zrc-20-tokens",
   TOKEN_TRANSFER: "/token-transfer",
@@ -132,6 +141,10 @@ const router = createMemoryRouter([
       {
         path: ROUTES.IMPORT_ACCOUNT,
         element: <ImportAccount />,
+      },
+      {
+        path: ROUTES.IMPORT_LEDGER,
+        element: <ImportLedger />,
       },
       {
         path: ROUTES.IMPORT_TOKEN,

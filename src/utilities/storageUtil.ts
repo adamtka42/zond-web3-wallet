@@ -8,6 +8,7 @@ import {
   DAppRequestType,
   TokenContractType,
 } from "@/scripts/middlewares/middlewareTypes";
+import type { LedgerAccount } from "@/services/ledger/ledgerTypes";
 import { KeyStore } from "@theqrl/web3";
 import browser from "webextension-polyfill";
 
@@ -16,6 +17,9 @@ const KEYSTORES_IDENTIFIER = "KEYSTORES";
 const ACCOUNTS_IDENTIFIER = "ACCOUNTS";
 const ALL_ACCOUNTS_IDENTIFIER = "ALL_ACCOUNTS";
 const ACTIVE_ACCOUNT_IDENTIFIER = "ACTIVE_ACCOUNT";
+
+const LEDGER_IDENTIFIER = "LEDGER";
+const LEDGER_ACCOUNTS_IDENTIFIER = "LEDGER_ACCOUNTS";
 
 const BLOCKCHAINS_IDENTIFIER = "BLOCKCHAINS";
 const ALL_BLOCKCHAINS_IDENTIFIER = "ALL_BLOCKCHAINS";
@@ -417,6 +421,119 @@ class StorageUtil {
 
   static async clearAllData() {
     await browser.storage.local.clear();
+  }
+
+  /**
+   * Stores Ledger accounts.
+   *
+   * WHY SEPARATE STORAGE:
+   * Ledger accounts are stored separately from regular accounts because:
+   * 1. They don't have private keys stored locally
+   * 2. They need additional metadata (derivation path, device info)
+   * 3. Signing requires different flow (device interaction)
+   *
+   * STRUCTURE:
+   * {
+   *   LEDGER: {
+   *     LEDGER_ACCOUNTS: [
+   *       { address, derivationPath, publicKey, index },
+   *       ...
+   *     ]
+   *   }
+   * }
+   */
+  static async setLedgerAccounts(accounts: LedgerAccount[]) {
+    const existing =
+      (await browser.storage.local.get(LEDGER_IDENTIFIER))?.[LEDGER_IDENTIFIER] ?? {};
+
+    await browser.storage.local.set({
+      [LEDGER_IDENTIFIER]: {
+        ...existing,
+        [LEDGER_ACCOUNTS_IDENTIFIER]: accounts,
+      },
+    });
+  }
+
+  /**
+   * Retrieves all stored Ledger accounts.
+   *
+   * @returns Array of Ledger accounts (empty array if none)
+   */
+  static async getLedgerAccounts(): Promise<LedgerAccount[]> {
+    const storedLedger = (await browser.storage.local.get(LEDGER_IDENTIFIER))?.[
+      LEDGER_IDENTIFIER
+    ];
+    return (storedLedger?.[LEDGER_ACCOUNTS_IDENTIFIER] ?? []) as LedgerAccount[];
+  }
+
+  /**
+   * Clears all stored Ledger accounts.
+   * Use with caution - removes all Ledger account data.
+   */
+  static async clearLedgerAccounts() {
+    const storedLedger =
+      (await browser.storage.local.get(LEDGER_IDENTIFIER))?.[LEDGER_IDENTIFIER] ?? {};
+    delete storedLedger?.[LEDGER_ACCOUNTS_IDENTIFIER];
+    await browser.storage.local.set({
+      [LEDGER_IDENTIFIER]: storedLedger,
+    });
+  }
+
+  /**
+   * Adds a Ledger account address to the global accounts list.
+   *
+   * @param address - Ledger account address to add
+   */
+  static async addLedgerAccountToAllAccounts(address: string) {
+    const allAccounts = await this.getAllAccounts();
+
+    // Avoid duplicates
+    if (
+      !allAccounts.some((a) => a.toLowerCase() === address.toLowerCase())
+    ) {
+      await this.setAllAccounts([...allAccounts, address]);
+    }
+  }
+
+  /**
+   * Removes a Ledger account address from the global accounts list.
+   *
+   * @param address - Ledger account address to remove
+   */
+  static async removeLedgerAccountFromAllAccounts(address: string) {
+    const allAccounts = await this.getAllAccounts();
+    const filteredAccounts = allAccounts.filter(
+      (a) => a.toLowerCase() !== address.toLowerCase()
+    );
+    await this.setAllAccounts(filteredAccounts);
+  }
+
+  /**
+   * Checks if an address belongs to a Ledger account.
+   *
+   * @param address - Address to check
+   * @returns true if address is a Ledger account
+   */
+  static async isLedgerAccount(address: string): Promise<boolean> {
+    const ledgerAccounts = await this.getLedgerAccounts();
+    return ledgerAccounts.some(
+      (a) => a.address.toLowerCase() === address.toLowerCase()
+    );
+  }
+
+  /**
+   * Gets a Ledger account by address.
+   *
+   * @param address - Address to look up
+   * @returns Ledger account or undefined if not found
+   */
+  static async getLedgerAccountByAddress(
+    address: string
+  ): Promise<LedgerAccount | undefined> {
+    const ledgerAccounts = await this.getLedgerAccounts();
+    return ledgerAccounts.find(
+      (a) => a.address.toLowerCase() === address.toLowerCase()
+    );
   }
 }
 

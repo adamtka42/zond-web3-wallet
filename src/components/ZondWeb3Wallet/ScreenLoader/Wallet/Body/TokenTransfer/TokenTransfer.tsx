@@ -27,7 +27,7 @@ import { ROUTES } from "@/router/router";
 import { useStore } from "@/stores/store";
 import StorageUtil from "@/utilities/storageUtil";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TransactionReceipt, validator } from "@theqrl/web3";
+import { TransactionReceipt, validator, utils, zond } from "@theqrl/web3";
 import { Loader, Send, X } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
@@ -40,6 +40,9 @@ import AccountAddressSection from "./AccountAddressSection/AccountAddressSection
 import { GasFeeNotice } from "./GasFeeNotice/GasFeeNotice";
 import TokenDisplaySection from "./TokenDisplaySection/TokenDisplaySection";
 import { TransactionSuccessful } from "./TransactionSuccessful/TransactionSuccessful";
+import { NATIVE_TOKEN_UNITS_OF_GAS } from "@/constants/nativeToken";
+
+const { Common } = zond.accounts;
 
 const FormSchema = z
   .object({
@@ -54,13 +57,15 @@ const FormSchema = z
 const TokenTransfer = observer(() => {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { lockStore, zondStore } = useStore();
+  const { lockStore, zondStore, ledgerStore } = useStore();
   const { getMnemonicPhrases } = lockStore;
   const {
     activeAccount,
     signAndSendNativeToken,
     fetchAccounts,
     signAndSendZrc20Token,
+    zondInstance,
+    getGasFeeData,
   } = zondStore;
   const { accountAddress } = activeAccount;
 
@@ -75,13 +80,53 @@ const TokenTransfer = observer(() => {
   const [tokenSymbol, setTokenSymbol] = useState(NATIVE_TOKEN.symbol);
 
   const sendNativeToken = async (formData: z.infer<typeof FormSchema>) => {
-    const mnemonicPhrases = await getMnemonicPhrases(accountAddress);
-    return await signAndSendNativeToken(
-      accountAddress,
-      formData.receiverAddress,
-      formData.amount,
-      mnemonicPhrases,
-    );
+    const isLedgerAccount = ledgerStore.isLedgerAccount(accountAddress);
+    if (isLedgerAccount) {
+      // Ledger signing flow
+      return await sendNativeTokenWithLedger(formData);
+    } else {
+      // Regular mnemonic-based signing
+      const mnemonicPhrases = await getMnemonicPhrases(accountAddress);
+      return await signAndSendNativeToken(
+        accountAddress,
+        formData.receiverAddress,
+        formData.amount,
+        mnemonicPhrases,
+      );
+    }
+  };
+
+  const sendNativeTokenWithLedger = async (formData: z.infer<typeof FormSchema>) => {
+    let transaction: {
+      transactionReceipt?: TransactionReceipt;
+      error: string;
+    } = { transactionReceipt: undefined, error: "" };
+
+    try {
+      const { maxFeePerGas, maxPriorityFeePerGas } = await getGasFeeData();
+      const nonce = await zondInstance?.getTransactionCount(accountAddress);
+      const chainId = await zondInstance?.getChainId();
+
+      const common = Common.custom({ chainId: Number(chainId) });
+      const txData = {
+        nonce: `0x${(nonce ?? 0).toString(16)}`,
+        maxPriorityFeePerGas: `0x${Number(maxPriorityFeePerGas).toString(16)}`,
+        maxFeePerGas: `0x${Number(maxFeePerGas).toString(16)}`,
+        gasLimit: `0x${BigInt(NATIVE_TOKEN_UNITS_OF_GAS).toString(16)}`,
+        to: formData.receiverAddress,
+        value: `0x${BigInt(utils.toWei(formData.amount, "ether")).toString(16)}`,
+        data: "0x",
+      };
+
+      const signedRawTxHex = await ledgerStore.signAndSerializeTransaction(accountAddress, txData, common);
+      const transactionReceipt = await zondInstance?.sendSignedTransaction(signedRawTxHex);
+      transaction.transactionReceipt = transactionReceipt;
+    } catch (error) {
+      console.error("[TokenTransfer] Ledger transaction failed:", error);
+      transaction.error = error instanceof Error ? error.message : String(error);
+    }
+
+    return transaction;
   };
 
   const sendZrc20Token = async (formData: z.infer<typeof FormSchema>) => {

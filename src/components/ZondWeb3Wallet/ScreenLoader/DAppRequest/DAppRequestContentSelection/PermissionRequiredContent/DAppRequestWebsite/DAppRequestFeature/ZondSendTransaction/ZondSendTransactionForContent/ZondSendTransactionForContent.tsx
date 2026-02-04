@@ -13,7 +13,9 @@ import { Copy } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import { SEND_TRANSACTION_TYPES } from "../ZondSendTransaction";
-import { utils } from "@theqrl/web3";
+import { utils, zond } from "@theqrl/web3";
+
+const { Common } = zond.accounts;
 
 type ZondSendTransactionForContentProps = {
   transactionType: keyof typeof SEND_TRANSACTION_TYPES;
@@ -21,7 +23,7 @@ type ZondSendTransactionForContentProps = {
 
 const ZondSendTransactionForContent = observer(
   ({ transactionType }: ZondSendTransactionForContentProps) => {
-    const { lockStore, zondStore, dAppRequestStore } = useStore();
+    const { lockStore, zondStore, dAppRequestStore, ledgerStore } = useStore();
     const { getMnemonicPhrases } = lockStore;
     const { zondInstance, getGasFeeData, zondConnection } = zondStore;
     const { isConnected } = zondConnection;
@@ -66,7 +68,9 @@ const ZondSendTransactionForContent = observer(
       const request = dAppRequestData?.params?.[0];
       try {
         const { from, to, data, gas, type, value } = request;
-        const mnemonicPhrases = await getMnemonicPhrases(from ?? "");
+
+        const isLedgerAccount = ledgerStore.isLedgerAccount(from ?? "");
+
         const gasPrice = await zondInstance?.getGasPrice();
         let transactionObject: any = {
           from,
@@ -84,13 +88,45 @@ const ZondSendTransactionForContent = observer(
         } else {
           transactionObject.gasPrice = gasPrice;
         }
-        const signedTransaction = await zondInstance?.accounts.signTransaction(
-          transactionObject,
-          getHexSeedFromMnemonic(mnemonicPhrases),
-        );
-        if (signedTransaction) {
+
+        let rawTransactionToSend: string | undefined;
+
+        if (isLedgerAccount) {
+          const chainId = await zondInstance?.getChainId();
+          const common = Common.custom({ chainId: Number(chainId) });
+
+          const txData: any = {
+            nonce: `0x${transactionObject.nonce.toString(16)}`,
+            gasLimit: transactionObject.gas,
+            data: transactionObject.data || "0x",
+            value: transactionObject.value ? `0x${BigInt(transactionObject.value).toString(16)}` : "0x0",
+          };
+
+          if (transactionObject.to) {
+            txData.to = transactionObject.to;
+          }
+
+          if (transactionObject.type === "0x2") {
+            txData.maxPriorityFeePerGas = transactionObject.maxPriorityFeePerGas;
+            txData.maxFeePerGas = transactionObject.maxFeePerGas;
+          } else {
+            txData.gasPrice = `0x${BigInt(transactionObject.gasPrice).toString(16)}`;
+          }
+
+          rawTransactionToSend = await ledgerStore.signAndSerializeTransaction(from ?? "", txData, common);
+        } else {
+          // Regular account - use mnemonic-based signing
+          const mnemonicPhrases = await getMnemonicPhrases(from ?? "");
+          const signedTransaction = await zondInstance?.accounts.signTransaction(
+            transactionObject,
+            getHexSeedFromMnemonic(mnemonicPhrases),
+          );
+          rawTransactionToSend = signedTransaction?.rawTransaction;
+        }
+
+        if (rawTransactionToSend) {
           const transactionReceipt = await zondInstance?.sendSignedTransaction(
-            signedTransaction?.rawTransaction,
+            rawTransactionToSend,
           );
           addToResponseData({
             transactionHash: transactionReceipt?.transactionHash,
@@ -113,7 +149,7 @@ const ZondSendTransactionForContent = observer(
       const request = dAppRequestData?.params?.[0];
       try {
         const { from, to, gas, type, value } = request;
-        const mnemonicPhrases = await getMnemonicPhrases(from ?? "");
+
         if (!from) {
           throw new Error(
             "Sender address ('from') is missing for ZND transfer.",
@@ -133,6 +169,8 @@ const ZondSendTransactionForContent = observer(
           );
         }
 
+        const isLedgerAccount = ledgerStore.isLedgerAccount(from);
+
         const gasPrice = await zondInstance?.getGasPrice();
         let transactionObject: any = {
           from,
@@ -151,14 +189,36 @@ const ZondSendTransactionForContent = observer(
           transactionObject.gasPrice = gasPrice;
         }
 
-        const signedTransaction = await zondInstance?.accounts.signTransaction(
-          transactionObject,
-          getHexSeedFromMnemonic(mnemonicPhrases),
-        );
+        let rawTransactionToSend: string | undefined;
 
-        if (signedTransaction) {
+        if (isLedgerAccount) {
+          const chainId = await zondInstance?.getChainId();
+          const common = Common.custom({ chainId: Number(chainId) });
+
+          const txData = {
+            nonce: `0x${transactionObject.nonce.toString(16)}`,
+            maxPriorityFeePerGas: transactionObject.maxPriorityFeePerGas,
+            maxFeePerGas: transactionObject.maxFeePerGas,
+            gasLimit: transactionObject.gas,
+            to: transactionObject.to,
+            value: `0x${BigInt(transactionObject.value).toString(16)}`,
+            data: "0x",
+          };
+
+          rawTransactionToSend = await ledgerStore.signAndSerializeTransaction(from, txData, common);
+        } else {
+          // Regular account - use mnemonic-based signing
+          const mnemonicPhrases = await getMnemonicPhrases(from ?? "");
+          const signedTransaction = await zondInstance?.accounts.signTransaction(
+            transactionObject,
+            getHexSeedFromMnemonic(mnemonicPhrases),
+          );
+          rawTransactionToSend = signedTransaction?.rawTransaction;
+        }
+
+        if (rawTransactionToSend) {
           const transactionReceipt = await zondInstance?.sendSignedTransaction(
-            signedTransaction?.rawTransaction,
+            rawTransactionToSend,
           );
           addToResponseData({
             transactionHash: transactionReceipt?.transactionHash,

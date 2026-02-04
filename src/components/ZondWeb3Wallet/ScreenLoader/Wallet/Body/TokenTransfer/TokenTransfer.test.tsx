@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Bytes } from "@theqrl/web3";
@@ -16,8 +16,53 @@ jest.mock("@theqrl/web3", () => {
   };
 });
 
+let mockGetTransactionValues = jest.fn<any>().mockResolvedValue({
+  receiverAddress: "",
+  amount: 0,
+});
+let mockSetTransactionValues = jest.fn<any>().mockResolvedValue(undefined);
+let mockClearTransactionValues = jest.fn<any>().mockResolvedValue(undefined);
+
+jest.mock("@/utilities/storageUtil", () => {
+  return {
+    __esModule: true,
+    default: {
+      getTransactionValues: (...args: any[]) =>
+        mockGetTransactionValues(...args),
+      setTransactionValues: (...args: any[]) =>
+        mockSetTransactionValues(...args),
+      clearTransactionValues: (...args: any[]) =>
+        mockClearTransactionValues(...args),
+    },
+  };
+});
+
+const successReceipt = {
+  status: 1,
+  transactionHash: "0xtxhash",
+  transactionIndex: 1,
+  blockHash: 2 as unknown as Bytes,
+  blockNumber: 1,
+  from: "",
+  to: "",
+  gasUsed: 0,
+  cumulativeGasUsed: 0,
+  logs: [],
+  logsBloom: "",
+  root: "",
+};
+
 describe("TokenTransfer", () => {
   afterEach(cleanup);
+
+  beforeEach(() => {
+    mockGetTransactionValues.mockResolvedValue({
+      receiverAddress: "",
+      amount: 0,
+    });
+    mockSetTransactionValues.mockResolvedValue(undefined);
+    mockClearTransactionValues.mockResolvedValue(undefined);
+  });
 
   const renderComponent = (mockedStoreValues = mockedStore()) =>
     render(
@@ -27,6 +72,42 @@ describe("TokenTransfer", () => {
         </MemoryRouter>
       </StoreProvider>,
     );
+
+  const renderComponentWithState = (
+    state: Record<string, any>,
+    mockedStoreValues = mockedStore(),
+  ) =>
+    render(
+      <StoreProvider value={mockedStoreValues}>
+        <MemoryRouter
+          initialEntries={[{ pathname: "/token-transfer", state }]}
+        >
+          <TokenTransfer />
+        </MemoryRouter>
+      </StoreProvider>,
+    );
+
+  const fillAndSubmitForm = async (buttonName = "Send ZND") => {
+    const receiverAddressField = screen.getByRole("textbox", {
+      name: "receiverAddress",
+    });
+    const amountField = screen.getByRole("spinbutton", { name: "amount" });
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          receiverAddressField,
+          "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
+        );
+        await userEvent.type(amountField, "2.5");
+      },
+      { timeout: 5000 },
+    );
+    const sendButton = screen.getByRole("button", { name: buttonName });
+    expect(sendButton).toBeEnabled();
+    await act(async () => {
+      await userEvent.click(sendButton);
+    });
+  };
 
   it("should render the account details component", () => {
     renderComponent();
@@ -95,61 +176,175 @@ describe("TokenTransfer", () => {
     ).toBeInTheDocument();
   });
 
+  it("should display the transaction successful component for Ledger account", async () => {
+    const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
+      ...successReceipt,
+      transactionHash: "0xledgertxhash",
+    });
+
+    renderComponent(
+      mockedStore({
+        ledgerStore: {
+          isLedgerAccount: () => true,
+          signAndSerializeTransaction: async () => "0x02signed",
+        } as any,
+        zondStore: {
+          zondInstance: {
+            getTransactionCount: async () => 0,
+            getChainId: async () => 1,
+            sendSignedTransaction: mockSendSignedTransaction,
+          } as any,
+        },
+      }),
+    );
+
+    await fillAndSubmitForm();
+    expect(screen.getByText("Transaction completed")).toBeInTheDocument();
+    expect(mockSendSignedTransaction).toHaveBeenCalledWith("0x02signed");
+  });
+
+  it("should display error when Ledger signing fails", async () => {
+    renderComponent(
+      mockedStore({
+        ledgerStore: {
+          isLedgerAccount: () => true,
+          signAndSerializeTransaction: async () => {
+            throw new Error("User rejected on device");
+          },
+        } as any,
+        zondStore: {
+          zondInstance: {
+            getTransactionCount: async () => 0,
+            getChainId: async () => 1,
+          } as any,
+        },
+      }),
+    );
+
+    await fillAndSubmitForm();
+    expect(
+      screen.getByText(/User rejected on device/),
+    ).toBeInTheDocument();
+  });
+
   it("should display the transaction successful component if the transaction succeeds", async () => {
     renderComponent(
       mockedStore({
         zondStore: {
-          signAndSendNativeToken: async (
-            from: string,
-            to: string,
-            value: number,
-            mnemonicPhrases: string,
-          ) => {
-            from;
-            to;
-            value;
-            mnemonicPhrases;
-            return {
-              transactionReceipt: {
-                status: 1,
-                transactionHash: "",
-                transactionIndex: 1,
-                blockHash: 2 as unknown as Bytes,
-                blockNumber: 1,
-                from: "",
-                to: "",
-                gasUsed: 0,
-                cumulativeGasUsed: 0,
-                logs: [],
-                logsBloom: "",
-                root: "",
-              },
-              error: "",
-            };
+          signAndSendNativeToken: async () => ({
+            transactionReceipt: successReceipt,
+            error: "",
+          }),
+        },
+      }),
+    );
+
+    await fillAndSubmitForm();
+    expect(screen.getByText("Transaction completed")).toBeInTheDocument();
+  });
+
+  it("should navigate home when cancel button is clicked", async () => {
+    renderComponent();
+
+    const cancelButton = screen.getByRole("button", { name: "Cancel" });
+    await act(async () => {
+      await userEvent.click(cancelButton);
+    });
+    expect(mockClearTransactionValues).toHaveBeenCalled();
+  });
+
+  it("should display error when transaction fails with non-success status", async () => {
+    renderComponent(
+      mockedStore({
+        zondStore: {
+          signAndSendNativeToken: async () => ({
+            transactionReceipt: { ...successReceipt, status: 0 },
+            error: "",
+          }),
+        },
+      }),
+    );
+
+    await fillAndSubmitForm();
+    expect(screen.getByText("Transaction failed.")).toBeInTheDocument();
+  });
+
+  it("should display error when onSubmit throws an exception", async () => {
+    renderComponent(
+      mockedStore({
+        zondStore: {
+          signAndSendNativeToken: async () => {
+            throw new Error("Network timeout");
           },
         },
       }),
     );
 
-    const receiverAddressField = screen.getByRole("textbox", {
-      name: "receiverAddress",
+    await fillAndSubmitForm();
+    expect(screen.getByText(/Network timeout/)).toBeInTheDocument();
+  });
+
+  it("should send ZRC20 token when token details are set from state", async () => {
+    const mockSignAndSendZrc20Token = jest.fn<any>().mockResolvedValue({
+      transactionReceipt: successReceipt,
+      error: "",
     });
-    const amountField = screen.getByRole("spinbutton", { name: "amount" });
-    await waitFor(async () => {
-      await userEvent.type(
-        receiverAddressField,
-        "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
-      );
-      await userEvent.type(amountField, "2.5");
+
+    renderComponentWithState(
+      {
+        tokenDetails: {
+          isZrc20Token: true,
+          tokenContractAddress: "Z1234567890abcdef1234567890abcdef12345678",
+          tokenDecimals: 18,
+          tokenImage: "token.png",
+          tokenBalance: "100.0",
+          tokenName: "Test Token",
+          tokenSymbol: "TST",
+        },
+      },
+      mockedStore({
+        zondStore: {
+          signAndSendZrc20Token: mockSignAndSendZrc20Token,
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Send TST")).toBeInTheDocument();
     });
-    const sendQuantaButton = screen.getByRole("button", {
-      name: "Send ZND",
-    });
-    expect(sendQuantaButton).toBeInTheDocument();
-    expect(sendQuantaButton).toBeEnabled();
-    await act(async () => {
-      await userEvent.click(sendQuantaButton);
-    });
+
+    await fillAndSubmitForm("Send TST");
+    expect(mockSignAndSendZrc20Token).toHaveBeenCalled();
     expect(screen.getByText("Transaction completed")).toBeInTheDocument();
+  });
+
+  it("should load token details from storage when no state is provided", async () => {
+    mockGetTransactionValues.mockResolvedValue({
+      receiverAddress: "",
+      amount: 0,
+      tokenDetails: {
+        isZrc20Token: true,
+        tokenContractAddress: "Zabcdef1234567890abcdef1234567890abcdef12",
+        tokenDecimals: 8,
+        tokenImage: "stored-token.png",
+        tokenBalance: "200.0",
+        tokenName: "Stored Token",
+        tokenSymbol: "STK",
+      },
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText("Send STK")).toBeInTheDocument();
+    });
+  });
+
+  it("should reset form when shouldStartFresh state is true", async () => {
+    renderComponentWithState({ shouldStartFresh: true });
+
+    await waitFor(() => {
+      expect(mockClearTransactionValues).toHaveBeenCalled();
+    });
   });
 });

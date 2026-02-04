@@ -57,10 +57,15 @@ describe("AccountCreateImport", () => {
     const importButton = screen.getByRole("button", {
       name: "Import an existing account",
     });
+    const connectLedgerButton = screen.getByRole("button", {
+      name: "Connect Ledger",
+    });
     expect(createNewButton).toBeInTheDocument();
     expect(createNewButton).toBeEnabled();
     expect(importButton).toBeInTheDocument();
     expect(importButton).toBeEnabled();
+    expect(connectLedgerButton).toBeInTheDocument();
+    expect(connectLedgerButton).toBeEnabled();
   });
 
   it("should render the active account component and the account create and import component when there is an active account", () => {
@@ -101,11 +106,27 @@ describe("AccountCreateImport", () => {
     const importButton = screen.getByRole("button", {
       name: "Import an existing account",
     });
+    const connectLedgerButton = screen.getByRole("button", {
+      name: "Connect Ledger",
+    });
     expect(sendQuantaButton).toBeInTheDocument();
     expect(sendQuantaButton).toBeEnabled();
     expect(createNewButton).toBeInTheDocument();
     expect(createNewButton).toBeEnabled();
     expect(importButton).toBeInTheDocument();
     expect(importButton).toBeEnabled();
+    expect(connectLedgerButton).toBeInTheDocument();
+    expect(connectLedgerButton).toBeEnabled();
+  });
+
+  it("should have the connect ledger button link to the import ledger route", () => {
+    renderComponent(
+      mockedStore({ zondStore: { activeAccount: { accountAddress: "" } } }),
+    );
+
+    const connectLedgerLink = screen.getByRole("link", {
+      name: "Connect Ledger",
+    });
+    expect(connectLedgerLink).toHaveAttribute("href", "/import-ledger");
   });
 });

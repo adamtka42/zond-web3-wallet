@@ -20,6 +20,16 @@ export default defineConfig({
       },
     }),
   ],
+  define: {
+    global: "globalThis",
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: "globalThis",
+      },
+    },
+  },
   build: {
     outDir: "Extension",
     emptyOutDir: true,
@@ -31,6 +41,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "src"),
       events: "rollup-plugin-node-polyfills/polyfills/events",
+      buffer: "buffer",
     },
   },
 });

@@ -47,11 +47,13 @@
     "@types/readable-stream": "^4.0.15",
     "@types/semver": "^7.5.8",
     "@types/uuid": "^10.0.0",
+    "@types/w3c-web-hid": "^1.0.6",
     "@types/webextension-polyfill": "^0.10.7",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.19",
     "axios": "^1.10.0",
     "babel-jest": "^29.7.0",
+    "babel-plugin-transform-import-meta": "^2.3.3",
     "bignumber.js": "^4.0.4",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
@@ -108,5 +110,10 @@
     "ledger",
     "web3",
     "crypto"
-  ]
+  ],
+  "dependencies": {
+    "@ledgerhq/errors": "^6.29.0",
+    "@ledgerhq/hw-transport": "^6.32.0",
+    "@ledgerhq/hw-transport-webhid": "^6.31.0"
+  }
 }
