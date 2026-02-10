@@ -27,8 +27,8 @@ type Caveat = {
 };
 
 export const PARENT_CAPABILITIES = Object.freeze({
-  ZOND_ACCOUNTS: "zond_accounts",
-  ZOND_CHAINS: "zond_chains",
+  QRL_ACCOUNTS: "qrl_accounts",
+  QRL_CHAINS: "qrl_chains",
 });
 
 type ParentCapabilityType =

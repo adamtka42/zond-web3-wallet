@@ -8,9 +8,9 @@ import {
 import { getHexSeedFromMnemonic } from "@/functions/getHexSeedFromMnemonic";
 import { useStore } from "@/stores/store";
 import StringUtil from "@/utilities/stringUtil";
-import { Dilithium } from "@theqrl/wallet.js";
+import { MLDSA87, ExtendedSeed } from "@theqrl/wallet.js";
 import { bytesToHex } from "@theqrl/web3-utils";
-import { parseAndValidateSeed } from "@theqrl/web3-zond-accounts";
+import { parseAndValidateSeed } from "@theqrl/web3-qrl-accounts";
 import { Buffer } from "buffer";
 import { Copy } from "lucide-react";
 import { observer } from "mobx-react-lite";
@@ -19,7 +19,7 @@ import { useEffect } from "react";
 const PersonalSign = observer(() => {
   const { lockStore, zondStore, dAppRequestStore } = useStore();
   const { getMnemonicPhrases } = lockStore;
-  const { zondInstance, zondConnection } = zondStore;
+  const { qrlInstance, zondConnection } = zondStore;
   const { isConnected } = zondConnection;
   const {
     dAppRequestData,
@@ -56,18 +56,18 @@ const PersonalSign = observer(() => {
       const mnemonicPhrases = await getMnemonicPhrases(fromAddress ?? "");
       const seed = getHexSeedFromMnemonic(mnemonicPhrases);
       const addressFromMnemonic =
-        zondInstance?.accounts.seedToAccount(seed)?.address;
+        qrlInstance?.accounts.seedToAccount(seed)?.address;
       if (fromAddress !== addressFromMnemonic) {
         throw new Error("Mnemonic phrases did not match with the address");
       }
-      const signature = zondInstance?.accounts.sign(
+      const signature = qrlInstance?.accounts.sign(
         params?.[0],
         seed,
       )?.signature;
 
       const seedUint8Array = parseAndValidateSeed(seed);
-      const buf = Buffer.from(seedUint8Array);
-      const acc = new Dilithium(buf);
+      const extSeed = new ExtendedSeed(seedUint8Array);
+      const acc = MLDSA87.newWalletFromExtendedSeed(extSeed);
       const publicKey = bytesToHex(acc.getPK());
 
       if (signature && publicKey) {

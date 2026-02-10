@@ -291,7 +291,7 @@ class LedgerService {
    * RESPONSE:
    * ┌────────┬───────────────────┬────────┐
    * │ PREFIX │     ADDRESS       │   SW   │
-   * │  'Z'   │    20 bytes       │ 0x9000 │
+   * │  'Q'   │    20 bytes       │ 0x9000 │
    * └────────┴───────────────────┴────────┘
    *
    * @param derivationPath - BIP-44 path, e.g., "m/44'/238'/0'/0/0"
@@ -335,7 +335,7 @@ class LedgerService {
    * RESPONSE FORMAT (with public key):
    * ┌────────┬───────────────────┬─────────────────────┬────────┐
    * │ PREFIX │     ADDRESS       │     PUBLIC_KEY      │   SW   │
-   * │  'Z'   │    20 bytes       │     2528 bytes      │   2B   │
+   * │  'Q'   │    20 bytes       │     2528 bytes      │   2B   │
    * │  1B    │    (hex)          │                     │        │
    * └────────┴───────────────────┴─────────────────────┴────────┘
    *

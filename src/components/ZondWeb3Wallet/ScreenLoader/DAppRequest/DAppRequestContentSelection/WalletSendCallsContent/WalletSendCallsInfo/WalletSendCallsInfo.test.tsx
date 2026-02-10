@@ -32,7 +32,7 @@ describe("WalletSendCallsInfo", () => {
                 chainId: "0x1",
                 calls: [
                   {
-                    to: "Z208318ecd68f26726CE7C54b29CaBA94584969B6",
+                    to: "Q208318ecd68f26726CE7C54b29CaBA94584969B6",
                     value: "0xde0b6b3a7640000",
                   },
                 ],

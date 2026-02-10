@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 export const SEND_TRANSACTION_TYPES = {
   CONTRACT_DEPLOYMENT: "CONTRACT_DEPLOYMENT",
   CONTRACT_INTERACTION: "CONTRACT_INTERACTION",
-  ZND_TRANSFER: "ZND_TRANSFER",
+  QRL_TRANSFER: "QRL_TRANSFER",
   UNKNOWN: "UNKNOWN",
 } as const;
 
@@ -35,9 +35,9 @@ const ZondSendTransaction = observer(() => {
       setTransactionSubHeading("This site wants to interact with a contract");
       setTransactionType(SEND_TRANSACTION_TYPES.CONTRACT_INTERACTION);
     } else if (to && value && !data) {
-      setTransactionHeading("Transfer ZND");
-      setTransactionSubHeading("This site wants to send ZND");
-      setTransactionType(SEND_TRANSACTION_TYPES.ZND_TRANSFER);
+      setTransactionHeading("Transfer QRL");
+      setTransactionSubHeading("This site wants to send QRL");
+      setTransactionType(SEND_TRANSACTION_TYPES.QRL_TRANSFER);
     }
   }, [dAppRequestData]);
 

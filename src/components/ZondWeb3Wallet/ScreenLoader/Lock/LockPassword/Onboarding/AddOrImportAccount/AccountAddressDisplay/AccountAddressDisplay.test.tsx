@@ -22,7 +22,7 @@ describe("AccountAddressDisplay", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z208318ecd68f26726CE7C54b29CaBA94584969B6",
+            accountAddress: "Q208318ecd68f26726CE7C54b29CaBA94584969B6",
           },
         },
       }),
@@ -30,7 +30,7 @@ describe("AccountAddressDisplay", () => {
 
     expect(screen.getByText("Account address")).toBeInTheDocument();
     expect(
-      screen.getByText("Z 20831 8ecd6 8f267 26CE7 C54b2 9CaBA 94584 969B6"),
+      screen.getByText("Q 20831 8ecd6 8f267 26CE7 C54b2 9CaBA 94584 969B6"),
     ).toBeInTheDocument();
   });
 });

@@ -13,7 +13,7 @@ jest.mock("@/utilities/storageUtil", () => {
   return {
     ...originalModule,
     getTokenContractsList: jest.fn(async () => [
-      "Zd180388b9a863728fdc2e865d5fea87ce100eb2f",
+      "Qd180388b9a863728fdc2e865d5fea87ce100eb2f",
     ]),
   };
 });
@@ -73,7 +73,7 @@ describe("AccountCreateImport", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+            accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
           },
         },
       }),

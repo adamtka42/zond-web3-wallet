@@ -13,9 +13,9 @@ import { Copy } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import { SEND_TRANSACTION_TYPES } from "../ZondSendTransaction";
-import { utils, zond } from "@theqrl/web3";
+import { utils, qrl } from "@theqrl/web3";
 
-const { Common } = zond.accounts;
+const { Common } = qrl.accounts;
 
 type ZondSendTransactionForContentProps = {
   transactionType: keyof typeof SEND_TRANSACTION_TYPES;
@@ -25,7 +25,7 @@ const ZondSendTransactionForContent = observer(
   ({ transactionType }: ZondSendTransactionForContentProps) => {
     const { lockStore, zondStore, dAppRequestStore, ledgerStore } = useStore();
     const { getMnemonicPhrases } = lockStore;
-    const { zondInstance, getGasFeeData, zondConnection } = zondStore;
+    const { qrlInstance, getGasFeeData, zondConnection } = zondStore;
     const { isConnected } = zondConnection;
     const {
       dAppRequestData,
@@ -49,7 +49,7 @@ const ZondSendTransactionForContent = observer(
       if (isConnected) {
         const onPermissionCallBack = async (hasApproved: boolean) => {
           if (hasApproved) {
-            if (transactionType === SEND_TRANSACTION_TYPES.ZND_TRANSFER) {
+            if (transactionType === SEND_TRANSACTION_TYPES.QRL_TRANSFER) {
               await sendZndTransfer();
             } else {
               await deployContractOrInteract();
@@ -71,14 +71,14 @@ const ZondSendTransactionForContent = observer(
 
         const isLedgerAccount = ledgerStore.isLedgerAccount(from ?? "");
 
-        const gasPrice = await zondInstance?.getGasPrice();
+        const gasPrice = await qrlInstance?.getGasPrice();
         let transactionObject: any = {
           from,
           ...(to && { to }),
           data,
           gas,
           value,
-          nonce: await zondInstance?.getTransactionCount(from),
+          nonce: await qrlInstance?.getTransactionCount(from),
         };
         if (type === "0x2") {
           const { maxFeePerGas, maxPriorityFeePerGas } = await getGasFeeData();
@@ -92,7 +92,7 @@ const ZondSendTransactionForContent = observer(
         let rawTransactionToSend: string | undefined;
 
         if (isLedgerAccount) {
-          const chainId = await zondInstance?.getChainId();
+          const chainId = await qrlInstance?.getChainId();
           const common = Common.custom({ chainId: Number(chainId) });
 
           const txData: any = {
@@ -117,7 +117,7 @@ const ZondSendTransactionForContent = observer(
         } else {
           // Regular account - use mnemonic-based signing
           const mnemonicPhrases = await getMnemonicPhrases(from ?? "");
-          const signedTransaction = await zondInstance?.accounts.signTransaction(
+          const signedTransaction = await qrlInstance?.accounts.signTransaction(
             transactionObject,
             getHexSeedFromMnemonic(mnemonicPhrases),
           );
@@ -125,7 +125,7 @@ const ZondSendTransactionForContent = observer(
         }
 
         if (rawTransactionToSend) {
-          const transactionReceipt = await zondInstance?.sendSignedTransaction(
+          const transactionReceipt = await qrlInstance?.sendSignedTransaction(
             rawTransactionToSend,
           );
           addToResponseData({
@@ -152,32 +152,32 @@ const ZondSendTransactionForContent = observer(
 
         if (!from) {
           throw new Error(
-            "Sender address ('from') is missing for ZND transfer.",
+            "Sender address ('from') is missing for QRL transfer.",
           );
         }
         if (!to) {
           throw new Error(
-            "Recipient address ('to') is missing for ZND transfer.",
+            "Recipient address ('to') is missing for QRL transfer.",
           );
         }
         if (!gas) {
-          throw new Error("Gas limit ('gas') is missing for ZND transfer.");
+          throw new Error("Gas limit ('gas') is missing for QRL transfer.");
         }
         if (value === undefined || value === null) {
           throw new Error(
-            "Transfer amount ('value') is missing for ZND transfer.",
+            "Transfer amount ('value') is missing for QRL transfer.",
           );
         }
 
         const isLedgerAccount = ledgerStore.isLedgerAccount(from);
 
-        const gasPrice = await zondInstance?.getGasPrice();
+        const gasPrice = await qrlInstance?.getGasPrice();
         let transactionObject: any = {
           from,
           to,
           gas,
           value,
-          nonce: await zondInstance?.getTransactionCount(from),
+          nonce: await qrlInstance?.getTransactionCount(from),
         };
 
         if (type === "0x2") {
@@ -192,7 +192,7 @@ const ZondSendTransactionForContent = observer(
         let rawTransactionToSend: string | undefined;
 
         if (isLedgerAccount) {
-          const chainId = await zondInstance?.getChainId();
+          const chainId = await qrlInstance?.getChainId();
           const common = Common.custom({ chainId: Number(chainId) });
 
           const txData = {
@@ -209,7 +209,7 @@ const ZondSendTransactionForContent = observer(
         } else {
           // Regular account - use mnemonic-based signing
           const mnemonicPhrases = await getMnemonicPhrases(from ?? "");
-          const signedTransaction = await zondInstance?.accounts.signTransaction(
+          const signedTransaction = await qrlInstance?.accounts.signTransaction(
             transactionObject,
             getHexSeedFromMnemonic(mnemonicPhrases),
           );
@@ -217,18 +217,18 @@ const ZondSendTransactionForContent = observer(
         }
 
         if (rawTransactionToSend) {
-          const transactionReceipt = await zondInstance?.sendSignedTransaction(
+          const transactionReceipt = await qrlInstance?.sendSignedTransaction(
             rawTransactionToSend,
           );
           addToResponseData({
             transactionHash: transactionReceipt?.transactionHash,
           });
         } else {
-          throw new Error("ZND Transfer transaction could not be signed");
+          throw new Error("QRL Transfer transaction could not be signed");
         }
       } catch (error) {
         addToResponseData({ error });
-        console.error("ZND Transfer failed:", error);
+        console.error("QRL Transfer failed:", error);
       }
     };
     useEffect(() => {
@@ -244,7 +244,7 @@ const ZondSendTransactionForContent = observer(
           >
             Details
           </TabsTrigger>
-          {transactionType !== SEND_TRANSACTION_TYPES.ZND_TRANSFER && (
+          {transactionType !== SEND_TRANSACTION_TYPES.QRL_TRANSFER && (
             <TabsTrigger
               value="data"
               className="w-full data-[state=active]:text-secondary"
@@ -260,7 +260,7 @@ const ZondSendTransactionForContent = observer(
               <div className="w-64 font-bold text-secondary">{`${prefixFrom} ${addressSplitFrom.join(" ")}`}</div>
             </div>
             {(transactionType === SEND_TRANSACTION_TYPES.CONTRACT_INTERACTION ||
-              transactionType === SEND_TRANSACTION_TYPES.ZND_TRANSFER) && (
+              transactionType === SEND_TRANSACTION_TYPES.QRL_TRANSFER) && (
               <div className="flex flex-col gap-1">
                 <div>
                   {transactionType ===
@@ -272,11 +272,11 @@ const ZondSendTransactionForContent = observer(
                 <div className="w-64 font-bold text-secondary">{`${prefixTo} ${addressSplitTo.join(" ")}`}</div>
               </div>
             )}
-            {transactionType === SEND_TRANSACTION_TYPES.ZND_TRANSFER && (
+            {transactionType === SEND_TRANSACTION_TYPES.QRL_TRANSFER && (
               <div className="flex flex-col gap-1">
                 <div>Value</div>
                 <div className="font-bold text-secondary">
-                  {utils.fromWei(value, "ether")} ZND
+                  {utils.fromPlanck(value, "quanta")} QRL
                 </div>
               </div>
             )}
@@ -288,7 +288,7 @@ const ZondSendTransactionForContent = observer(
             </div>
           </div>
         </TabsContent>
-        {transactionType !== SEND_TRANSACTION_TYPES.ZND_TRANSFER && (
+        {transactionType !== SEND_TRANSACTION_TYPES.QRL_TRANSFER && (
           <TabsContent value="data" className="rounded-md p-2">
             <div className="flex flex-col gap-1">
               <div>Data</div>

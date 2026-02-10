@@ -66,9 +66,9 @@ export const TransactionSuccessful = ({
                 <div>Gas used</div>
                 <div className="font-bold text-secondary">
                   {getOptimalGasFee(
-                    utils.fromWei(
+                    utils.fromPlanck(
                       Number(gasUsed) * Number(effectiveGasPrice ?? 0),
-                      "ether",
+                      "quanta",
                     ),
                   )}
                 </div>

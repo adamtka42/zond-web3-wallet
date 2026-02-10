@@ -11,7 +11,7 @@ import { ONBOARDING_STEPS } from "../Onboarding";
 
 jest.mock("@theqrl/web3", () => {
   return jest.fn().mockImplementation(() => ({
-    zond: {
+    qrl: {
       accounts: {
         create: jest.fn().mockReturnValue({
           address: "MockedNewAddress",
@@ -162,7 +162,7 @@ describe("AddOrImportAccount", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z208318ecd68f26726CE7C54b29CaBA94584969B6",
+            accountAddress: "Q208318ecd68f26726CE7C54b29CaBA94584969B6",
           },
         },
       }),

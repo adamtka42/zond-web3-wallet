@@ -33,9 +33,8 @@ import type { LedgerAccount, LedgerDeviceInfo } from "@/services/ledger/ledgerTy
 import StorageUtil from "@/utilities/storageUtil";
 import { LEDGER_ERROR_MESSAGES } from "@/constants/ledger";
 import { getDerivationPath } from "@/services/ledger/ledgerApdu";
-import { zond } from "@theqrl/web3";
-
-const { FeeMarketEIP1559Transaction } = zond.accounts;
+import { FeeMarketEIP1559Transaction } from "@theqrl/web3-qrl-accounts";
+import { newMLDSA87Descriptor } from "@theqrl/wallet.js";
 
 /**
  * Possible states for Ledger connection.
@@ -569,7 +568,8 @@ class LedgerStore {
     common: any,
   ): Promise<string> {
     const unsignedTx = FeeMarketEIP1559Transaction.fromTxData(txData, { common });
-    const messageToSign = unsignedTx.getMessageToSign(false);
+    const descriptor = newMLDSA87Descriptor().toBytes();
+    const messageToSign = unsignedTx.getMessageToSign(descriptor, false);
     const serializedTx = Buffer.from(messageToSign).toString("hex");
 
     const signResult = await this.signTransaction(fromAddress, serializedTx);
@@ -595,7 +595,7 @@ class LedgerStore {
     const signatureBytes = Buffer.from(signResult.signature!.replace("0x", ""), "hex");
     const publicKeyBytes = Buffer.from(publicKey.replace("0x", ""), "hex");
 
-    const signedTxValues = [...rawValues.slice(0, 9), publicKeyBytes, signatureBytes];
+    const signedTxValues = [...rawValues.slice(0, 9), publicKeyBytes, signatureBytes, descriptor];
     const signedTx = FeeMarketEIP1559Transaction.fromValuesArray(signedTxValues as any, { common });
     const signedRawTx = signedTx.serialize();
     return "0x" + Buffer.from(signedRawTx).toString("hex");

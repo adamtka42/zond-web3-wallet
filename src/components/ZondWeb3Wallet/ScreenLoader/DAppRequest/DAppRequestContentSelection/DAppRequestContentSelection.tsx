@@ -9,10 +9,10 @@ import WalletSendCallsContent from "./WalletSendCallsContent/WalletSendCallsCont
 
 const PERMISSION_REQUIRED_METHODS: string[] = [
   RESTRICTED_METHODS.PERSONAL_SIGN,
-  RESTRICTED_METHODS.ZOND_REQUEST_ACCOUNTS,
+  RESTRICTED_METHODS.QRL_REQUEST_ACCOUNTS,
   RESTRICTED_METHODS.WALLET_REQUEST_PERMISSIONS,
-  RESTRICTED_METHODS.ZOND_SEND_TRANSACTION,
-  RESTRICTED_METHODS.ZOND_SIGN_TYPED_DATA_V4,
+  RESTRICTED_METHODS.QRL_SEND_TRANSACTION,
+  RESTRICTED_METHODS.QRL_SIGN_TYPED_DATA_V4,
 ];
 
 const DAppRequestContentSelection = observer(() => {
@@ -20,13 +20,13 @@ const DAppRequestContentSelection = observer(() => {
   const { dAppRequestData } = dAppRequestStore;
   const method = dAppRequestData?.method ?? "";
 
-  if (method === RESTRICTED_METHODS.WALLET_ADD_ZOND_CHAIN)
+  if (method === RESTRICTED_METHODS.WALLET_ADD_QRL_CHAIN)
     return <AddZondChainContent />;
 
   if (method === RESTRICTED_METHODS.WALLET_SEND_CALLS)
     return <WalletSendCallsContent />;
 
-  if (method === RESTRICTED_METHODS.WALLET_SWITCH_ZOND_CHAIN)
+  if (method === RESTRICTED_METHODS.WALLET_SWITCH_QRL_CHAIN)
     return <SwitchZondChainContent />;
 
   if (method === RESTRICTED_METHODS.WALLET_WATCH_ASSET)

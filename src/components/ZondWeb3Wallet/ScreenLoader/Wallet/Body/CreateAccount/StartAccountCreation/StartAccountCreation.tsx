@@ -19,10 +19,10 @@ type StartAccountCreationProps = {
 const StartAccountCreation = observer(
   ({ onAccountCreated }: StartAccountCreationProps) => {
     const { zondStore } = useStore();
-    const { zondInstance } = zondStore;
+    const { qrlInstance } = zondStore;
 
     const onAddAccount = () => {
-      const newAccount = zondInstance?.accounts.create();
+      const newAccount = qrlInstance?.accounts.create();
       onAccountCreated(newAccount);
     };
 

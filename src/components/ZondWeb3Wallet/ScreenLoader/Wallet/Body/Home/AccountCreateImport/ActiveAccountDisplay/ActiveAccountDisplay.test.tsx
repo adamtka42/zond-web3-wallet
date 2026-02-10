@@ -22,19 +22,19 @@ describe("ActiveAccountDisplay", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+            accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
           },
           getAccountBalance: (accountAddress: string) => {
             accountAddress;
-            return "2.45 ZND";
+            return "2.45 QRL";
           },
         },
       }),
     );
 
-    expect(screen.getByText("2.45 ZND")).toBeInTheDocument();
+    expect(screen.getByText("2.45 QRL")).toBeInTheDocument();
     expect(
-      screen.getByText("Z 20504 6e6A6 E159e D6ACe dE46A 36CAD 6D449 C80A1"),
+      screen.getByText("Q 20504 6e6A6 E159e D6ACe dE46A 36CAD 6D449 C80A1"),
     ).toBeInTheDocument();
   });
 });

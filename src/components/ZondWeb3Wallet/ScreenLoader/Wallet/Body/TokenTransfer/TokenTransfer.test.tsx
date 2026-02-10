@@ -87,7 +87,7 @@ describe("TokenTransfer", () => {
       </StoreProvider>,
     );
 
-  const fillAndSubmitForm = async (buttonName = "Send ZND") => {
+  const fillAndSubmitForm = async (buttonName = "Send QRL") => {
     const receiverAddressField = screen.getByRole("textbox", {
       name: "receiverAddress",
     });
@@ -96,7 +96,7 @@ describe("TokenTransfer", () => {
       async () => {
         await userEvent.type(
           receiverAddressField,
-          "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
+          "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
         );
         await userEvent.type(amountField, "2.5");
       },
@@ -115,10 +115,10 @@ describe("TokenTransfer", () => {
     expect(screen.getByText("Active account")).toBeInTheDocument();
     expect(screen.getByText("Account address")).toBeInTheDocument();
     expect(
-      screen.getByText("Z 20B71 4091c F2a62 DADda 28478 03e3f 1B9D2 D3779"),
+      screen.getByText("Q 20B71 4091c F2a62 DADda 28478 03e3f 1B9D2 D3779"),
     ).toBeInTheDocument();
     expect(screen.getByText("Balance")).toBeInTheDocument();
-    expect(screen.getByText("0.0 ZND")).toBeInTheDocument();
+    expect(screen.getByText("0.0 QRL")).toBeInTheDocument();
     expect(screen.getByText("Make a transaction")).toBeInTheDocument();
     expect(screen.getByText("Send to")).toBeInTheDocument();
     const receiverAddressField = screen.getByRole("textbox", {
@@ -134,7 +134,7 @@ describe("TokenTransfer", () => {
     expect(cancelButton).toBeInTheDocument();
     expect(cancelButton).toBeEnabled();
     const sendQuantaButton = screen.getByRole("button", {
-      name: "Send ZND",
+      name: "Send QRL",
     });
     expect(sendQuantaButton).toBeInTheDocument();
     expect(sendQuantaButton).toBeDisabled();
@@ -151,14 +151,14 @@ describe("TokenTransfer", () => {
       async () => {
         await userEvent.type(
           receiverAddressField,
-          "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
+          "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
         );
         await userEvent.type(amountField, "2.5");
       },
       { timeout: 5000 },
     );
     const sendQuantaButton = screen.getByRole("button", {
-      name: "Send ZND",
+      name: "Send QRL",
     });
     expect(sendQuantaButton).toBeInTheDocument();
     expect(sendQuantaButton).toBeEnabled();
@@ -189,7 +189,7 @@ describe("TokenTransfer", () => {
           signAndSerializeTransaction: async () => "0x02signed",
         } as any,
         zondStore: {
-          zondInstance: {
+          qrlInstance: {
             getTransactionCount: async () => 0,
             getChainId: async () => 1,
             sendSignedTransaction: mockSendSignedTransaction,
@@ -213,7 +213,7 @@ describe("TokenTransfer", () => {
           },
         } as any,
         zondStore: {
-          zondInstance: {
+          qrlInstance: {
             getTransactionCount: async () => 0,
             getChainId: async () => 1,
           } as any,
@@ -294,7 +294,7 @@ describe("TokenTransfer", () => {
       {
         tokenDetails: {
           isZrc20Token: true,
-          tokenContractAddress: "Z1234567890abcdef1234567890abcdef12345678",
+          tokenContractAddress: "Q1234567890abcdef1234567890abcdef12345678",
           tokenDecimals: 18,
           tokenImage: "token.png",
           tokenBalance: "100.0",
@@ -324,7 +324,7 @@ describe("TokenTransfer", () => {
       amount: 0,
       tokenDetails: {
         isZrc20Token: true,
-        tokenContractAddress: "Zabcdef1234567890abcdef1234567890abcdef12",
+        tokenContractAddress: "Qabcdef1234567890abcdef1234567890abcdef12",
         tokenDecimals: 8,
         tokenImage: "stored-token.png",
         tokenBalance: "200.0",

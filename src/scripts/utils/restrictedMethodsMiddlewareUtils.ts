@@ -15,11 +15,11 @@ import {
 
 const getFromAddress = (req: JsonRpcRequest<JsonRpcRequest>) => {
   switch (req.method) {
-    case RESTRICTED_METHODS.ZOND_SEND_TRANSACTION:
+    case RESTRICTED_METHODS.QRL_SEND_TRANSACTION:
       // @ts-ignore
       return req.params?.[0]?.from ?? "";
     case RESTRICTED_METHODS.WALLET_GET_CAPABILITIES:
-    case RESTRICTED_METHODS.ZOND_SIGN_TYPED_DATA_V4:
+    case RESTRICTED_METHODS.QRL_SIGN_TYPED_DATA_V4:
       // @ts-ignore
       return req.params?.[0];
     case RESTRICTED_METHODS.PERSONAL_SIGN:
@@ -296,7 +296,7 @@ export const checkWalletSwitchZondChainParams = async (paramObject: {
       canProceed: false,
       proceedError: providerErrors.custom({
         code: 4902,
-        message: `Unrecognized chain ID "${chainId}". Try adding the chain using ${RESTRICTED_METHODS.WALLET_ADD_ZOND_CHAIN} first.`,
+        message: `Unrecognized chain ID "${chainId}". Try adding the chain using ${RESTRICTED_METHODS.WALLET_ADD_QRL_CHAIN} first.`,
       }),
     };
   }
@@ -488,7 +488,7 @@ export const updateAccountsAndBlockchainsForUrlOrigin = async ({
   const permissions: Permission[] = [
     {
       invoker: origin,
-      parentCapability: PARENT_CAPABILITIES.ZOND_ACCOUNTS,
+      parentCapability: PARENT_CAPABILITIES.QRL_ACCOUNTS,
       caveats: [
         {
           type: CAVEAT_TYPES.RESTRICT_RETURNED_ACCOUNTS,
@@ -498,7 +498,7 @@ export const updateAccountsAndBlockchainsForUrlOrigin = async ({
     },
     {
       invoker: origin,
-      parentCapability: PARENT_CAPABILITIES.ZOND_CHAINS,
+      parentCapability: PARENT_CAPABILITIES.QRL_CHAINS,
       caveats: [
         {
           type: CAVEAT_TYPES.RESTRICT_NETWORK_SWITCHING,

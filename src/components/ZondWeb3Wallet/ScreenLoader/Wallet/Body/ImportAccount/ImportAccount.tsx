@@ -54,11 +54,11 @@ const ImportAccount = observer(() => {
   const [hasAccountImported, setHasAccountImported] = useState(false);
   const { lockStore, zondStore } = useStore();
   const { encryptAccount, getWalletPassword } = lockStore;
-  const { zondInstance, setActiveAccount } = zondStore;
+  const { qrlInstance, setActiveAccount } = zondStore;
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     try {
-      const account = zondInstance?.accounts.seedToAccount(
+      const account = qrlInstance?.accounts.seedToAccount(
         getHexSeedFromMnemonic(formData.mnemonicPhrases.trim()),
       );
       if (account) {

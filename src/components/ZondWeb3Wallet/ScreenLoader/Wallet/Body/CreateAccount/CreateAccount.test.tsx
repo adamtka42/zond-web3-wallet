@@ -38,10 +38,10 @@ describe("CreateAccount", () => {
     renderComponent(
       mockedStore({
         zondStore: {
-          zondInstance: {
+          qrlInstance: {
             accounts: {
               create: () => ({
-                address: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+                address: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
                 seed: "",
                 sign: (data: Record<string, unknown> | string) => {
                   data;
@@ -53,6 +53,9 @@ describe("CreateAccount", () => {
                   signature: "",
                   transactionHash: "",
                 }),
+                encrypt: async () => {
+                  throw new Error("Not implemented");
+                },
               }),
             },
           },
@@ -70,7 +73,7 @@ describe("CreateAccount", () => {
       "Keep this safe",
     );
     expect(screen.getByRole("paragraph")).toHaveTextContent(
-      "Don't lose this mnemonic phrases. Download it right now. You may need this someday to import or recover your new account Z20504 ... C80A1",
+      "Don't lose this mnemonic phrases. Download it right now. You may need this someday to import or recover your new account Q20504 ... C80A1",
     );
     const downloadButton = screen.getByRole("button", { name: "Download" });
     const continueButton = screen.getByRole("button", { name: "Continue" });
@@ -84,10 +87,10 @@ describe("CreateAccount", () => {
     renderComponent(
       mockedStore({
         zondStore: {
-          zondInstance: {
+          qrlInstance: {
             accounts: {
               create: () => ({
-                address: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+                address: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
                 seed: "",
                 sign: (data: Record<string, unknown> | string) => {
                   data;
@@ -99,6 +102,9 @@ describe("CreateAccount", () => {
                   signature: "",
                   transactionHash: "",
                 }),
+                encrypt: async () => {
+                  throw new Error("Not implemented");
+                },
               }),
             },
           },
@@ -133,7 +139,7 @@ describe("CreateAccount", () => {
     );
     expect(screen.getByText("Account public address:")).toBeInTheDocument();
     expect(
-      screen.getByText("Z 20504 6e6A6 E159e D6ACe dE46A 36CAD 6D449 C80A1"),
+      screen.getByText("Q 20504 6e6A6 E159e D6ACe dE46A 36CAD 6D449 C80A1"),
     ).toBeInTheDocument();
     expect(
       screen.getByText(

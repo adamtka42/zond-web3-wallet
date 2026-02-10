@@ -9,7 +9,7 @@ const ZondSignTypedDataV4 = observer(() => {
   const { dAppRequestData } = dAppRequestStore;
   const method = dAppRequestData?.method;
   const isZondSignTypedDataV4 =
-    method === RESTRICTED_METHODS.ZOND_SIGN_TYPED_DATA_V4;
+    method === RESTRICTED_METHODS.QRL_SIGN_TYPED_DATA_V4;
   const isPersonalSign = method === RESTRICTED_METHODS.PERSONAL_SIGN;
 
   return (

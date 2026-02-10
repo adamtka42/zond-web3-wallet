@@ -16,7 +16,7 @@ const mockedStoreValues: StoreType = {
   },
   zondStore: {
     activeAccount: {
-      accountAddress: "Z20B714091cF2a62DADda2847803e3f1B9D2D3779",
+      accountAddress: "Q20B714091cF2a62DADda2847803e3f1B9D2D3779",
     },
     zondAccounts: {
       isLoading: false,
@@ -27,12 +27,12 @@ const mockedStoreValues: StoreType = {
       isLoading: false,
       blockchain: DEFAULT_BLOCKCHAIN,
     },
-    zondInstance: undefined,
+    qrlInstance: undefined,
     fetchAccounts: async () => {},
     fetchZondConnection: async () => {},
     getAccountBalance: (accountAddress: string) => {
       accountAddress;
-      return "0.0 ZND";
+      return "0.0 QRL";
     },
     initializeBlockchain: async () => {},
     selectBlockchain: async (chainId: string) => {
@@ -108,7 +108,7 @@ const mockedStoreValues: StoreType = {
   },
   dAppRequestStore: {
     dAppRequestData: {
-      method: "zond_requestAccounts",
+      method: "qrl_requestAccounts",
       requestData: {
         senderData: {
           tabId: 1,

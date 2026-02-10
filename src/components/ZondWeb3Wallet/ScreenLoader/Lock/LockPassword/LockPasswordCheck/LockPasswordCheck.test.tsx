@@ -66,7 +66,7 @@ describe("LockPasswordCheck", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z2090E9F38771876FB6Fc51a6b464121d3cC093A1",
+            accountAddress: "Q2090E9F38771876FB6Fc51a6b464121d3cC093A1",
           },
         },
       }),
@@ -88,7 +88,7 @@ describe("LockPasswordCheck", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z2090E9F38771876FB6Fc51a6b464121d3cC093A1",
+            accountAddress: "Q2090E9F38771876FB6Fc51a6b464121d3cC093A1",
           },
         },
       }),
@@ -109,7 +109,7 @@ describe("LockPasswordCheck", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z2090E9F38771876FB6Fc51a6b464121d3cC093A1",
+            accountAddress: "Q2090E9F38771876FB6Fc51a6b464121d3cC093A1",
           },
         },
       }),

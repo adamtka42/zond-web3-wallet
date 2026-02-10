@@ -90,8 +90,8 @@ const AddOrImportAccount = observer(
     } = form;
 
     const onAddAccount = async () => {
-      const { zond } = new Web3();
-      const account = zond?.accounts?.create();
+      const { qrl } = new Web3();
+      const account = qrl?.accounts?.create();
       setAddedAccount(account);
       await addAnAccountToWallet(account);
     };
@@ -102,8 +102,8 @@ const AddOrImportAccount = observer(
 
     async function onSubmit(formData: z.infer<typeof FormSchema>) {
       try {
-        const { zond } = new Web3();
-        const account = zond.accounts.seedToAccount(
+        const { qrl } = new Web3();
+        const account = qrl.accounts.seedToAccount(
           getHexSeedFromMnemonic(formData.mnemonicPhrases.trim()),
         );
         if (account) {

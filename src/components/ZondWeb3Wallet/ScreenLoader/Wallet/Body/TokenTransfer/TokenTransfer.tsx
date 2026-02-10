@@ -27,7 +27,7 @@ import { ROUTES } from "@/router/router";
 import { useStore } from "@/stores/store";
 import StorageUtil from "@/utilities/storageUtil";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TransactionReceipt, validator, utils, zond } from "@theqrl/web3";
+import { TransactionReceipt, validator, utils, qrl } from "@theqrl/web3";
 import { Loader, Send, X } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
@@ -42,7 +42,7 @@ import TokenDisplaySection from "./TokenDisplaySection/TokenDisplaySection";
 import { TransactionSuccessful } from "./TransactionSuccessful/TransactionSuccessful";
 import { NATIVE_TOKEN_UNITS_OF_GAS } from "@/constants/nativeToken";
 
-const { Common } = zond.accounts;
+const { Common } = qrl.accounts;
 
 const FormSchema = z
   .object({
@@ -64,7 +64,7 @@ const TokenTransfer = observer(() => {
     signAndSendNativeToken,
     fetchAccounts,
     signAndSendZrc20Token,
-    zondInstance,
+    qrlInstance,
     getGasFeeData,
   } = zondStore;
   const { accountAddress } = activeAccount;
@@ -104,8 +104,8 @@ const TokenTransfer = observer(() => {
 
     try {
       const { maxFeePerGas, maxPriorityFeePerGas } = await getGasFeeData();
-      const nonce = await zondInstance?.getTransactionCount(accountAddress);
-      const chainId = await zondInstance?.getChainId();
+      const nonce = await qrlInstance?.getTransactionCount(accountAddress);
+      const chainId = await qrlInstance?.getChainId();
 
       const common = Common.custom({ chainId: Number(chainId) });
       const txData = {
@@ -114,12 +114,12 @@ const TokenTransfer = observer(() => {
         maxFeePerGas: `0x${Number(maxFeePerGas).toString(16)}`,
         gasLimit: `0x${BigInt(NATIVE_TOKEN_UNITS_OF_GAS).toString(16)}`,
         to: formData.receiverAddress,
-        value: `0x${BigInt(utils.toWei(formData.amount, "ether")).toString(16)}`,
+        value: `0x${BigInt(utils.toPlanck(formData.amount, "quanta")).toString(16)}`,
         data: "0x",
       };
 
       const signedRawTxHex = await ledgerStore.signAndSerializeTransaction(accountAddress, txData, common);
-      const transactionReceipt = await zondInstance?.sendSignedTransaction(signedRawTxHex);
+      const transactionReceipt = await qrlInstance?.sendSignedTransaction(signedRawTxHex);
       transaction.transactionReceipt = transactionReceipt;
     } catch (error) {
       console.error("[TokenTransfer] Ledger transaction failed:", error);

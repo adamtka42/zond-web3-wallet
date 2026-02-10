@@ -31,7 +31,7 @@ describe("ZondSignTypedDataV4", () => {
       mockedStore({
         dAppRequestStore: {
           dAppRequestData: {
-            method: "zond_signTypedData_v4",
+            method: "qrl_signTypedData_v4",
           },
         },
       }),

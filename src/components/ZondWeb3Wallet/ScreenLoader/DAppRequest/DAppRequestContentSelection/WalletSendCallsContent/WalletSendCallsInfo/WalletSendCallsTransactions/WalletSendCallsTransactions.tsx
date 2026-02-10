@@ -36,7 +36,7 @@ const WalletSendCallsTransactions = observer(() => {
                 <div className="flex flex-col gap-1">
                   <div>Amount</div>
                   <div className="font-bold text-secondary">
-                    {utils.fromWei(value, "ether")} ZND
+                    {utils.fromPlanck(value, "quanta")} QRL
                   </div>
                 </div>
               </div>

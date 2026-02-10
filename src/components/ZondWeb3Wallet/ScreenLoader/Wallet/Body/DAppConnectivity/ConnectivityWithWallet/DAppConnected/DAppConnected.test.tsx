@@ -26,7 +26,7 @@ describe("DAppConnected", () => {
         zondStore: { zondAccounts: { isLoading: false } },
         dAppRequestStore: {
           currentTabData: {
-            connectedAccounts: ["Z20fB08fF1f1376A14C055E9F56df80563E16722b"],
+            connectedAccounts: ["Q20fB08fF1f1376A14C055E9F56df80563E16722b"],
           },
         },
       }),
@@ -37,7 +37,7 @@ describe("DAppConnected", () => {
         "The following accounts are connected, and can interact with this website.",
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText("Z")).toBeInTheDocument();
+    expect(screen.getByText("Q")).toBeInTheDocument();
     expect(screen.getByText("20fB0")).toBeInTheDocument();
     expect(screen.getByText("8fF1f")).toBeInTheDocument();
     expect(screen.getByText("1376A")).toBeInTheDocument();
@@ -46,6 +46,6 @@ describe("DAppConnected", () => {
     expect(screen.getByText("6df80")).toBeInTheDocument();
     expect(screen.getByText("563E1")).toBeInTheDocument();
     expect(screen.getByText("6722b")).toBeInTheDocument();
-    expect(screen.getByText("0.0 ZND")).toBeInTheDocument();
+    expect(screen.getByText("0.0 QRL")).toBeInTheDocument();
   });
 });

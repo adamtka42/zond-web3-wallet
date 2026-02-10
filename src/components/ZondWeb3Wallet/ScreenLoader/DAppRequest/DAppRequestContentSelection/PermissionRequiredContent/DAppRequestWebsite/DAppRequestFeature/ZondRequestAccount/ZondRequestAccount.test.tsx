@@ -25,12 +25,12 @@ describe("ZondRequestAccount", () => {
             isLoading: false,
             accounts: [
               {
-                accountAddress: "Z20915094FEDE91EFAC68fD43D82e9Fff4daC7482",
-                accountBalance: "10 ZND",
+                accountAddress: "Q20915094FEDE91EFAC68fD43D82e9Fff4daC7482",
+                accountBalance: "10 QRL",
               },
             ],
           },
-          getAccountBalance: () => "10.0 ZND",
+          getAccountBalance: () => "10.0 QRL",
         },
       }),
     );
@@ -49,7 +49,7 @@ describe("ZondRequestAccount", () => {
     ).toBeInTheDocument();
     expect(checkBox).toBeInTheDocument();
     expect(checkBox).toBeEnabled();
-    expect(screen.getByText("Z")).toBeInTheDocument();
+    expect(screen.getByText("Q")).toBeInTheDocument();
     expect(screen.getByText("20915")).toBeInTheDocument();
     expect(screen.getByText("094FE")).toBeInTheDocument();
     expect(screen.getByText("DE91E")).toBeInTheDocument();
@@ -71,7 +71,7 @@ describe("ZondRequestAccount", () => {
     );
 
     const checkBox = screen.queryByRole("checkbox", {
-      name: "Z 2090E 9F387 71876 FB6Fc 51a6b 46412 1d3cC 093A1",
+      name: "Q 2090E 9F387 71876 FB6Fc 51a6b 46412 1d3cC 093A1",
     });
     expect(checkBox).not.toBeInTheDocument();
     expect(

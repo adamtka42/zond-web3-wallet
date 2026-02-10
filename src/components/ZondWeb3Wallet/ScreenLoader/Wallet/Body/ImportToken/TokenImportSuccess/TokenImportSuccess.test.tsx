@@ -16,7 +16,7 @@ describe("TokenImportSuccess", () => {
       <StoreProvider value={mockedStoreValues}>
         <MemoryRouter>
           <TokenImportSuccess
-            contractAddress="Z0db3981cb93db985e4e3a62ff695f7a1b242dd7c"
+            contractAddress="Q0db3981cb93db985e4e3a62ff695f7a1b242dd7c"
             onCancelImport={mockedOnCancelImport}
             token={{
               balance: 25,
@@ -39,7 +39,7 @@ describe("TokenImportSuccess", () => {
     );
     expect(screen.getByText("Contract address")).toBeInTheDocument();
     expect(
-      screen.getByText("Z 0db39 81cb9 3db98 5e4e3 a62ff 695f7 a1b24 2dd7c"),
+      screen.getByText("Q 0db39 81cb9 3db98 5e4e3 a62ff 695f7 a1b24 2dd7c"),
     ).toBeInTheDocument();
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("MOCK TOKEN")).toBeInTheDocument();

@@ -5,7 +5,7 @@ const ZOND_MAINNET_DATA = {
   blockExplorerUrls: ["https://www.theqrl.org/markets/"],
   nativeCurrency: {
     name: "Quanta",
-    symbol: "ZND",
+    symbol: "QRL",
     decimals: 18,
   },
   iconUrls: ["icons/chains/zond_mainnet.svg"],
@@ -18,7 +18,7 @@ const ZOND_TESTNET_DATA = {
   blockExplorerUrls: ["https://www.theqrl.org/markets/"],
   nativeCurrency: {
     name: "Quanta",
-    symbol: "ZND",
+    symbol: "QRL",
     decimals: 18,
   },
   iconUrls: ["icons/chains/zond_testnet.svg"],

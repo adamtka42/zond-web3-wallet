@@ -6,8 +6,8 @@ import { pipeline } from "readable-stream";
 import browser from "webextension-polyfill";
 import {
   EXTENSION_MESSAGES,
-  ZOND_POST_MESSAGE_STREAM,
-  ZOND_WALLET_PROVIDER_NAME,
+  QRL_POST_MESSAGE_STREAM,
+  QRL_WALLET_PROVIDER_NAME,
 } from "./constants/streamConstants";
 import LockManager, { LOCK_MANAGER_MESSAGES } from "./lockManager/lockManager";
 import { appendSenderDataMiddleware } from "./middlewares/appendSenderDataMiddleware";
@@ -118,7 +118,7 @@ const setupProviderEngineEip1193 = ({
 const setupProviderConnectionEip1193 = async (port: browser.Runtime.Port) => {
   const portStream = new PortStream(port);
   const mux = setupMultiplex(portStream);
-  const outStream = mux.createStream(ZOND_WALLET_PROVIDER_NAME);
+  const outStream = mux.createStream(QRL_WALLET_PROVIDER_NAME);
   const sender = port.sender;
 
   // messages between inpage and background
@@ -144,7 +144,7 @@ const setupProviderConnectionEip1193 = async (port: browser.Runtime.Port) => {
 const establishContenScriptConnection = () => {
   browser.runtime.onConnect.addListener(async (port) => {
     // Ensuring the port connected to is the content script
-    if (port.name === ZOND_POST_MESSAGE_STREAM.CONTENT_SCRIPT) {
+    if (port.name === QRL_POST_MESSAGE_STREAM.CONTENT_SCRIPT) {
       await announceServiceWorkerReady();
       await setupProviderConnectionEip1193(port);
     }

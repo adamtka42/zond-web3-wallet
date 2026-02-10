@@ -14,11 +14,10 @@ import {
 import { getHexSeedFromMnemonic } from "@/functions/getHexSeedFromMnemonic";
 import { useStore } from "@/stores/store";
 import StringUtil from "@/utilities/stringUtil";
-import { Dilithium } from "@theqrl/wallet.js";
+import { MLDSA87, ExtendedSeed } from "@theqrl/wallet.js";
 import { bytesToHex } from "@theqrl/web3-utils";
-import { getEncodedEip712Data } from "@theqrl/web3-zond-abi";
-import { parseAndValidateSeed, sign } from "@theqrl/web3-zond-accounts";
-import { Buffer } from "buffer";
+import { getEncodedEip712Data } from "@theqrl/web3-qrl-abi";
+import { parseAndValidateSeed, sign } from "@theqrl/web3-qrl-accounts";
 import { Copy } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
@@ -26,7 +25,7 @@ import { useEffect } from "react";
 const ZondSignTypedDataV4Content = observer(() => {
   const { lockStore, zondStore, dAppRequestStore } = useStore();
   const { getMnemonicPhrases } = lockStore;
-  const { zondInstance, zondConnection } = zondStore;
+  const { qrlInstance, zondConnection } = zondStore;
   const { isConnected } = zondConnection;
   const {
     dAppRequestData,
@@ -77,7 +76,7 @@ const ZondSignTypedDataV4Content = observer(() => {
       const mnemonicPhrases = await getMnemonicPhrases(fromAddress ?? "");
       const seed = getHexSeedFromMnemonic(mnemonicPhrases);
       const addressFromMnemonic =
-        zondInstance?.accounts.seedToAccount(seed)?.address;
+        qrlInstance?.accounts.seedToAccount(seed)?.address;
       if (fromAddress !== addressFromMnemonic) {
         throw new Error("Mnemonic phrases did not match with the address");
       }
@@ -85,8 +84,8 @@ const ZondSignTypedDataV4Content = observer(() => {
       const signature = sign(messageHash, seed)?.signature;
 
       const seedUint8Array = parseAndValidateSeed(seed);
-      const buf = Buffer.from(seedUint8Array);
-      const acc = new Dilithium(buf);
+      const extSeed = new ExtendedSeed(seedUint8Array);
+      const acc = MLDSA87.newWalletFromExtendedSeed(extSeed);
       const publicKey = bytesToHex(acc.getPK());
 
       if (signature) {

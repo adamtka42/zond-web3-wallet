@@ -31,9 +31,9 @@ describe("ActiveChain", () => {
 
     expect(screen.getByText("Active chain")).toBeInTheDocument();
     expect(screen.getByText("Mocked Chain Icon")).toBeInTheDocument();
-    expect(screen.getByText("Zond Mainnet")).toBeInTheDocument();
-    expect(screen.getByText("Chain ID 1")).toBeInTheDocument();
-    expect(screen.getByText("http://127.0.0.1:8545")).toBeInTheDocument();
+    expect(screen.getByText("Zond Testnet")).toBeInTheDocument();
+    expect(screen.getByText("Chain ID 32382")).toBeInTheDocument();
+    expect(screen.getByText("http://209.250.255.226:8545")).toBeInTheDocument();
     const link = screen.getByRole("link", { name: "Edit chain" });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", ROUTES.ADD_EDIT_CHAIN);

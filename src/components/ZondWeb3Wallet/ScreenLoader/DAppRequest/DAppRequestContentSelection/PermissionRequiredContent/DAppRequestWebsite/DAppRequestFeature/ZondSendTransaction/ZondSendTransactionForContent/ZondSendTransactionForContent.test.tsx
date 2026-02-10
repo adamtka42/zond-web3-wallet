@@ -35,8 +35,8 @@ describe("ZondSendTransactionForContent", () => {
     );
 
   const zndTransferRequest = {
-    from: "Z20D20b8026B8F02540246f58120ddAAf35AECD9B",
-    to: "Z20EE9760786AD48aB90E326c5cd78c6269Ba10AB",
+    from: "Q20D20b8026B8F02540246f58120ddAAf35AECD9B",
+    to: "Q20EE9760786AD48aB90E326c5cd78c6269Ba10AB",
     value: "0x30",
     gas: "0x1cb55",
     type: "0x2",
@@ -44,14 +44,14 @@ describe("ZondSendTransactionForContent", () => {
 
   const contractDeploymentRequest = {
     data: "0x608060405234",
-    from: "Z20D20b8026B8F02540246f58120ddAAf35AECD9B",
+    from: "Q20D20b8026B8F02540246f58120ddAAf35AECD9B",
     gas: "0x1cbb3",
     type: "0x2",
     value: "0x0",
   };
 
   const contractInteractionRequest = {
-    from: "Z20D20b8026B8F02540246f58120ddAAf35AECD9B",
+    from: "Q20D20b8026B8F02540246f58120ddAAf35AECD9B",
     to: "0x20EE9760786AD48aB90E326c5cd78c6269Ba10AB",
     data: "0x608060405234",
     value: "0x0",
@@ -64,7 +64,7 @@ describe("ZondSendTransactionForContent", () => {
     return mockedStore({
       zondStore: {
         zondConnection: { isConnected: true },
-        zondInstance: {
+        qrlInstance: {
           getGasPrice: async () => BigInt(1000),
           getTransactionCount: async () => 0,
           getChainId: async () => 1,
@@ -109,7 +109,7 @@ describe("ZondSendTransactionForContent", () => {
   it("should render the zond send transaction component for contract deployment", async () => {
     const requestForContractDeployment = {
       data: "0x6080604052348015600e575f5ffd5b506101298061001c5f395ff3fe6080604052348015600e575f5ffd5b50600436106030575f3560e01c8063271f88b4146034578063d321fe2914604c575b5f5ffd5b604a60048036038101906046919060a9565b6066565b005b6052606f565b604051605d919060dc565b60405180910390f35b805f8190555050565b5f5f54905090565b5f5ffd5b5f819050919050565b608b81607b565b81146094575f5ffd5b50565b5f8135905060a3816084565b92915050565b5f6020828403121560bb5760ba6077565b5b5f60c6848285016097565b91505092915050565b60d681607b565b82525050565b5f60208201905060ed5f83018460cf565b9291505056fea26469706673582212203f5c1f328bda9fceed794ae68885d6664554bf4d7dbb1df839cc372d276837ab64736f6c634300081b0033",
-      from: "Z20D20b8026B8F02540246f58120ddAAf35AECD9B",
+      from: "Q20D20b8026B8F02540246f58120ddAAf35AECD9B",
       gas: "0x1cbb3",
       type: "0x2",
       value: "0x0",
@@ -131,7 +131,7 @@ describe("ZondSendTransactionForContent", () => {
     expect(dataTab).toBeInTheDocument();
     expect(screen.getByText("From Address")).toBeInTheDocument();
     expect(
-      screen.getByText("Z 20D20 b8026 B8F02 54024 6f581 20ddA Af35A ECD9B"),
+      screen.getByText("Q 20D20 b8026 B8F02 54024 6f581 20ddA Af35A ECD9B"),
     ).toBeInTheDocument();
     expect(screen.getByText("Gas Limit")).toBeInTheDocument();
     expect(screen.getByText("117683")).toBeInTheDocument();
@@ -145,7 +145,7 @@ describe("ZondSendTransactionForContent", () => {
 
   it("should render the zond send transaction component for contract interaction", async () => {
     const requestForContractInteraction = {
-      from: "Z20D20b8026B8F02540246f58120ddAAf35AECD9B",
+      from: "Q20D20b8026B8F02540246f58120ddAAf35AECD9B",
       to: "0x20EE9760786AD48aB90E326c5cd78c6269Ba10AB",
       data: "0x6080604052348015600e575f5ffd5b506101298061001c5f395ff3fe6080604052348015600e575f5ffd5b50600436106030575f3560e01c8063271f88b4146034578063d321fe2914604c575b5f5ffd5b604a60048036038101906046919060a9565b6066565b005b6052606f565b604051605d919060dc565b60405180910390f35b805f8190555050565b5f5f54905090565b5f5ffd5b5f819050919050565b608b81607b565b81146094575f5ffd5b50565b5f8135905060a3816084565b92915050565b5f6020828403121560bb5760ba6077565b5b5f60c6848285016097565b91505092915050565b60d681607b565b82525050565b5f60208201905060ed5f83018460cf565b9291505056fea26469706673582212203f5c1f328bda9fceed794ae68885d6664554bf4d7dbb1df839cc372d276837ab64736f6c634300081b0033",
       value: "0x0",
@@ -169,7 +169,7 @@ describe("ZondSendTransactionForContent", () => {
     expect(dataTab).toBeInTheDocument();
     expect(screen.getByText("From Address")).toBeInTheDocument();
     expect(
-      screen.getByText("Z 20D20 b8026 B8F02 54024 6f581 20ddA Af35A ECD9B"),
+      screen.getByText("Q 20D20 b8026 B8F02 54024 6f581 20ddA Af35A ECD9B"),
     ).toBeInTheDocument();
     expect(screen.getByText("Gas Limit")).toBeInTheDocument();
     expect(screen.getByText("117683")).toBeInTheDocument();
@@ -181,10 +181,10 @@ describe("ZondSendTransactionForContent", () => {
     ).toBeInTheDocument();
   });
 
-  it("should render the zond send transaction component for ZND transfer", async () => {
+  it("should render the zond send transaction component for QRL transfer", async () => {
     const requestForZndTransfer = {
-      from: "Z20D20b8026B8F02540246f58120ddAAf35AECD9B",
-      to: "Z20EE9760786AD48aB90E326c5cd78c6269Ba10AB",
+      from: "Q20D20b8026B8F02540246f58120ddAAf35AECD9B",
+      to: "Q20EE9760786AD48aB90E326c5cd78c6269Ba10AB",
       value: "0x30",
       gas: "0x1cb55",
       type: "0x2",
@@ -197,7 +197,7 @@ describe("ZondSendTransactionForContent", () => {
           },
         },
       }),
-      { transactionType: SEND_TRANSACTION_TYPES.ZND_TRANSFER },
+      { transactionType: SEND_TRANSACTION_TYPES.QRL_TRANSFER },
     );
 
     const detailsTab = screen.getByRole("tab", { name: "Details" });
@@ -206,20 +206,20 @@ describe("ZondSendTransactionForContent", () => {
     expect(dataTab).not.toBeInTheDocument();
     expect(screen.getByText("From Address")).toBeInTheDocument();
     expect(
-      screen.getByText("Z 20D20 b8026 B8F02 54024 6f581 20ddA Af35A ECD9B"),
+      screen.getByText("Q 20D20 b8026 B8F02 54024 6f581 20ddA Af35A ECD9B"),
     ).toBeInTheDocument();
     expect(screen.getByText("To Address")).toBeInTheDocument();
     expect(
-      screen.getByText("Z 20EE9 76078 6AD48 aB90E 326c5 cd78c 6269B a10AB"),
+      screen.getByText("Q 20EE9 76078 6AD48 aB90E 326c5 cd78c 6269B a10AB"),
     ).toBeInTheDocument();
     expect(screen.getByText("Value")).toBeInTheDocument();
-    expect(screen.getByText("0.000000000000000048 ZND")).toBeInTheDocument();
+    expect(screen.getByText("0.000000000000000048 QRL")).toBeInTheDocument();
     expect(screen.getByText("Gas Limit")).toBeInTheDocument();
     expect(screen.getByText("117589")).toBeInTheDocument();
   });
 
   describe("sendZndTransfer", () => {
-    it("should send ZND transfer via regular account (mnemonic)", async () => {
+    it("should send QRL transfer via regular account (mnemonic)", async () => {
       const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
         transactionHash: "0xtxhash",
       });
@@ -228,7 +228,7 @@ describe("ZondSendTransactionForContent", () => {
       renderComponent(
         createStoreWithCallback({
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               getChainId: async () => 1,
@@ -242,7 +242,7 @@ describe("ZondSendTransactionForContent", () => {
           },
           addToResponseData: mockAddToResponseData,
         }),
-        { transactionType: SEND_TRANSACTION_TYPES.ZND_TRANSFER },
+        { transactionType: SEND_TRANSACTION_TYPES.QRL_TRANSFER },
       );
 
       expect(capturedPermissionCallback).not.toBeNull();
@@ -256,7 +256,7 @@ describe("ZondSendTransactionForContent", () => {
       });
     });
 
-    it("should send ZND transfer via Ledger account", async () => {
+    it("should send QRL transfer via Ledger account", async () => {
       const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
         transactionHash: "0xledgertxhash",
       });
@@ -266,7 +266,7 @@ describe("ZondSendTransactionForContent", () => {
       renderComponent(
         createStoreWithCallback({
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               getChainId: async () => 1,
@@ -279,7 +279,7 @@ describe("ZondSendTransactionForContent", () => {
             signAndSerializeTransaction: mockSignAndSerialize,
           },
         }),
-        { transactionType: SEND_TRANSACTION_TYPES.ZND_TRANSFER },
+        { transactionType: SEND_TRANSACTION_TYPES.QRL_TRANSFER },
       );
 
       await act(async () => {
@@ -293,7 +293,7 @@ describe("ZondSendTransactionForContent", () => {
       });
     });
 
-    it("should send ZND transfer with legacy gas pricing (non-0x2)", async () => {
+    it("should send QRL transfer with legacy gas pricing (non-0x2)", async () => {
       const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
         transactionHash: "0xtxhash",
       });
@@ -303,7 +303,7 @@ describe("ZondSendTransactionForContent", () => {
         createStoreWithCallback({
           requestParams: legacyRequest,
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               accounts: {
@@ -315,7 +315,7 @@ describe("ZondSendTransactionForContent", () => {
             } as any,
           },
         }),
-        { transactionType: SEND_TRANSACTION_TYPES.ZND_TRANSFER },
+        { transactionType: SEND_TRANSACTION_TYPES.QRL_TRANSFER },
       );
 
       await act(async () => {
@@ -334,7 +334,7 @@ describe("ZondSendTransactionForContent", () => {
           requestParams: missingFromRequest,
           addToResponseData: mockAddToResponseData,
         }),
-        { transactionType: SEND_TRANSACTION_TYPES.ZND_TRANSFER },
+        { transactionType: SEND_TRANSACTION_TYPES.QRL_TRANSFER },
       );
 
       await act(async () => {
@@ -361,14 +361,14 @@ describe("ZondSendTransactionForContent", () => {
             },
           },
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               getChainId: async () => 1,
             } as any,
           },
         }),
-        { transactionType: SEND_TRANSACTION_TYPES.ZND_TRANSFER },
+        { transactionType: SEND_TRANSACTION_TYPES.QRL_TRANSFER },
       );
 
       await act(async () => {
@@ -394,7 +394,7 @@ describe("ZondSendTransactionForContent", () => {
         createStoreWithCallback({
           requestParams: contractDeploymentRequest,
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               getChainId: async () => 1,
@@ -432,7 +432,7 @@ describe("ZondSendTransactionForContent", () => {
         createStoreWithCallback({
           requestParams: contractDeploymentRequest,
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               getChainId: async () => 1,
@@ -470,7 +470,7 @@ describe("ZondSendTransactionForContent", () => {
         createStoreWithCallback({
           requestParams: contractInteractionRequest,
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               getChainId: async () => 1,
@@ -507,7 +507,7 @@ describe("ZondSendTransactionForContent", () => {
         createStoreWithCallback({
           requestParams: legacyDeployRequest,
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               getChainId: async () => 1,
@@ -539,7 +539,7 @@ describe("ZondSendTransactionForContent", () => {
         createStoreWithCallback({
           requestParams: contractDeploymentRequest,
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               accounts: {
@@ -573,14 +573,14 @@ describe("ZondSendTransactionForContent", () => {
       renderComponent(
         createStoreWithCallback({
           zondStore: {
-            zondInstance: {
+            qrlInstance: {
               getGasPrice: async () => BigInt(1000),
               getTransactionCount: async () => 0,
               sendSignedTransaction: mockSendSignedTransaction,
             } as any,
           },
         }),
-        { transactionType: SEND_TRANSACTION_TYPES.ZND_TRANSFER },
+        { transactionType: SEND_TRANSACTION_TYPES.QRL_TRANSFER },
       );
 
       await act(async () => {

@@ -84,12 +84,12 @@ describe("ImportAccount", () => {
     renderComponent(
       mockedStore({
         zondStore: {
-          zondInstance: {
+          qrlInstance: {
             accounts: {
               seedToAccount: (seed: string | Uint8Array) => {
                 seed;
                 return {
-                  address: "Z2090E9F38771876FB6Fc51a6b464121d3cC093A1",
+                  address: "Q2090E9F38771876FB6Fc51a6b464121d3cC093A1",
                   seed: "",
                   sign: (data: string | Record<string, unknown>) => {
                     data;
@@ -103,6 +103,9 @@ describe("ImportAccount", () => {
                       signature: "",
                       transactionHash: "",
                     };
+                  },
+                  encrypt: async () => {
+                    throw new Error("Not implemented");
                   },
                 };
               },

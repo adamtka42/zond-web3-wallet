@@ -31,7 +31,7 @@ describe("DAppRequestFeature", () => {
     renderComponent(
       mockedStore({
         dAppRequestStore: {
-          dAppRequestData: { method: RESTRICTED_METHODS.ZOND_REQUEST_ACCOUNTS },
+          dAppRequestData: { method: RESTRICTED_METHODS.QRL_REQUEST_ACCOUNTS },
         },
       }),
     );
@@ -43,7 +43,7 @@ describe("DAppRequestFeature", () => {
     renderComponent(
       mockedStore({
         dAppRequestStore: {
-          dAppRequestData: { method: RESTRICTED_METHODS.ZOND_SEND_TRANSACTION },
+          dAppRequestData: { method: RESTRICTED_METHODS.QRL_SEND_TRANSACTION },
         },
       }),
     );

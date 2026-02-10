@@ -28,10 +28,10 @@ describe("TokenListItem", () => {
   const renderComponent = (
     mockedStoreValues = mockedStore(),
     mockedProps: ComponentProps<typeof TokenListItem> = {
-      balance: "25 ZND",
-      name: "ZND TOKEN",
-      symbol: "ZND",
-      contractAddress: "Z0db3981cb93db985e4e3a62ff695f7a1b242dd7c",
+      balance: "25 QRL",
+      name: "QRL TOKEN",
+      symbol: "QRL",
+      contractAddress: "Q0db3981cb93db985e4e3a62ff695f7a1b242dd7c",
       decimals: 18,
       isZrc20Token: false,
       image: "",
@@ -50,8 +50,8 @@ describe("TokenListItem", () => {
   it("should render the token list item component", () => {
     renderComponent();
 
-    expect(screen.getByText("25 ZND")).toBeInTheDocument();
-    expect(screen.getByText("ZND TOKEN")).toBeInTheDocument();
+    expect(screen.getByText("25 QRL")).toBeInTheDocument();
+    expect(screen.getByText("QRL TOKEN")).toBeInTheDocument();
     const moreButton = screen.getByRole("button", { name: "More" });
     expect(moreButton).toBeInTheDocument();
     expect(moreButton).toBeEnabled();

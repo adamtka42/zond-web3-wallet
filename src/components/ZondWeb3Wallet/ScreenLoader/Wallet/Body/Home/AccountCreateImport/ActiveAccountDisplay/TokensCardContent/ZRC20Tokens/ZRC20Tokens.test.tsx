@@ -16,15 +16,15 @@ jest.mock("@/utilities/storageUtil", () => {
     ...originalModule,
     getTokenContractsList: jest.fn(async () => [
       {
-        address: "Z28c4113a9d3a2e836f28c23ed8e3c1e7c243f566",
+        address: "Q28c4113a9d3a2e836f28c23ed8e3c1e7c243f566",
         image: "testImage1",
       },
       {
-        address: "Z978918b7b544ad491d0b294cc6ac4d7bb0ef7112",
+        address: "Q978918b7b544ad491d0b294cc6ac4d7bb0ef7112",
         image: "testImage2",
       },
       {
-        address: "Z0db3981cb93db985e4e3a62ff695f7a1b242dd7c",
+        address: "Q0db3981cb93db985e4e3a62ff695f7a1b242dd7c",
         image: "testImage3",
       },
     ]),

@@ -19,9 +19,9 @@ jest.mock("./ledgerApdu", () => ({
   getDerivationPath: jest.fn<any>((index: number) => `m/44'/238'/0'/0/${index}`),
   splitIntoChunks: jest.fn<any>((data: Buffer) => [data]),
   combineSignatureChunks: jest.fn<any>((chunks: Buffer[]) => Buffer.concat(chunks)),
-  parseZondAddress: jest.fn<any>(() => "Z" + "ab".repeat(24)),
+  parseZondAddress: jest.fn<any>(() => "Q" + "ab".repeat(24)),
   parsePublicKeyResponse: jest.fn<any>(() => ({
-    address: "Z" + "ab".repeat(24),
+    address: "Q" + "ab".repeat(24),
     publicKey: "0x" + "cc".repeat(100),
   })),
   parseAppVersion: jest.fn<any>(() => "1.2.3"),
@@ -70,9 +70,9 @@ describe("LedgerService", () => {
       combineSignatureChunks: jest.fn<any>((chunks: Buffer[]) =>
         Buffer.concat(chunks)
       ),
-      parseZondAddress: jest.fn<any>(() => "Z" + "ab".repeat(24)),
+      parseZondAddress: jest.fn<any>(() => "Q" + "ab".repeat(24)),
       parsePublicKeyResponse: jest.fn<any>(() => ({
-        address: "Z" + "ab".repeat(24),
+        address: "Q" + "ab".repeat(24),
         publicKey: "0x" + "cc".repeat(100),
       })),
       parseAppVersion: jest.fn<any>(() => "1.2.3"),
@@ -212,7 +212,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]), // 'Z' prefix
+          Buffer.from([0x51]), // 'Q' prefix
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -234,7 +234,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -254,7 +254,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -269,7 +269,7 @@ describe("LedgerService", () => {
         LEDGER_CONFIG.P2.LAST,
         expect.any(Buffer)
       );
-      expect(result.address).toMatch(/^Z/);
+      expect(result.address).toMatch(/^Q/);
       expect(result.derivationPath).toBe("m/44'/238'/0'/0/0");
       expect(result.publicKey).toBe(""); // getAddress does not return public key
     });
@@ -278,7 +278,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -301,7 +301,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.alloc(100, 0xcc), // Public key
           Buffer.from([0x90, 0x00]),
@@ -320,7 +320,7 @@ describe("LedgerService", () => {
         LEDGER_CONFIG.P2.LAST,
         expect.any(Buffer)
       );
-      expect(result.address).toMatch(/^Z/);
+      expect(result.address).toMatch(/^Q/);
       expect(result.derivationPath).toBe("m/44'/238'/0'/0/0");
       expect(result.publicKey).toMatch(/^0x/); // getPublicKey returns public key
       expect(result.publicKey.length).toBeGreaterThan(2); // More than just "0x"
@@ -330,7 +330,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.alloc(100, 0xcc),
           Buffer.from([0x90, 0x00]),
@@ -354,7 +354,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -369,7 +369,7 @@ describe("LedgerService", () => {
         LEDGER_CONFIG.P2.LAST,
         expect.any(Buffer)
       );
-      expect(address).toMatch(/^Z/);
+      expect(address).toMatch(/^Q/);
     });
   });
 

@@ -38,8 +38,8 @@ describe("ZondRequestAccountAccountSelection", () => {
             isLoading: false,
             accounts: [
               {
-                accountAddress: "Z20E7Bde67f00EA38ABb2aC57e1B0DD93f518446c",
-                accountBalance: "0.0 ZND",
+                accountAddress: "Q20E7Bde67f00EA38ABb2aC57e1B0DD93f518446c",
+                accountBalance: "0.0 QRL",
               },
             ],
           },
@@ -86,8 +86,8 @@ describe("ZondRequestAccountAccountSelection", () => {
             isLoading: false,
             accounts: [
               {
-                accountAddress: "Z20E7Bde67f00EA38ABb2aC57e1B0DD93f518446c",
-                accountBalance: "0.0 ZND",
+                accountAddress: "Q20E7Bde67f00EA38ABb2aC57e1B0DD93f518446c",
+                accountBalance: "0.0 QRL",
               },
             ],
           },

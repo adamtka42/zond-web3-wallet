@@ -92,7 +92,7 @@ describe("ZondSendTransaction", () => {
       }),
     );
 
-    expect(screen.getByText("Transfer ZND")).toBeInTheDocument();
-    expect(screen.getByText("This site wants to send ZND")).toBeInTheDocument();
+    expect(screen.getByText("Transfer QRL")).toBeInTheDocument();
+    expect(screen.getByText("This site wants to send QRL")).toBeInTheDocument();
   });
 });

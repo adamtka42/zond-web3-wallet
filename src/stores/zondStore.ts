@@ -12,7 +12,7 @@ import { getOptimalTokenBalance } from "@/functions/getOptimalTokenBalance";
 import StorageUtil from "@/utilities/storageUtil";
 import Web3, {
   TransactionReceipt,
-  Web3ZondInterface,
+  Web3QRLInterface,
   utils,
 } from "@theqrl/web3";
 import { action, makeAutoObservable, observable, runInAction } from "mobx";
@@ -32,7 +32,7 @@ type ZondAccountsType = {
 };
 
 class ZondStore {
-  zondInstance?: Web3ZondInterface;
+  qrlInstance?: Web3QRLInterface;
   zondConnection = {
     isConnected: false,
     isLoading: false,
@@ -44,7 +44,7 @@ class ZondStore {
   constructor() {
     makeAutoObservable(this, {
       initializeBlockchain: action.bound,
-      zondInstance: observable.struct,
+      qrlInstance: observable.struct,
       zondConnection: observable.struct,
       zondAccounts: observable.struct,
       activeAccount: observable.struct,
@@ -69,8 +69,8 @@ class ZondStore {
     const zondHttpProvider = new Web3.providers.HttpProvider(
       this.zondConnection.blockchain.defaultRpcUrl || "http://localhost",
     );
-    const { zond } = new Web3({ provider: zondHttpProvider });
-    this.zondInstance = zond;
+    const { qrl } = new Web3({ provider: zondHttpProvider });
+    this.qrlInstance = qrl;
 
     await this.fetchZondConnection();
     await this.fetchAccounts();
@@ -139,7 +139,7 @@ class ZondStore {
   async fetchZondConnection() {
     this.zondConnection = { ...this.zondConnection, isLoading: true };
     try {
-      const isListening = (await this.zondInstance?.net.isListening()) ?? false;
+      const isListening = (await this.qrlInstance?.net.isListening()) ?? false;
       runInAction(() => {
         this.zondConnection = {
           ...this.zondConnection,
@@ -168,9 +168,9 @@ class ZondStore {
         await Promise.all(
           storedAccountsList.map(async (account) => {
             const accountBalance =
-              (await this.zondInstance?.getBalance(account)) ?? BigInt(0);
+              (await this.qrlInstance?.getBalance(account)) ?? BigInt(0);
             const convertedAccountBalance = getOptimalTokenBalance(
-              utils.fromWei(accountBalance, "ether"),
+              utils.fromPlanck(accountBalance, "quanta"),
             );
             return {
               accountAddress: account,
@@ -190,7 +190,7 @@ class ZondStore {
           ...this.zondAccounts,
           accounts: storedAccountsList.map((account) => ({
             accountAddress: account,
-            accountBalance: "0.0 ZND",
+            accountBalance: "0.0 QRL",
           })),
         };
       });
@@ -221,9 +221,9 @@ class ZondStore {
   }
 
   async getGasFeeData() {
-    const latestBlock = await this.zondInstance?.getBlock("latest");
+    const latestBlock = await this.qrlInstance?.getBlock("latest");
     const baseFeePerGas = latestBlock?.baseFeePerGas ?? BigInt(0);
-    const maxPriorityFeePerGas = utils.toWei("2", "gwei");
+    const maxPriorityFeePerGas = utils.toPlanck("2", "shor");
     const maxFeePerGas = baseFeePerGas + BigInt(maxPriorityFeePerGas);
     return {
       baseFeePerGas,
@@ -236,7 +236,7 @@ class ZondStore {
     return (
       this.zondAccounts.accounts.find(
         (account) => account.accountAddress === accountAddress,
-      )?.accountBalance ?? "0.0 ZND"
+      )?.accountBalance ?? "0.0 QRL"
     );
   }
 
@@ -246,7 +246,7 @@ class ZondStore {
     const priorityFee = Number(
       (await this.getGasFeeData()).maxPriorityFeePerGas,
     );
-    return utils.fromWei(gasLimit * (baseFee + priorityFee), "ether");
+    return utils.fromPlanck(gasLimit * (baseFee + priorityFee), "quanta");
   }
 
   async signAndSendNativeToken(
@@ -264,8 +264,8 @@ class ZondStore {
       const transactionObject = {
         from,
         to,
-        value: utils.toWei(value, "ether"),
-        nonce: await this.zondInstance?.getTransactionCount(from),
+        value: utils.toPlanck(value, "quanta"),
+        nonce: await this.qrlInstance?.getTransactionCount(from),
         gasLimit: NATIVE_TOKEN_UNITS_OF_GAS,
         maxFeePerGas: Number((await this.getGasFeeData()).maxFeePerGas),
         maxPriorityFeePerGas: Number(
@@ -274,13 +274,13 @@ class ZondStore {
         type: 2,
       };
       const signedTransaction =
-        await this.zondInstance?.accounts.signTransaction(
+        await this.qrlInstance?.accounts.signTransaction(
           transactionObject,
           getHexSeedFromMnemonic(mnemonicPhrases),
         );
       if (signedTransaction) {
         const transactionReceipt =
-          await this.zondInstance?.sendSignedTransaction(
+          await this.qrlInstance?.sendSignedTransaction(
             signedTransaction?.rawTransaction,
           );
         transaction = { ...transaction, transactionReceipt };
@@ -305,9 +305,9 @@ class ZondStore {
 
     const contractAbi = ZRC_20_CONTRACT_ABI;
 
-    if (this.zondInstance && this.zondInstance.Contract) {
+    if (this.qrlInstance && this.qrlInstance.Contract) {
       try {
-        const contract = new this.zondInstance.Contract(
+        const contract = new this.qrlInstance.Contract(
           contractAbi,
           contractAddress,
         );
@@ -347,8 +347,8 @@ class ZondStore {
     contractAddress: string,
     decimals: number,
   ) {
-    if (this.zondInstance && this.zondInstance.Contract) {
-      const contract = new this.zondInstance.Contract(
+    if (this.qrlInstance && this.qrlInstance.Contract) {
+      const contract = new this.qrlInstance.Contract(
         ZRC_20_CONTRACT_ABI,
         contractAddress,
       );
@@ -365,7 +365,7 @@ class ZondStore {
       const priorityFee = Number(
         (await this.getGasFeeData()).maxPriorityFeePerGas,
       );
-      return utils.fromWei(gasLimit * (baseFee + priorityFee), "ether");
+      return utils.fromPlanck(gasLimit * (baseFee + priorityFee), "quanta");
     }
     return "";
   }
@@ -385,11 +385,11 @@ class ZondStore {
 
     const contractAbi = ZRC_20_CONTRACT_ABI;
 
-    if (this.zondInstance && this.zondInstance.Contract) {
+    if (this.qrlInstance && this.qrlInstance.Contract) {
       try {
-        this.zondInstance.wallet?.add(getHexSeedFromMnemonic(mnemonicPhrases));
-        this.zondInstance.transactionConfirmationBlocks = 12;
-        const contract = new this.zondInstance.Contract(
+        this.qrlInstance.wallet?.add(getHexSeedFromMnemonic(mnemonicPhrases));
+        this.qrlInstance.transactionConfirmationBlocks = 12;
+        const contract = new this.qrlInstance.Contract(
           contractAbi,
           contractAddress,
         );
@@ -401,7 +401,7 @@ class ZondStore {
           from,
           to: contractAddress,
           data: contractTransfer.encodeABI(),
-          nonce: await this.zondInstance?.getTransactionCount(from),
+          nonce: await this.qrlInstance?.getTransactionCount(from),
           gasLimit: ZRC_20_TOKEN_UNITS_OF_GAS,
           maxFeePerGas: Number((await this.getGasFeeData()).maxFeePerGas),
           maxPriorityFeePerGas: Number(
@@ -410,7 +410,7 @@ class ZondStore {
           type: 2,
         };
 
-        const transactionReceipt = await this.zondInstance.sendTransaction(
+        const transactionReceipt = await this.qrlInstance.sendTransaction(
           transactionObject,
           undefined,
           {

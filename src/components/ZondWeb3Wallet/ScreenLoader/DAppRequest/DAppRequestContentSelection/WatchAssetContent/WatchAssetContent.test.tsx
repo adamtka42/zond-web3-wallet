@@ -26,7 +26,7 @@ describe("WatchAssetContent", () => {
       dAppRequestStore: { dAppRequestData: { params: [{ options: {} }] } },
       zondStore: {
         activeAccount: {
-          accountAddress: "Z20B714091cF2a62DADda2847803e3f1B9D2D3779",
+          accountAddress: "Q20B714091cF2a62DADda2847803e3f1B9D2D3779",
         },
       },
     }),

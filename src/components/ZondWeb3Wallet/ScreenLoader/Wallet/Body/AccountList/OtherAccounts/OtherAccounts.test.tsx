@@ -31,18 +31,18 @@ describe("OtherAccounts", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+            accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
           },
           zondAccounts: {
             isLoading: false,
             accounts: [
               {
-                accountAddress: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
-                accountBalance: "2.4568 ZND",
+                accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+                accountBalance: "2.4568 QRL",
               },
               {
-                accountAddress: "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
-                accountBalance: "0.3695 ZND",
+                accountAddress: "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
+                accountBalance: "0.3695 QRL",
               },
             ],
           },
@@ -70,19 +70,19 @@ describe("OtherAccounts", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+            accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
           },
           setActiveAccount: mockedSetActiveAccount,
           zondAccounts: {
             isLoading: false,
             accounts: [
               {
-                accountAddress: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
-                accountBalance: "2.4568 ZND",
+                accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+                accountBalance: "2.4568 QRL",
               },
               {
-                accountAddress: "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
-                accountBalance: "0.3695 ZND",
+                accountAddress: "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
+                accountBalance: "0.3695 QRL",
               },
             ],
           },
@@ -105,18 +105,18 @@ describe("OtherAccounts", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+            accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
           },
           zondAccounts: {
             isLoading: false,
             accounts: [
               {
-                accountAddress: "Z205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
-                accountBalance: "2.4568 ZND",
+                accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+                accountBalance: "2.4568 QRL",
               },
               {
-                accountAddress: "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
-                accountBalance: "0.3695 ZND",
+                accountAddress: "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
+                accountBalance: "0.3695 QRL",
               },
             ],
           },
@@ -136,7 +136,7 @@ describe("OtherAccounts", () => {
     await userEvent.click(copyButton);
     expect(mockedWriteText).toBeCalledTimes(1);
     expect(mockedWriteText).toBeCalledWith(
-      "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
+      "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
     );
   });
 });

@@ -27,11 +27,11 @@ describe("DAppRequestContentSelection", () => {
       </StoreProvider>,
     );
 
-  it("should display the add zond chain content if the method is wallet_addZondChain", () => {
+  it("should display the add QRL chain content if the method is wallet_addQRLChain", () => {
     renderComponent(
       mockedStore({
         dAppRequestStore: {
-          dAppRequestData: { method: RESTRICTED_METHODS.WALLET_ADD_ZOND_CHAIN },
+          dAppRequestData: { method: RESTRICTED_METHODS.WALLET_ADD_QRL_CHAIN },
         },
       }),
     );
@@ -65,7 +65,7 @@ describe("DAppRequestContentSelection", () => {
     renderComponent(
       mockedStore({
         dAppRequestStore: {
-          dAppRequestData: { method: RESTRICTED_METHODS.ZOND_REQUEST_ACCOUNTS },
+          dAppRequestData: { method: RESTRICTED_METHODS.QRL_REQUEST_ACCOUNTS },
         },
       }),
     );
@@ -82,7 +82,7 @@ describe("DAppRequestContentSelection", () => {
     renderComponent(
       mockedStore({
         dAppRequestStore: {
-          dAppRequestData: { method: RESTRICTED_METHODS.ZOND_SEND_TRANSACTION },
+          dAppRequestData: { method: RESTRICTED_METHODS.QRL_SEND_TRANSACTION },
         },
       }),
     );
@@ -100,7 +100,7 @@ describe("DAppRequestContentSelection", () => {
       mockedStore({
         dAppRequestStore: {
           dAppRequestData: {
-            method: RESTRICTED_METHODS.ZOND_SIGN_TYPED_DATA_V4,
+            method: RESTRICTED_METHODS.QRL_SIGN_TYPED_DATA_V4,
           },
         },
       }),

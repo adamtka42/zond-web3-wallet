@@ -16,27 +16,26 @@ export const encrypt = (
   password;
   options;
 
-  const { zond } = new Web3();
-  const account = zond.accounts.seedToAccount(seed);
-  const keystore = {
+  const { qrl } = new Web3();
+  const account = qrl.accounts.seedToAccount(seed);
+  const keystore: KeyStore = {
     id: account.seed,
-    version: 3 as const,
+    version: 1 as const,
     address: account.address,
     crypto: {
-      cipher: "aes-128-ctr" as const,
+      cipher: "aes-256-gcm" as const,
       ciphertext: "",
       cipherparams: {
         iv: "",
       },
-      kdf: "pbkdf2" as const,
+      kdf: "argon2id" as const,
       kdfparams: {
         dklen: 0,
-        n: 0,
+        t: 0,
+        m: 0,
         p: 0,
-        r: 0,
         salt: "",
       },
-      mac: "",
     },
   };
   return keystore;
@@ -73,6 +72,9 @@ export const decrypt = (
       readonly signature: HexString;
     } {
       data;
+      throw new Error("Function not implemented.");
+    },
+    encrypt: async () => {
       throw new Error("Function not implemented.");
     },
   };

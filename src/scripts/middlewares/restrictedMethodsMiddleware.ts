@@ -20,16 +20,16 @@ import {
 } from "../utils/restrictedMethodsMiddlewareUtils";
 import { DAppRequestType, DAppResponseType } from "./middlewareTypes";
 
-const ZOND_WALLET_DAPP_CONNECTION_REQUIRED_METHODS: string[] = [
-  RESTRICTED_METHODS.WALLET_ADD_ZOND_CHAIN,
+const QRL_WALLET_DAPP_CONNECTION_REQUIRED_METHODS: string[] = [
+  RESTRICTED_METHODS.WALLET_ADD_QRL_CHAIN,
   RESTRICTED_METHODS.WALLET_GET_CAPABILITIES,
-  RESTRICTED_METHODS.WALLET_SWITCH_ZOND_CHAIN,
+  RESTRICTED_METHODS.WALLET_SWITCH_QRL_CHAIN,
 ];
 
 const checkRequestCanCompleteSilently = async (
   req: JsonRpcRequest<JsonRpcRequest>,
 ) => {
-  if (req.method === RESTRICTED_METHODS.WALLET_ADD_ZOND_CHAIN) {
+  if (req.method === RESTRICTED_METHODS.WALLET_ADD_QRL_CHAIN) {
     // @ts-ignore
     const [chainData] = req.params;
     const chainId = chainData?.chainId;
@@ -47,7 +47,7 @@ const checkRequestCanCompleteSilently = async (
     return {
       hasCompleted: false,
     };
-  } else if (req.method === RESTRICTED_METHODS.WALLET_SWITCH_ZOND_CHAIN) {
+  } else if (req.method === RESTRICTED_METHODS.WALLET_SWITCH_QRL_CHAIN) {
     // @ts-ignore
     const [chainData] = req.params;
     const chainId = chainData?.chainId;
@@ -118,7 +118,7 @@ const checkRequestCanCompleteSilently = async (
 
 // a precheck to determine if the request can proceed
 const checkRequestCanProceed = async (req: JsonRpcRequest<JsonRpcRequest>) => {
-  if (ZOND_WALLET_DAPP_CONNECTION_REQUIRED_METHODS.includes(req.method)) {
+  if (QRL_WALLET_DAPP_CONNECTION_REQUIRED_METHODS.includes(req.method)) {
     const originConnectResult = await checkUrlOriginHasBeenConnected(
       req?.senderData?.url ?? "",
     );
@@ -127,10 +127,10 @@ const checkRequestCanProceed = async (req: JsonRpcRequest<JsonRpcRequest>) => {
     }
   }
   switch (req.method) {
-    case RESTRICTED_METHODS.WALLET_ADD_ZOND_CHAIN:
+    case RESTRICTED_METHODS.WALLET_ADD_QRL_CHAIN:
       // @ts-ignore
       return await checkWalletAddZondChainParams(req?.params?.[0]);
-    case RESTRICTED_METHODS.WALLET_SWITCH_ZOND_CHAIN:
+    case RESTRICTED_METHODS.WALLET_SWITCH_QRL_CHAIN:
       // @ts-ignore
       return await checkWalletSwitchZondChainParams(req?.params?.[0]);
     case RESTRICTED_METHODS.WALLET_WATCH_ASSET:
@@ -143,8 +143,8 @@ const checkRequestCanProceed = async (req: JsonRpcRequest<JsonRpcRequest>) => {
       // @ts-ignore
       return await checkWalletSendCallsParams(req?.params?.[0]);
     case RESTRICTED_METHODS.WALLET_GET_CAPABILITIES:
-    case RESTRICTED_METHODS.ZOND_SEND_TRANSACTION:
-    case RESTRICTED_METHODS.ZOND_SIGN_TYPED_DATA_V4:
+    case RESTRICTED_METHODS.QRL_SEND_TRANSACTION:
+    case RESTRICTED_METHODS.QRL_SIGN_TYPED_DATA_V4:
     case RESTRICTED_METHODS.PERSONAL_SIGN:
       return await checkAccountHasBeenAuthorized(req);
     default:
@@ -244,8 +244,8 @@ export const restrictedMethodsMiddleware: JsonRpcMiddleware<
         const hasApproved = restrictedMethodResult?.hasApproved;
         if (hasApproved) {
           switch (restrictedMethodResult?.method) {
-            case RESTRICTED_METHODS.WALLET_ADD_ZOND_CHAIN:
-            case RESTRICTED_METHODS.WALLET_SWITCH_ZOND_CHAIN:
+            case RESTRICTED_METHODS.WALLET_ADD_QRL_CHAIN:
+            case RESTRICTED_METHODS.WALLET_SWITCH_QRL_CHAIN:
               const hasApproved = !!restrictedMethodResult?.response?.result;
               res.result = hasApproved ? null : false;
               break;
@@ -253,7 +253,7 @@ export const restrictedMethodsMiddleware: JsonRpcMiddleware<
               const hasAddedAsset = !!restrictedMethodResult?.response?.result;
               res.result = hasAddedAsset;
               break;
-            case RESTRICTED_METHODS.ZOND_REQUEST_ACCOUNTS:
+            case RESTRICTED_METHODS.QRL_REQUEST_ACCOUNTS:
               const accounts = await updateAccountsAndBlockchainsForUrlOrigin({
                 urlOrigin: new URL(req?.senderData?.url ?? "").origin,
                 accounts: restrictedMethodResult?.response?.accounts,
@@ -283,7 +283,7 @@ export const restrictedMethodsMiddleware: JsonRpcMiddleware<
                 });
               }
               break;
-            case RESTRICTED_METHODS.ZOND_SEND_TRANSACTION:
+            case RESTRICTED_METHODS.QRL_SEND_TRANSACTION:
               const transactionHash =
                 restrictedMethodResult?.response?.transactionHash;
               if (transactionHash) {
@@ -295,7 +295,7 @@ export const restrictedMethodsMiddleware: JsonRpcMiddleware<
                 });
               }
               break;
-            case RESTRICTED_METHODS.ZOND_SIGN_TYPED_DATA_V4:
+            case RESTRICTED_METHODS.QRL_SIGN_TYPED_DATA_V4:
             case RESTRICTED_METHODS.PERSONAL_SIGN:
               const signedData = restrictedMethodResult?.response;
               if (signedData) {

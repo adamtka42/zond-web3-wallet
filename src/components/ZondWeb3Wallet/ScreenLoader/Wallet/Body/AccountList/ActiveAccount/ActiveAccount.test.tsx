@@ -32,7 +32,7 @@ describe("ActiveAccount", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
+            accountAddress: "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
           },
         },
       }),
@@ -56,7 +56,7 @@ describe("ActiveAccount", () => {
       mockedStore({
         zondStore: {
           activeAccount: {
-            accountAddress: "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
+            accountAddress: "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
           },
         },
       }),
@@ -74,7 +74,7 @@ describe("ActiveAccount", () => {
     await userEvent.click(copyButton);
     expect(mockedWriteText).toBeCalledTimes(1);
     expect(mockedWriteText).toBeCalledWith(
-      "Z20fB08fF1f1376A14C055E9F56df80563E16722b",
+      "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
     );
   });
 });

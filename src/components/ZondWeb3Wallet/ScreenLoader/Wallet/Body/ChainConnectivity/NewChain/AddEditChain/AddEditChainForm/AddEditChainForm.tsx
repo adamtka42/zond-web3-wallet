@@ -269,7 +269,7 @@ const AddEditChainForm = observer(({ chainToEdit }: AddEditChainFormType) => {
                       aria-label={field.name}
                       autoComplete="off"
                       disabled={isSubmitting || !isCustomChain}
-                      placeholder="ZND"
+                      placeholder="QRL"
                       type="text"
                     />
                   </FormControl>
@@ -291,7 +291,7 @@ const AddEditChainForm = observer(({ chainToEdit }: AddEditChainFormType) => {
                         aria-label={field.name}
                         autoComplete="off"
                         disabled={isSubmitting || !isCustomChain}
-                        placeholder="ZND"
+                        placeholder="QRL"
                         type="text"
                       />
                     </FormControl>
