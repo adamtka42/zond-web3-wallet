@@ -13,6 +13,7 @@ type GasFeeNoticeProps = {
   to: string;
   value: number;
   isSubmitting: boolean;
+  onGasFeeCalculated?: (gasFee: string) => void;
 };
 
 const gasFeeNoticeClasses = cva(
@@ -39,6 +40,7 @@ export const GasFeeNotice = observer(
     to,
     value,
     isSubmitting,
+    onGasFeeCalculated,
   }: GasFeeNoticeProps) => {
     const { zondStore } = useStore();
     const { getNativeTokenGas, getZrc20TokenGas } = zondStore;
@@ -77,8 +79,10 @@ export const GasFeeNotice = observer(
           error: "",
           isLoading: false,
         });
+        onGasFeeCalculated?.(gasFeeAmount);
       } catch (error) {
         setGasFee({ ...gasFee, error: `${error}`, isLoading: false });
+        onGasFeeCalculated?.("");
       }
     };
 

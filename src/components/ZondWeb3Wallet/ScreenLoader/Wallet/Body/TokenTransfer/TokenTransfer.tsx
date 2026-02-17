@@ -23,11 +23,13 @@ import {
 import { Input } from "@/components/UI/Input";
 import { Label } from "@/components/UI/Label";
 import { NATIVE_TOKEN } from "@/constants/nativeToken";
+import { parseBalanceValue } from "@/functions/parseBalanceValue";
 import { ROUTES } from "@/router/router";
 import { useStore } from "@/stores/store";
 import StorageUtil from "@/utilities/storageUtil";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TransactionReceipt, validator, utils, qrl } from "@theqrl/web3";
+import { BigNumber } from "bignumber.js";
 import { Loader, Send, X } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
@@ -66,6 +68,7 @@ const TokenTransfer = observer(() => {
     signAndSendZrc20Token,
     qrlInstance,
     getGasFeeData,
+    getAccountBalance,
   } = zondStore;
   const { accountAddress } = activeAccount;
 
@@ -78,6 +81,8 @@ const TokenTransfer = observer(() => {
   const [tokenBalance, setTokenBalance] = useState("");
   const [tokenName, setTokenName] = useState(NATIVE_TOKEN.name);
   const [tokenSymbol, setTokenSymbol] = useState(NATIVE_TOKEN.symbol);
+  const [estimatedGasFee, setEstimatedGasFee] = useState("");
+  const [balanceError, setBalanceError] = useState("");
 
   const sendNativeToken = async (formData: z.infer<typeof FormSchema>) => {
     const isLedgerAccount = ledgerStore.isLedgerAccount(accountAddress);
@@ -285,6 +290,40 @@ const TokenTransfer = observer(() => {
     tokenSymbol,
   ]);
 
+  const watchedAmount = watch("amount");
+  useEffect(() => {
+    if (!watchedAmount || watchedAmount <= 0 || !estimatedGasFee) {
+      setBalanceError("");
+      return;
+    }
+
+    const gasFee = new BigNumber(estimatedGasFee);
+    const sendAmount = new BigNumber(watchedAmount);
+    const nativeBalance = parseBalanceValue(getAccountBalance(accountAddress));
+
+    if (isZrc20Token) {
+      const tokenBal = parseBalanceValue(tokenBalance);
+      if (sendAmount.greaterThan(tokenBal)) {
+        setBalanceError(`Insufficient ${tokenSymbol} balance`);
+        return;
+      }
+      if (gasFee.greaterThan(nativeBalance)) {
+        setBalanceError("Insufficient QRL for gas fee");
+        return;
+      }
+    } else {
+      const totalCost = sendAmount.plus(gasFee);
+      if (totalCost.greaterThan(nativeBalance)) {
+        setBalanceError(
+          "Insufficient QRL balance (amount + gas fee exceeds balance)",
+        );
+        return;
+      }
+    }
+
+    setBalanceError("");
+  }, [watchedAmount, estimatedGasFee, tokenBalance, isZrc20Token, accountAddress]);
+
   return transactionReceipt ? (
     <TransactionSuccessful transactionReceipt={transactionReceipt} />
   ) : (
@@ -351,6 +390,11 @@ const TokenTransfer = observer(() => {
                           </FormControl>
                           <FormDescription>Amount to send</FormDescription>
                           <FormMessage />
+                          {balanceError && (
+                            <p className="text-sm font-medium text-destructive">
+                              {balanceError}
+                            </p>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -364,6 +408,7 @@ const TokenTransfer = observer(() => {
                     to={watch().receiverAddress}
                     value={watch().amount}
                     isSubmitting={isSubmitting}
+                    onGasFeeCalculated={setEstimatedGasFee}
                   />
                 </div>
               </div>
@@ -378,7 +423,7 @@ const TokenTransfer = observer(() => {
                 <X className="mr-2 h-4 w-4" />
                 Cancel
               </Button>
-              <Button disabled={isSubmitting || !isValid} className="w-full">
+              <Button disabled={isSubmitting || !isValid || !!balanceError} className="w-full">
                 {isSubmitting ? (
                   <Loader className="mr-2 h-4 w-4 animate-spin" />
                 ) : (

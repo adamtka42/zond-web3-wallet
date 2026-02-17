@@ -347,4 +347,183 @@ describe("TokenTransfer", () => {
       expect(mockClearTransactionValues).toHaveBeenCalled();
     });
   });
+
+  it("should display insufficient balance error when native QRL amount exceeds balance", async () => {
+    renderComponent(
+      mockedStore({
+        zondStore: {
+          getAccountBalance: () => "5.0 QRL",
+          getNativeTokenGas: jest.fn(async () => "0.001"),
+        },
+      }),
+    );
+
+    const receiverAddressField = screen.getByRole("textbox", {
+      name: "receiverAddress",
+    });
+    const amountField = screen.getByRole("spinbutton", { name: "amount" });
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          receiverAddressField,
+          "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
+        );
+        await userEvent.type(amountField, "10");
+      },
+      { timeout: 5000 },
+    );
+
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(
+            "Insufficient QRL balance (amount + gas fee exceeds balance)",
+          ),
+        ).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+
+    const sendButton = screen.getByRole("button", { name: "Send QRL" });
+    expect(sendButton).toBeDisabled();
+  });
+
+  it("should not display balance error when amount is within balance", async () => {
+    renderComponent(
+      mockedStore({
+        zondStore: {
+          getAccountBalance: () => "100.0 QRL",
+          getNativeTokenGas: jest.fn(async () => "0.001"),
+        },
+      }),
+    );
+
+    const receiverAddressField = screen.getByRole("textbox", {
+      name: "receiverAddress",
+    });
+    const amountField = screen.getByRole("spinbutton", { name: "amount" });
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          receiverAddressField,
+          "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
+        );
+        await userEvent.type(amountField, "5");
+      },
+      { timeout: 5000 },
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Estimated gas fee is/),
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByText(/Insufficient/),
+    ).not.toBeInTheDocument();
+
+    const sendButton = screen.getByRole("button", { name: "Send QRL" });
+    expect(sendButton).toBeEnabled();
+  });
+
+  it("should display insufficient token balance error for ZRC-20 when amount exceeds token balance", async () => {
+    renderComponentWithState(
+      {
+        tokenDetails: {
+          isZrc20Token: true,
+          tokenContractAddress: "Q1234567890abcdef1234567890abcdef12345678",
+          tokenDecimals: 18,
+          tokenImage: "token.png",
+          tokenBalance: "50.0 TST",
+          tokenName: "Test Token",
+          tokenSymbol: "TST",
+        },
+      },
+      mockedStore({
+        zondStore: {
+          getAccountBalance: () => "10.0 QRL",
+          getZrc20TokenGas: jest.fn(async () => "0.001"),
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Send TST")).toBeInTheDocument();
+    });
+
+    const receiverAddressField = screen.getByRole("textbox", {
+      name: "receiverAddress",
+    });
+    const amountField = screen.getByRole("spinbutton", { name: "amount" });
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          receiverAddressField,
+          "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
+        );
+        await userEvent.type(amountField, "100");
+      },
+      { timeout: 5000 },
+    );
+
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText("Insufficient TST balance"),
+        ).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+  });
+
+  it("should display insufficient gas error for ZRC-20 when native balance cannot cover gas", async () => {
+    renderComponentWithState(
+      {
+        tokenDetails: {
+          isZrc20Token: true,
+          tokenContractAddress: "Q1234567890abcdef1234567890abcdef12345678",
+          tokenDecimals: 18,
+          tokenImage: "token.png",
+          tokenBalance: "1,000.0 TST",
+          tokenName: "Test Token",
+          tokenSymbol: "TST",
+        },
+      },
+      mockedStore({
+        zondStore: {
+          getAccountBalance: () => "0.0 QRL",
+          getZrc20TokenGas: jest.fn(async () => "0.001"),
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Send TST")).toBeInTheDocument();
+    });
+
+    const receiverAddressField = screen.getByRole("textbox", {
+      name: "receiverAddress",
+    });
+    const amountField = screen.getByRole("spinbutton", { name: "amount" });
+    await waitFor(
+      async () => {
+        await userEvent.type(
+          receiverAddressField,
+          "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
+        );
+        await userEvent.type(amountField, "10");
+      },
+      { timeout: 5000 },
+    );
+
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText("Insufficient QRL for gas fee"),
+        ).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+  });
 });
