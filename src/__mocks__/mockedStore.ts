@@ -217,6 +217,25 @@ const mockedStoreValues: StoreType = {
     isLedgerAccount: () => false,
     getAccountByAddress: () => undefined,
   } as any,
+  transactionHistoryStore: {
+    transactions: [],
+    isLoading: false,
+    filter: "all" as const,
+    filteredTransactions: [],
+    loadHistory: async (accountAddress: string) => {
+      accountAddress;
+    },
+    addTransaction: async (accountAddress: string, entry: any) => {
+      accountAddress;
+      entry;
+    },
+    setFilter: (filter: string) => {
+      filter;
+    },
+    clearHistory: async (accountAddress: string) => {
+      accountAddress;
+    },
+  },
 };
 
 export const mockedStore = (

@@ -129,4 +129,37 @@ describe("AccountCreateImport", () => {
     });
     expect(connectLedgerLink).toHaveAttribute("href", "/import-ledger");
   });
+
+  it("should show Transaction History button when active account exists", () => {
+    renderComponent(
+      mockedStore({
+        zondStore: {
+          activeAccount: {
+            accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
+          },
+        },
+      }),
+    );
+
+    const historyButton = screen.getByRole("button", {
+      name: "Transaction History",
+    });
+    expect(historyButton).toBeInTheDocument();
+    expect(historyButton).toBeEnabled();
+
+    const historyLink = screen.getByRole("link", {
+      name: "Transaction History",
+    });
+    expect(historyLink).toHaveAttribute("href", "/transaction-history");
+  });
+
+  it("should not show Transaction History button when no active account", () => {
+    renderComponent(
+      mockedStore({ zondStore: { activeAccount: { accountAddress: "" } } }),
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Transaction History" }),
+    ).not.toBeInTheDocument();
+  });
 });

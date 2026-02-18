@@ -33,6 +33,7 @@ jest.mock("@/utilities/storageUtil", () => {
         mockSetTransactionValues(...args),
       clearTransactionValues: (...args: any[]) =>
         mockClearTransactionValues(...args),
+      getActiveBlockChain: async () => ({ chainId: "0x1" }),
     },
   };
 });
@@ -241,6 +242,33 @@ describe("TokenTransfer", () => {
 
     await fillAndSubmitForm();
     expect(screen.getByText("Transaction completed")).toBeInTheDocument();
+  });
+
+  it("should call addTransaction on successful send", async () => {
+    const mockAddTransaction = jest.fn<any>().mockResolvedValue(undefined);
+    renderComponent(
+      mockedStore({
+        zondStore: {
+          signAndSendNativeToken: async () => ({
+            transactionReceipt: successReceipt,
+            error: "",
+          }),
+        },
+        transactionHistoryStore: {
+          addTransaction: mockAddTransaction,
+        },
+      }),
+    );
+
+    await fillAndSubmitForm();
+    expect(mockAddTransaction).toHaveBeenCalledWith(
+      "Q20B714091cF2a62DADda2847803e3f1B9D2D3779",
+      expect.objectContaining({
+        transactionHash: "0xtxhash",
+        status: true,
+        tokenSymbol: "QRL",
+      }),
+    );
   });
 
   it("should navigate home when cancel button is clicked", async () => {

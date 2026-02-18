@@ -1,9 +1,10 @@
 import { createContext, useContext } from "react";
 import DAppRequestStore from "./dAppRequestStore";
-import SettingsStore from "./settingsStore";
-import ZondStore from "./zondStore";
-import LockStore from "./lockStore";
 import LedgerStore from "./ledgerStore";
+import LockStore from "./lockStore";
+import SettingsStore from "./settingsStore";
+import TransactionHistoryStore from "./transactionHistoryStore";
+import ZondStore from "./zondStore";
 
 class Store {
   lockStore;
@@ -11,6 +12,7 @@ class Store {
   dAppRequestStore;
   zondStore;
   ledgerStore;
+  transactionHistoryStore;
 
   constructor() {
     this.lockStore = new LockStore();
@@ -18,6 +20,7 @@ class Store {
     this.dAppRequestStore = new DAppRequestStore();
     this.zondStore = new ZondStore();
     this.ledgerStore = new LedgerStore();
+    this.transactionHistoryStore = new TransactionHistoryStore();
   }
 }
 

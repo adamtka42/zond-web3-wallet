@@ -9,6 +9,7 @@ import {
   TokenContractType,
 } from "@/scripts/middlewares/middlewareTypes";
 import type { LedgerAccount } from "@/services/ledger/ledgerTypes";
+import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 import { KeyStore } from "@theqrl/web3";
 import browser from "webextension-polyfill";
 
@@ -35,6 +36,9 @@ const ALL_TOKENS_IDENTIFIER = "ALL_TOKENS";
 const ACTIVE_PAGE_IDENTIFIER = "ACTIVE_PAGE";
 
 const TRANSACTION_VALUES_IDENTIFIER = "TRANSACTION_VALUES";
+
+const TX_HISTORY_IDENTIFIER = "TX_HISTORY";
+const ALL_TX_HISTORY_IDENTIFIER = "ALL_TX_HISTORY";
 
 type TransactionValuesType = {
   receiverAddress?: string;
@@ -534,6 +538,79 @@ class StorageUtil {
     return ledgerAccounts.find(
       (a) => a.address.toLowerCase() === address.toLowerCase()
     );
+  }
+
+  static async setTransactionHistoryEntry(
+    accountAddress: string,
+    entry: TransactionHistoryEntry,
+  ) {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(TX_HISTORY_IDENTIFIER);
+    if (!storageData[TX_HISTORY_IDENTIFIER]) {
+      storageData[TX_HISTORY_IDENTIFIER] = {};
+    }
+    if (!storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER]) {
+      storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER] = {};
+    }
+    if (
+      !storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ]
+    ) {
+      storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ] = {};
+    }
+    if (
+      !storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ][chainId]
+    ) {
+      storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ][chainId] = {};
+    }
+
+    const existing = await this.getTransactionHistory(accountAddress);
+    storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+      accountAddress
+    ][chainId].transactions = [
+      entry,
+      ...existing.filter((tx) => tx.transactionHash !== entry.transactionHash),
+    ];
+
+    await browser.storage.local.set(storageData);
+  }
+
+  static async getTransactionHistory(
+    accountAddress: string,
+  ): Promise<TransactionHistoryEntry[]> {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(TX_HISTORY_IDENTIFIER);
+    const transactions =
+      storageData?.[TX_HISTORY_IDENTIFIER]?.[ALL_TX_HISTORY_IDENTIFIER]?.[
+        accountAddress
+      ]?.[chainId]?.transactions ?? [];
+
+    return transactions as TransactionHistoryEntry[];
+  }
+
+  static async clearTransactionHistory(accountAddress: string) {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(TX_HISTORY_IDENTIFIER);
+    if (
+      storageData?.[TX_HISTORY_IDENTIFIER]?.[ALL_TX_HISTORY_IDENTIFIER]?.[
+        accountAddress
+      ]?.[chainId]
+    ) {
+      storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ][chainId].transactions = [];
+      await browser.storage.local.set(storageData);
+    }
   }
 }
 

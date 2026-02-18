@@ -107,6 +107,14 @@ const ImportLedger = withSuspense(
       ),
   ),
 );
+const TransactionHistory = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/TransactionHistory/TransactionHistory"
+      ),
+  ),
+);
 
 export const ROUTES = {
   HOME: "/",
@@ -122,6 +130,7 @@ export const ROUTES = {
   EDIT_DAPP_CONNECTED_BLOCKCHAINS: "/edit-dapp-connected-blockchains",
   CHAIN_CONNECTIVITY: "/chain-connectivity",
   ADD_EDIT_CHAIN: "/add-edit-chain",
+  TRANSACTION_HISTORY: "/transaction-history",
   DEFAULT: "*",
 };
 
@@ -181,6 +190,10 @@ const router = createMemoryRouter([
       {
         path: ROUTES.ADD_EDIT_CHAIN,
         element: <AddEditChain />,
+      },
+      {
+        path: ROUTES.TRANSACTION_HISTORY,
+        element: <TransactionHistory />,
       },
     ],
   },

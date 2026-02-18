@@ -26,6 +26,7 @@ import { NATIVE_TOKEN } from "@/constants/nativeToken";
 import { parseBalanceValue } from "@/functions/parseBalanceValue";
 import { ROUTES } from "@/router/router";
 import { useStore } from "@/stores/store";
+import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 import StorageUtil from "@/utilities/storageUtil";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TransactionReceipt, validator, utils, qrl } from "@theqrl/web3";
@@ -59,7 +60,8 @@ const FormSchema = z
 const TokenTransfer = observer(() => {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { lockStore, zondStore, ledgerStore } = useStore();
+  const { lockStore, zondStore, ledgerStore, transactionHistoryStore } =
+    useStore();
   const { getMnemonicPhrases } = lockStore;
   const {
     activeAccount,
@@ -163,6 +165,35 @@ const TokenTransfer = observer(() => {
       } else {
         const isTransactionSuccessful =
           transactionReceipt?.status.toString() === "1";
+
+        if (transactionReceipt) {
+          const { chainId } = await StorageUtil.getActiveBlockChain();
+          const historyEntry: TransactionHistoryEntry = {
+            id: transactionReceipt.transactionHash.toString(),
+            from: accountAddress,
+            to: formData.receiverAddress,
+            amount: formData.amount,
+            tokenSymbol,
+            tokenName,
+            isZrc20Token,
+            tokenContractAddress,
+            tokenDecimals,
+            transactionHash: transactionReceipt.transactionHash.toString(),
+            blockNumber: transactionReceipt.blockNumber.toString(),
+            gasUsed: transactionReceipt.gasUsed.toString(),
+            effectiveGasPrice: (
+              transactionReceipt.effectiveGasPrice ?? 0
+            ).toString(),
+            status: isTransactionSuccessful,
+            timestamp: Date.now(),
+            chainId,
+          };
+          await transactionHistoryStore.addTransaction(
+            accountAddress,
+            historyEntry,
+          );
+        }
+
         if (isTransactionSuccessful) {
           await resetForm();
           setTransactionReceipt(transactionReceipt);

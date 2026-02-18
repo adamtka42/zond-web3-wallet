@@ -10,7 +10,7 @@ import {
 import { ROUTES } from "@/router/router";
 import { useStore } from "@/stores/store";
 import { cva } from "class-variance-authority";
-import { Download, Logs, Plus, Send, Usb } from "lucide-react";
+import { Download, History, Logs, Plus, Send, Usb } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { Link, useLocation } from "react-router-dom";
 import ActiveAccountDisplay from "./ActiveAccountDisplay/ActiveAccountDisplay";
@@ -67,14 +67,14 @@ const AccountCreateImport = observer(() => {
     <div className="flex animate-appear-in flex-col gap-8">
       {hasActiveAccount && (
         <>
-          <Card className="order-1 h-64 w-full overflow-hidden">
+          <Card className="order-1 w-full">
             <CardHeader>
               <CardTitle>Active account</CardTitle>
             </CardHeader>
             <CardContent>
               <ActiveAccountDisplay />
             </CardContent>
-            <CardFooter className="justify-end">
+            <CardFooter className="flex-col gap-2">
               <Link
                 className="w-full"
                 to={ROUTES.TOKEN_TRANSFER}
@@ -83,6 +83,12 @@ const AccountCreateImport = observer(() => {
                 <Button className="w-full" type="button">
                   <Send className="mr-2 h-4 w-4" />
                   Send Quanta
+                </Button>
+              </Link>
+              <Link className="w-full" to={ROUTES.TRANSACTION_HISTORY}>
+                <Button className="w-full" type="button" variant="outline">
+                  <History className="mr-2 h-4 w-4" />
+                  Transaction History
                 </Button>
               </Link>
             </CardFooter>
