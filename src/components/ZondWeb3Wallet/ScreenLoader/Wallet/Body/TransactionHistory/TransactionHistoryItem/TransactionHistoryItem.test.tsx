@@ -1,6 +1,7 @@
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 import { afterEach, describe, expect, it } from "@jest/globals";
 import { cleanup, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import TransactionHistoryItem from "./TransactionHistoryItem";
 
 const makeSampleEntry = (
@@ -28,8 +29,15 @@ const makeSampleEntry = (
 describe("TransactionHistoryItem", () => {
   afterEach(cleanup);
 
+  const renderComponent = (transaction: TransactionHistoryEntry) =>
+    render(
+      <MemoryRouter>
+        <TransactionHistoryItem transaction={transaction} />
+      </MemoryRouter>,
+    );
+
   it("should render a confirmed native transaction", () => {
-    render(<TransactionHistoryItem transaction={makeSampleEntry()} />);
+    renderComponent(makeSampleEntry());
 
     expect(screen.getByText("Send")).toBeInTheDocument();
     expect(screen.getByText("2.5 QRL")).toBeInTheDocument();
@@ -37,29 +45,30 @@ describe("TransactionHistoryItem", () => {
   });
 
   it("should render a failed transaction", () => {
-    render(
-      <TransactionHistoryItem
-        transaction={makeSampleEntry({ status: false })}
-      />,
-    );
+    renderComponent(makeSampleEntry({ status: false }));
 
     expect(screen.getByText("Send")).toBeInTheDocument();
     expect(screen.getByText("Failed")).toBeInTheDocument();
   });
 
   it("should render a ZRC-20 token transaction", () => {
-    render(
-      <TransactionHistoryItem
-        transaction={makeSampleEntry({
-          isZrc20Token: true,
-          tokenSymbol: "TST",
-          amount: 100,
-        })}
-      />,
+    renderComponent(
+      makeSampleEntry({
+        isZrc20Token: true,
+        tokenSymbol: "TST",
+        amount: 100,
+      }),
     );
 
     expect(screen.getByText("Send")).toBeInTheDocument();
     expect(screen.getByText("100 TST")).toBeInTheDocument();
     expect(screen.getByText("Confirmed")).toBeInTheDocument();
+  });
+
+  it("should be clickable with a link to transaction detail", () => {
+    renderComponent(makeSampleEntry());
+
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute("href", "/transaction-detail");
   });
 });

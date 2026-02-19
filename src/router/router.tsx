@@ -115,6 +115,14 @@ const TransactionHistory = withSuspense(
       ),
   ),
 );
+const TransactionDetail = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/TransactionHistory/TransactionDetail/TransactionDetail"
+      ),
+  ),
+);
 
 export const ROUTES = {
   HOME: "/",
@@ -131,6 +139,7 @@ export const ROUTES = {
   CHAIN_CONNECTIVITY: "/chain-connectivity",
   ADD_EDIT_CHAIN: "/add-edit-chain",
   TRANSACTION_HISTORY: "/transaction-history",
+  TRANSACTION_DETAIL: "/transaction-detail",
   DEFAULT: "*",
 };
 
@@ -194,6 +203,10 @@ const router = createMemoryRouter([
       {
         path: ROUTES.TRANSACTION_HISTORY,
         element: <TransactionHistory />,
+      },
+      {
+        path: ROUTES.TRANSACTION_DETAIL,
+        element: <TransactionDetail />,
       },
     ],
   },
