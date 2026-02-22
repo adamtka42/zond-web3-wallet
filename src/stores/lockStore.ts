@@ -5,18 +5,21 @@ import {
 } from "@/scripts/lockManager/lockManager";
 import StorageUtil, { LockState } from "@/utilities/storageUtil";
 import { Web3BaseWalletAccount } from "@theqrl/web3";
-import { action, makeAutoObservable } from "mobx";
+import { action, makeAutoObservable, runInAction } from "mobx";
 import browser from "webextension-polyfill";
 
-const MAX_LOCK_MANAGER_RETRY = 3;
-const LOCK_MANAGER_RETRY_DELAY = 2000;
+const PORT_RECONNECT_DELAY = 1000;
 
 class LockStore {
-  port?: browser.Runtime.Port = undefined;
-  isServiceWorkerReady = false;
   hasPasswordSet = true;
   isLoading = true;
   isLocked = true;
+  private keepAlivePort?: browser.Runtime.Port;
+  /**
+   * Cached copy of decrypted keys so the popup can re-send them to the SW
+   * if Chrome restarts it (losing its in-memory state).  Cleared on lock().
+   */
+  private cachedKeys?: DecryptedKeyType[];
 
   constructor() {
     makeAutoObservable(this, {
@@ -28,62 +31,73 @@ class LockStore {
       unlock: action.bound,
     });
 
-    this.initializePort();
-    this.initializeStorageListener();
+    this.connectKeepAlive();
+    this.initialize();
   }
 
-  keepServiceWorkerActive() {
-    setInterval(() => {
-      browser.runtime
-        .connect({
-          name: LOCK_MANAGER_MESSAGES.LOCK_MANAGER_KEEP_LIVE,
-        })
-        .postMessage(LOCK_MANAGER_MESSAGES.LOCK_MANAGER_KEEP_LIVE);
-    }, 3000);
-  }
-
-  initializePort(retryCount = 0) {
+  /**
+   * Keep a long-lived port open to the service worker.
+   * As long as a port is connected, Chrome keeps the MV3 SW alive.
+   * This prevents the "Receiving end does not exist" error that occurs
+   * when Chrome fails to restart a module-type service worker.
+   */
+  private connectKeepAlive() {
     try {
-      this.port?.disconnect();
-      this.port = browser.runtime.connect({ name: LOCK_MANAGER_MESSAGES.PORT });
-      this.port?.onDisconnect?.addListener(() => {
-        const lastErr = browser.runtime.lastError;
-        if (lastErr) {
-          console.warn(
-            "Lock Manager: Port disconnected with error:",
-            lastErr.message,
-          );
-        } else {
-          console.warn("Lock Manager: Port disconnected");
-        }
-        this.isServiceWorkerReady = false;
-        if (retryCount < MAX_LOCK_MANAGER_RETRY) {
-          setTimeout(() => {
-            this.initializePort(retryCount + 1);
-          }, LOCK_MANAGER_RETRY_DELAY);
-        }
+      this.keepAlivePort?.disconnect();
+    } catch {
+      /* already disconnected */
+    }
+    try {
+      this.keepAlivePort = browser.runtime.connect({
+        name: LOCK_MANAGER_MESSAGES.LOCK_MANAGER_KEEP_LIVE,
       });
-      this.port?.onMessage?.addListener((message) => {
-        if (message.name === LOCK_MANAGER_MESSAGES.IS_LOCK_MANAGER_READY) {
-          this.isServiceWorkerReady = true;
-          this.readLockState();
-        }
+      this.keepAlivePort.onDisconnect.addListener(() => {
+        // SW dropped the port — reconnect to wake it back up
+        setTimeout(() => this.connectKeepAlive(), PORT_RECONNECT_DELAY);
       });
-      this.keepServiceWorkerActive();
-    } catch (error) {
-      console.warn("Lock Manager: Error connecting to service worker:", error);
-      this.isServiceWorkerReady = false;
-      if (retryCount < MAX_LOCK_MANAGER_RETRY) {
-        setTimeout(() => {
-          this.initializePort(retryCount + 1);
-        }, LOCK_MANAGER_RETRY_DELAY);
-      }
+    } catch {
+      // Connection failed (SW not ready yet), retry
+      setTimeout(() => this.connectKeepAlive(), PORT_RECONNECT_DELAY);
     }
   }
 
+  /**
+   * Boot sequence: try to reach the service worker with quick retries,
+   * then start the storage listener.
+   */
+  private async initialize() {
+    // Give the port connection a moment to wake the SW
+    await new Promise((r) => setTimeout(r, 200));
+
+    for (let i = 0; i < 10; i++) {
+      try {
+        const { isLocked, hasPasswordSet } =
+          await browser.runtime.sendMessage({
+            name: LOCK_MANAGER_MESSAGES.IS_LOCKED,
+          });
+        runInAction(() => {
+          this.isLocked = isLocked;
+          this.hasPasswordSet = hasPasswordSet;
+          this.isLoading = false;
+        });
+        break;
+      } catch (error) {
+        // Also try reconnecting the port to wake the SW
+        this.connectKeepAlive();
+        await new Promise((r) => setTimeout(r, 300 * (i + 1)));
+      }
+    }
+
+    if (this.isLoading) {
+      runInAction(() => {
+        this.isLoading = false;
+      });
+    }
+
+    this.initializeStorageListener();
+  }
+
   initializeStorageListener() {
-    // If the locking system was triggered, we write timestamp to storage via `StorageUtil.updateLockStateTimeStamp`
-    //  to make sure that the extensions on all tabs are reflecting the lock state.
     browser.storage.onChanged.addListener(async () => {
       await this.readLockState();
     });
@@ -97,11 +111,10 @@ class LockStore {
   }
 
   async getMnemonicPhrases(accountAddress: string) {
-    const decryptedKeys: DecryptedKeyType[] = await browser.runtime.sendMessage(
-      {
+    const decryptedKeys: DecryptedKeyType[] =
+      await browser.runtime.sendMessage({
         name: LOCK_MANAGER_MESSAGES.GET_DECRYPTED_KEYS,
-      },
-    );
+      });
     const accountKey = decryptedKeys?.find(
       (key) => key?.address?.toLowerCase() === accountAddress?.toLowerCase(),
     );
@@ -121,23 +134,40 @@ class LockStore {
   }
 
   async readLockState() {
-    if (!this.isServiceWorkerReady) {
-      this.initializePort();
-      return;
-    }
     try {
-      const { isLocked, hasPasswordSet } = await browser.runtime.sendMessage({
+      let { isLocked, hasPasswordSet } = await browser.runtime.sendMessage({
         name: LOCK_MANAGER_MESSAGES.IS_LOCKED,
       });
+
+      // If the SW lost its in-memory keys (e.g. Chrome restarted it) but we
+      // still have a cached copy from the last successful unlock, re-send them
+      // so the wallet stays unlocked while the popup is open.
+      if (isLocked && this.cachedKeys) {
+        try {
+          await browser.runtime.sendMessage({
+            name: LOCK_MANAGER_MESSAGES.SET_DECRYPTED_KEYS,
+            data: this.cachedKeys,
+          });
+          const recheck = await browser.runtime.sendMessage({
+            name: LOCK_MANAGER_MESSAGES.IS_LOCKED,
+          });
+          isLocked = recheck.isLocked;
+          hasPasswordSet = recheck.hasPasswordSet;
+        } catch {
+          // Re-send failed — accept the locked state
+        }
+      }
+
       this.isLocked = isLocked;
       this.hasPasswordSet = hasPasswordSet;
       this.isLoading = false;
-    } catch (error) {
-      console.warn(error);
+    } catch {
+      // SW not reachable – will be retried via port reconnect or storage listener
     }
   }
 
   async lock() {
+    this.cachedKeys = undefined;
     await browser.runtime.sendMessage({
       name: LOCK_MANAGER_MESSAGES.LOCK,
     });
@@ -148,18 +178,99 @@ class LockStore {
     StorageUtil.updateLockStateTimeStamp(LockState.LOCKED);
   }
 
-  // Unlocks the wallet and returns true if successful. Returns false otherwise.
-  async unlock(password: string) {
-    await browser.runtime.sendMessage({
-      name: LOCK_MANAGER_MESSAGES.UNLOCK,
-      data: { password },
-    });
-    const { isLocked } = await browser.runtime.sendMessage({
-      name: LOCK_MANAGER_MESSAGES.IS_LOCKED,
-    });
-    this.isLocked = isLocked;
-    StorageUtil.updateLockStateTimeStamp(LockState.UNLOCKED);
-    return !isLocked;
+  /**
+   * Send a message to the service worker with automatic retries.
+   * Each retry also reconnects the keep-alive port to ensure the SW is awake.
+   */
+  private async sendWithRetry(
+    message: Record<string, unknown>,
+    maxRetries = 3,
+  ): Promise<any> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await browser.runtime.sendMessage(message);
+      } catch (error) {
+        if (attempt === maxRetries) throw error;
+        this.connectKeepAlive();
+        await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+    }
+  }
+
+  /**
+   * Unlock the wallet.  The CPU-heavy scrypt decryption runs in a dedicated
+   * Web Worker thread so the popup UI stays fully responsive (spinner animates).
+   * After decryption the keys are sent to the SW for in-memory storage.
+   *
+   * Returns true on success, false on wrong password.
+   * Throws on communication errors so the UI can show a distinct message.
+   */
+  async unlock(password: string): Promise<boolean> {
+    // Read keystores and decrypt in a Web Worker (separate thread).
+    const keyStores = await StorageUtil.getKeystores();
+    if (!keyStores.length) return false;
+
+    const decryptedKeys = await new Promise<DecryptedKeyType[] | null>(
+      (resolve) => {
+        const worker = new Worker(
+          new URL(
+            "../scripts/workers/unlockWorker.ts",
+            import.meta.url,
+          ),
+          { type: "module" },
+        );
+        worker.onmessage = (
+          event: MessageEvent<{
+            success: boolean;
+            keys?: DecryptedKeyType[];
+          }>,
+        ) => {
+          worker.terminate();
+          resolve(event.data.success ? (event.data.keys ?? null) : null);
+        };
+        worker.onerror = () => {
+          worker.terminate();
+          resolve(null);
+        };
+        worker.postMessage({ keystores: keyStores, password });
+      },
+    );
+
+    if (!decryptedKeys) {
+      // Wrong password or worker error
+      return false;
+    }
+
+    // Send decrypted keys to the service worker for in-memory storage.
+    try {
+      await this.sendWithRetry({
+        name: LOCK_MANAGER_MESSAGES.SET_DECRYPTED_KEYS,
+        data: decryptedKeys,
+      });
+    } catch (error) {
+      throw new Error(
+        "Unable to communicate with the wallet service. Please check your connection and try again.",
+      );
+    }
+
+    // Verify the SW now considers us unlocked.
+    try {
+      const { isLocked } = await browser.runtime.sendMessage({
+        name: LOCK_MANAGER_MESSAGES.IS_LOCKED,
+      });
+      runInAction(() => {
+        this.isLocked = isLocked;
+      });
+      if (!isLocked) {
+        this.cachedKeys = decryptedKeys;
+        StorageUtil.updateLockStateTimeStamp(LockState.UNLOCKED);
+        return true;
+      }
+    } catch {
+      // Verification failed — but keys were sent successfully
+    }
+
+    return false;
   }
 }
 

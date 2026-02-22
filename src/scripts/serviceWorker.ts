@@ -81,10 +81,9 @@ const announceServiceWorkerReady = async () => {
       .then(() => {
         checkForLastError();
       })
-      .catch((error) => {
-        // An error may happen if the contentscript is blocked from loading.
+      .catch(() => {
+        // Expected for tabs without our content script (e.g. other extensions, chrome:// pages).
         checkForLastError();
-        console.warn(`ZondWeb3Wallet: error from tab '${tab.title}'`, error);
       });
   }
 };
@@ -160,14 +159,17 @@ const establishLockManagerConnection = () => {
 };
 
 const initializeServiceWorker = async () => {
+  // Register listeners first so the popup can always communicate with the service worker,
+  // even if script registration fails.
+  prepareListeners();
+  establishContenScriptConnection();
+  establishLockManagerConnection();
+
   try {
     await registerScripts();
-    prepareListeners();
-    establishContenScriptConnection();
-    establishLockManagerConnection();
   } catch (error) {
     console.warn(
-      "ZondWeb3Wallet: Failed to initialize the service worker\n",
+      "ZondWeb3Wallet: Failed to register content scripts\n",
       error,
     );
   }

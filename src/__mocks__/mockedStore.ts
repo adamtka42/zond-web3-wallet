@@ -157,7 +157,6 @@ const mockedStoreValues: StoreType = {
     disconnectFromCurrentTab: async () => {},
   },
   lockStore: {
-    isServiceWorkerReady: true,
     hasPasswordSet: false,
     isLoading: false,
     isLocked: false,
@@ -172,7 +171,7 @@ const mockedStoreValues: StoreType = {
       account;
       password;
     },
-    initializePort: () => {},
+    initialize: () => {},
     lock: async () => {},
     initializeStorageListener: () => {},
     getWalletPassword: async () => {

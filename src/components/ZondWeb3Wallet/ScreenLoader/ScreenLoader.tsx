@@ -1,7 +1,7 @@
 import withSuspense from "@/functions/withSuspense";
 import { useStore } from "@/stores/store";
 import { observer } from "mobx-react-lite";
-import { lazy, useEffect, useState } from "react";
+import { lazy, useEffect, useRef, useState } from "react";
 
 const SCREENS = {
   LOCK: "LOCK",
@@ -25,11 +25,12 @@ const Wallet = withSuspense(
 );
 
 const ScreenLoader = observer(() => {
-  const { dAppRequestStore, lockStore } = useStore();
+  const { dAppRequestStore, lockStore, zondStore } = useStore();
   const { hasDAppRequest, readDAppRequestData } = dAppRequestStore;
   const { isLocked, readLockState } = lockStore;
 
   const [screen, setScreen] = useState(SCREENS.LOCK);
+  const wasLockedRef = useRef(true);
 
   useEffect(() => {
     (async () => {
@@ -37,6 +38,16 @@ const ScreenLoader = observer(() => {
       await readDAppRequestData();
     })();
   }, []);
+
+  useEffect(() => {
+    if (wasLockedRef.current && !isLocked) {
+      // Re-initialize blockchain connection after unlock so the wallet
+      // doesn't stay in a "not connected" state when the service worker
+      // was asleep during the initial load.
+      zondStore.initializeBlockchain();
+    }
+    wasLockedRef.current = isLocked;
+  }, [isLocked]);
 
   useEffect(() => {
     if (isLocked) {

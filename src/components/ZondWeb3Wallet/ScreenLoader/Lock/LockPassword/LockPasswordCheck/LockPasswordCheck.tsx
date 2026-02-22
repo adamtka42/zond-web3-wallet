@@ -54,11 +54,19 @@ const LockPasswordCheck = observer(() => {
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     window.scrollTo(0, 0);
-    const unlocked = await unlock(formData.password);
-    if (!unlocked) {
-      setError("password", {
-        message: "The entered password is incorrect",
-      });
+    try {
+      const unlocked = await unlock(formData.password);
+      if (!unlocked) {
+        setError("password", {
+          message: "The entered password is incorrect",
+        });
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to unlock wallet. Please try again.";
+      setError("password", { message });
     }
     setUnlockAttempt((attempt) => attempt + 1);
   }
