@@ -115,6 +115,7 @@
     "@ledgerhq/errors": "^6.29.0",
     "@ledgerhq/hw-transport": "^6.32.0",
     "@ledgerhq/hw-transport-webhid": "^6.31.0",
+    "@radix-ui/react-select": "^2.2.6",
     "qrcode.react": "^4.2.0"
   }
 }

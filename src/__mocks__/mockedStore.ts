@@ -3,6 +3,7 @@ import {
   DEFAULT_BLOCKCHAIN,
 } from "@/configuration/zondBlockchainConfig";
 import LockStore from "@/stores/lockStore";
+import SettingsStore from "@/stores/settingsStore";
 import { StoreType } from "@/stores/store";
 import { Web3BaseWalletAccount } from "@theqrl/web3";
 import deepmerge from "deepmerge";
@@ -14,7 +15,15 @@ const mockedStoreValues: StoreType = {
     isDarkMode: true,
     theme: "dark",
     isPopupWindow: true,
-  },
+    themePreference: "system",
+    autoLockMinutes: 15,
+    currency: "USD",
+    language: "en",
+    setThemePreference: async () => {},
+    setAutoLockMinutes: async () => {},
+    setCurrency: async () => {},
+    setLanguage: async () => {},
+  } as unknown as SettingsStore,
   zondStore: {
     activeAccount: {
       accountAddress: "Q20B714091cF2a62DADda2847803e3f1B9D2D3779",

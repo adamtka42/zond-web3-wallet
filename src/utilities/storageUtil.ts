@@ -46,6 +46,15 @@ const ALL_CONTACTS_IDENTIFIER = "ALL_CONTACTS";
 
 const ACCOUNT_LABELS_IDENTIFIER = "ACCOUNT_LABELS";
 
+const SETTINGS_IDENTIFIER = "SETTINGS";
+
+export type WalletSettings = {
+  themePreference?: "system" | "light" | "dark";
+  autoLockMinutes?: number;
+  currency?: string;
+  language?: string;
+};
+
 type TransactionValuesType = {
   receiverAddress?: string;
   amount?: number;
@@ -475,6 +484,17 @@ class StorageUtil {
 
   static async clearAccountLabels() {
     await browser.storage.local.remove(ACCOUNT_LABELS_IDENTIFIER);
+  }
+
+  static async setSettings(settings: WalletSettings) {
+    await browser.storage.local.set({
+      [SETTINGS_IDENTIFIER]: settings,
+    });
+  }
+
+  static async getSettings(): Promise<WalletSettings> {
+    const storageData = await browser.storage.local.get(SETTINGS_IDENTIFIER);
+    return (storageData?.[SETTINGS_IDENTIFIER] ?? {}) as WalletSettings;
   }
 
   static async clearAllData() {

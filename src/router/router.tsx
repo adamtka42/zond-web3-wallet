@@ -131,6 +131,54 @@ const ContactsPage = withSuspense(
       ),
   ),
 );
+const Settings = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Settings/Settings"
+      ),
+  ),
+);
+const SettingsAppearance = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Settings/SettingsAppearance"
+      ),
+  ),
+);
+const SettingsSecurity = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Settings/SettingsSecurity"
+      ),
+  ),
+);
+const SettingsPreferences = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Settings/SettingsPreferences"
+      ),
+  ),
+);
+const SettingsData = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Settings/SettingsData"
+      ),
+  ),
+);
+const SettingsAbout = withSuspense(
+  lazy(
+    () =>
+      import(
+        "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Settings/SettingsAbout"
+      ),
+  ),
+);
 const Receive = withSuspense(
   lazy(
     () =>
@@ -158,6 +206,12 @@ export const ROUTES = {
   TRANSACTION_DETAIL: "/transaction-detail",
   CONTACTS: "/contacts",
   RECEIVE: "/receive",
+  SETTINGS: "/settings",
+  SETTINGS_APPEARANCE: "/settings-appearance",
+  SETTINGS_SECURITY: "/settings-security",
+  SETTINGS_PREFERENCES: "/settings-preferences",
+  SETTINGS_DATA: "/settings-data",
+  SETTINGS_ABOUT: "/settings-about",
   DEFAULT: "*",
 };
 
@@ -233,6 +287,30 @@ const router = createMemoryRouter([
       {
         path: ROUTES.RECEIVE,
         element: <Receive />,
+      },
+      {
+        path: ROUTES.SETTINGS,
+        element: <Settings />,
+      },
+      {
+        path: ROUTES.SETTINGS_APPEARANCE,
+        element: <SettingsAppearance />,
+      },
+      {
+        path: ROUTES.SETTINGS_SECURITY,
+        element: <SettingsSecurity />,
+      },
+      {
+        path: ROUTES.SETTINGS_PREFERENCES,
+        element: <SettingsPreferences />,
+      },
+      {
+        path: ROUTES.SETTINGS_DATA,
+        element: <SettingsData />,
+      },
+      {
+        path: ROUTES.SETTINGS_ABOUT,
+        element: <SettingsAbout />,
       },
     ],
   },
