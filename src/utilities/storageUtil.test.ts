@@ -144,6 +144,49 @@ describe("StorageUtil", () => {
     });
   });
 
+  describe("getLockStateTimeStamp", () => {
+    it("should return stored LOCKED timestamp", async () => {
+      await StorageUtil.updateLockStateTimeStamp(LockState.LOCKED);
+      const ts = await StorageUtil.getLockStateTimeStamp(LockState.LOCKED);
+      expect(ts).toBeGreaterThan(0);
+      expect(ts).toBe(localStore["LOCK_MANAGER_LOCKED_TIMESTAMP"]);
+    });
+
+    it("should return stored UNLOCKED timestamp", async () => {
+      await StorageUtil.updateLockStateTimeStamp(LockState.UNLOCKED);
+      const ts = await StorageUtil.getLockStateTimeStamp(LockState.UNLOCKED);
+      expect(ts).toBeGreaterThan(0);
+      expect(ts).toBe(localStore["LOCK_MANAGER_UNLOCKED_TIMESTAMP"]);
+    });
+
+    it("should return 0 when no timestamp exists", async () => {
+      const ts = await StorageUtil.getLockStateTimeStamp(LockState.LOCKED);
+      expect(ts).toBe(0);
+    });
+
+    it("should distinguish LOCKED and UNLOCKED timestamps", async () => {
+      await StorageUtil.updateLockStateTimeStamp(LockState.UNLOCKED);
+      const unlockedTs = localStore["LOCK_MANAGER_UNLOCKED_TIMESTAMP"];
+
+      // Small delay to ensure different timestamp
+      await new Promise((r) => setTimeout(r, 5));
+
+      await StorageUtil.updateLockStateTimeStamp(LockState.LOCKED);
+      const lockedTs = localStore["LOCK_MANAGER_LOCKED_TIMESTAMP"];
+
+      const readLocked = await StorageUtil.getLockStateTimeStamp(
+        LockState.LOCKED,
+      );
+      const readUnlocked = await StorageUtil.getLockStateTimeStamp(
+        LockState.UNLOCKED,
+      );
+
+      expect(readLocked).toBe(lockedTs);
+      expect(readUnlocked).toBe(unlockedTs);
+      expect(readLocked).toBeGreaterThanOrEqual(readUnlocked);
+    });
+  });
+
   // ── Accounts ───────────────────────────────────────────────
 
   describe("Accounts", () => {

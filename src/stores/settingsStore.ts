@@ -1,5 +1,7 @@
+import { LOCK_MANAGER_MESSAGES } from "@/scripts/lockManager/lockManager";
 import StorageUtil from "@/utilities/storageUtil";
 import { action, makeAutoObservable, observable, runInAction } from "mobx";
+import browser from "webextension-polyfill";
 
 const THEME = Object.freeze({
   DARK: "dark",
@@ -111,6 +113,9 @@ class SettingsStore {
   async setAutoLockMinutes(minutes: number) {
     this.autoLockMinutes = minutes;
     await this.#persistSettings();
+    browser.runtime
+      .sendMessage({ name: LOCK_MANAGER_MESSAGES.UPDATE_AUTO_LOCK })
+      .catch(() => {});
   }
 
   async setCurrency(currency: string) {

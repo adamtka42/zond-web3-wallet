@@ -27,11 +27,21 @@ jest.mock("webextension-polyfill", () => ({
         set: jest.fn(() => Promise.resolve()),
       },
     },
+    runtime: {
+      sendMessage: jest.fn(() => Promise.resolve()),
+    },
+    alarms: {
+      create: jest.fn(() => Promise.resolve()),
+      clear: jest.fn(() => Promise.resolve(true)),
+    },
   },
 }));
 
+import browser from "webextension-polyfill";
 import SettingsStore from "./settingsStore";
 import StorageUtil from "@/utilities/storageUtil";
+
+const mockSendMessage = browser.runtime.sendMessage as jest.Mock;
 
 describe("SettingsStore", () => {
   let store: SettingsStore;
@@ -112,6 +122,21 @@ describe("SettingsStore", () => {
 
       const settings = await StorageUtil.getSettings();
       expect(settings.autoLockMinutes).toBe(0);
+    });
+
+    it("should send UPDATE_AUTO_LOCK message to service worker", async () => {
+      await store.setAutoLockMinutes(10);
+
+      expect(mockSendMessage).toHaveBeenCalledWith({
+        name: "LOCK_MANAGER_UPDATE_AUTO_LOCK",
+      });
+    });
+
+    it("should not throw if sendMessage fails", async () => {
+      (mockSendMessage as jest.Mock<() => Promise<any>>).mockRejectedValueOnce(new Error("SW not ready"));
+
+      await expect(store.setAutoLockMinutes(5)).resolves.not.toThrow();
+      expect(store.autoLockMinutes).toBe(5);
     });
   });
 

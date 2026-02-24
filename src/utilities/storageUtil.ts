@@ -74,7 +74,7 @@ export const LockState = Object.freeze({
   UNLOCKED: "UNLOCKED",
 });
 
-type LockStateType = (typeof LockState)[keyof typeof LockState];
+export type LockStateType = (typeof LockState)[keyof typeof LockState];
 
 /**
  * A utility for storing and retrieving states of different components to and from the browser storage.
@@ -105,6 +105,12 @@ class StorageUtil {
     await browser.storage.local.set({
       [lockStatusIdentifier]: Date.now(),
     });
+  }
+
+  static async getLockStateTimeStamp(lockState: LockStateType): Promise<number> {
+    const key = `LOCK_MANAGER_${lockState}_TIMESTAMP`;
+    const data = await browser.storage.local.get(key);
+    return (data?.[key] ?? 0) as number;
   }
 
   /**

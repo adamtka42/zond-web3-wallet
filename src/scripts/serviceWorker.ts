@@ -60,6 +60,14 @@ const prepareListeners = () => {
   });
   // Listening for messages related to the wallet locking.
   browser.runtime.onMessage.addListener(LockManager.lockManagerListener);
+  // Alarm listener for auto-lock and keep-alive.
+  browser.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === LockManager.AUTO_LOCK_ALARM) {
+      LockManager.handleAutoLockAlarm();
+    } else if (alarm.name === LockManager.KEEP_ALIVE_ALARM) {
+      LockManager.handleKeepAliveAlarm();
+    }
+  });
 };
 
 /**

@@ -143,18 +143,30 @@ class LockStore {
       // still have a cached copy from the last successful unlock, re-send them
       // so the wallet stays unlocked while the popup is open.
       if (isLocked && this.cachedKeys) {
-        try {
-          await browser.runtime.sendMessage({
-            name: LOCK_MANAGER_MESSAGES.SET_DECRYPTED_KEYS,
-            data: this.cachedKeys,
-          });
-          const recheck = await browser.runtime.sendMessage({
-            name: LOCK_MANAGER_MESSAGES.IS_LOCKED,
-          });
-          isLocked = recheck.isLocked;
-          hasPasswordSet = recheck.hasPasswordSet;
-        } catch {
-          // Re-send failed — accept the locked state
+        const lockedTs = await StorageUtil.getLockStateTimeStamp(
+          LockState.LOCKED,
+        );
+        const unlockedTs = await StorageUtil.getLockStateTimeStamp(
+          LockState.UNLOCKED,
+        );
+        if (lockedTs > unlockedTs) {
+          // Intentional lock (manual or auto-lock) — don't re-send
+          this.cachedKeys = undefined;
+        } else {
+          // SW restart — re-send cached keys to recover
+          try {
+            await browser.runtime.sendMessage({
+              name: LOCK_MANAGER_MESSAGES.SET_DECRYPTED_KEYS,
+              data: this.cachedKeys,
+            });
+            const recheck = await browser.runtime.sendMessage({
+              name: LOCK_MANAGER_MESSAGES.IS_LOCKED,
+            });
+            isLocked = recheck.isLocked;
+            hasPasswordSet = recheck.hasPasswordSet;
+          } catch {
+            // Re-send failed — accept the locked state
+          }
         }
       }
 
