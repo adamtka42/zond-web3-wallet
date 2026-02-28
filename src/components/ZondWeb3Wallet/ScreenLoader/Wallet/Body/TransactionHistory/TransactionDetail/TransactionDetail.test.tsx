@@ -2,7 +2,7 @@ import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import TransactionDetail from "./TransactionDetail";
@@ -13,6 +13,14 @@ jest.mock("webextension-polyfill", () => ({
     tabs: {
       create: jest.fn(),
     },
+  },
+}));
+
+jest.mock("@/utilities/storageUtil", () => ({
+  __esModule: true,
+  default: {
+    isLedgerAccount: jest.fn<any>().mockResolvedValue(false),
+    getActiveBlockChain: jest.fn<any>().mockResolvedValue({ chainId: "0x1" }),
   },
 }));
 
@@ -35,12 +43,25 @@ const sampleTransaction: TransactionHistoryEntry = {
   chainId: "0x1",
 };
 
+const pendingTransaction: TransactionHistoryEntry = {
+  ...sampleTransaction,
+  pendingStatus: "pending",
+  nonce: 5,
+  maxFeePerGas: "2000000000",
+  maxPriorityFeePerGas: "1000000000",
+  gasLimit: 21000,
+  blockNumber: "",
+  gasUsed: "",
+  effectiveGasPrice: "",
+};
+
 describe("TransactionDetail", () => {
   afterEach(cleanup);
 
   const renderComponent = (
     transaction?: TransactionHistoryEntry,
     mockedStoreValues = mockedStore(),
+    initialAction?: "speed-up" | "cancel",
   ) =>
     render(
       <StoreProvider value={mockedStoreValues}>
@@ -48,7 +69,9 @@ describe("TransactionDetail", () => {
           initialEntries={[
             {
               pathname: "/transaction-detail",
-              state: transaction ? { transaction } : undefined,
+              state: transaction
+                ? { transaction, action: initialAction }
+                : undefined,
             },
           ]}
         >
@@ -165,5 +188,270 @@ describe("TransactionDetail", () => {
 
     await userEvent.click(screen.getByText("View on Block Explorer"));
     expect(browser.tabs.create).toHaveBeenCalled();
+  });
+
+  // ── Pending transaction tests ──
+
+  it("should show Pending badge for pending transaction", () => {
+    renderComponent(pendingTransaction);
+
+    expect(screen.getByText("Pending")).toBeInTheDocument();
+  });
+
+  it("should show 'Waiting for confirmation...' for pending transaction", () => {
+    renderComponent(pendingTransaction);
+
+    expect(screen.getByText("Waiting for confirmation...")).toBeInTheDocument();
+  });
+
+  it("should not show block number for pending transaction", () => {
+    renderComponent(pendingTransaction);
+
+    expect(screen.queryByText("Block Number")).not.toBeInTheDocument();
+  });
+
+  it("should not show View on Block Explorer for pending transaction", () => {
+    renderComponent(pendingTransaction);
+
+    expect(screen.queryByText("View on Block Explorer")).not.toBeInTheDocument();
+  });
+
+  it("should show Speed Up and Cancel buttons for pending tx with nonce", () => {
+    renderComponent(pendingTransaction);
+
+    expect(screen.getByText("Speed Up")).toBeInTheDocument();
+    expect(screen.getByText("Cancel")).toBeInTheDocument();
+  });
+
+  it("should not show Speed Up/Cancel buttons for pending tx without nonce", () => {
+    renderComponent({
+      ...pendingTransaction,
+      nonce: undefined,
+    });
+
+    expect(screen.queryByRole("button", { name: /speed up/i })).not.toBeInTheDocument();
+  });
+
+  it("should display Replaced status badge", () => {
+    renderComponent({
+      ...sampleTransaction,
+      pendingStatus: "replaced",
+      replacementTransactionHash: "0xreplacement123",
+      replacedByAction: "speed-up",
+    });
+
+    expect(screen.getByText("Replaced")).toBeInTheDocument();
+  });
+
+  it("should display replacement tx hash for replaced transaction", () => {
+    renderComponent({
+      ...sampleTransaction,
+      pendingStatus: "replaced",
+      replacementTransactionHash: "0xreplacement123",
+      replacedByAction: "speed-up",
+    });
+
+    expect(screen.getByText("Replaced by (Speed Up)")).toBeInTheDocument();
+    expect(screen.getByText("0xreplacement123")).toBeInTheDocument();
+  });
+
+  it("should display 'Cancelled by' label for cancelled transaction", () => {
+    renderComponent({
+      ...sampleTransaction,
+      pendingStatus: "cancelled",
+      replacementTransactionHash: "0xcancel123",
+      replacedByAction: "cancel",
+    });
+
+    expect(screen.getByText("Cancelled")).toBeInTheDocument();
+    expect(screen.getByText("Cancelled by")).toBeInTheDocument();
+    expect(screen.getByText("0xcancel123")).toBeInTheDocument();
+  });
+
+  it("should open speed-up dialog when Speed Up button clicked", async () => {
+    renderComponent(pendingTransaction);
+
+    await userEvent.click(screen.getByText("Speed Up"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Speed Up Transaction")).toBeInTheDocument();
+    });
+  });
+
+  it("should open cancel dialog when Cancel button clicked", async () => {
+    renderComponent(pendingTransaction);
+
+    await userEvent.click(screen.getByText("Cancel"));
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Cancel Transaction").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("should auto-open speed-up dialog when navigated with speed-up action", async () => {
+    renderComponent(pendingTransaction, mockedStore(), "speed-up");
+
+    await waitFor(() => {
+      expect(screen.getByText("Speed Up Transaction")).toBeInTheDocument();
+    });
+  });
+
+  it("should auto-open cancel dialog when navigated with cancel action", async () => {
+    renderComponent(pendingTransaction, mockedStore(), "cancel");
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Cancel Transaction").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("should not call sendRawTransaction for Ledger account replacement", async () => {
+    const StorageUtil = (await import("@/utilities/storageUtil")).default;
+    (StorageUtil.isLedgerAccount as jest.Mock<any>).mockResolvedValueOnce(true);
+
+    const mockSendRawTransaction = jest.fn<any>();
+    const store = mockedStore({
+      zondStore: {
+        sendRawTransaction: mockSendRawTransaction,
+      },
+    });
+
+    renderComponent(pendingTransaction, store);
+
+    await userEvent.click(screen.getByText("Speed Up"));
+    await waitFor(() => {
+      expect(screen.getByText("Speed Up Transaction")).toBeInTheDocument();
+    });
+
+    const dialogButtons = screen.getAllByText("Speed Up");
+    await userEvent.click(dialogButtons[dialogButtons.length - 1]);
+
+    // Wait for async handleReplacement to complete
+    await waitFor(() => {
+      expect(StorageUtil.isLedgerAccount).toHaveBeenCalledWith(pendingTransaction.from);
+    });
+
+    expect(mockSendRawTransaction).not.toHaveBeenCalled();
+  });
+
+  it("should not call signAndSendReplacement when mnemonic is empty", async () => {
+    const mockSign = jest.fn<any>().mockResolvedValue({
+      transactionHash: undefined,
+      rawTransaction: undefined,
+      error: "",
+    });
+    const mockGetMnemonic = jest.fn<any>().mockResolvedValue("");
+    const store = mockedStore({
+      lockStore: {
+        getMnemonicPhrases: mockGetMnemonic,
+      },
+      zondStore: {
+        signAndSendReplacementTransaction: mockSign,
+      },
+    });
+
+    renderComponent(pendingTransaction, store);
+
+    await userEvent.click(screen.getByText("Speed Up"));
+    await waitFor(() => {
+      expect(screen.getByText("Speed Up Transaction")).toBeInTheDocument();
+    });
+
+    const dialogButtons = screen.getAllByText("Speed Up");
+    await userEvent.click(dialogButtons[dialogButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(mockGetMnemonic).toHaveBeenCalled();
+    });
+
+    expect(mockSign).not.toHaveBeenCalled();
+  });
+
+  it("should not call sendRawTransaction when signAndSend returns error", async () => {
+    const mockSendRaw = jest.fn<any>();
+    const mockSign = jest.fn<any>().mockResolvedValue({
+      transactionHash: undefined,
+      rawTransaction: undefined,
+      error: "Insufficient funds for gas",
+    });
+    const store = mockedStore({
+      zondStore: {
+        signAndSendReplacementTransaction: mockSign,
+        sendRawTransaction: mockSendRaw,
+      },
+    });
+
+    renderComponent(pendingTransaction, store);
+
+    await userEvent.click(screen.getByText("Speed Up"));
+    await waitFor(() => {
+      expect(screen.getByText("Speed Up Transaction")).toBeInTheDocument();
+    });
+
+    const dialogButtons = screen.getAllByText("Speed Up");
+    await userEvent.click(dialogButtons[dialogButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(mockSign).toHaveBeenCalled();
+    });
+
+    expect(mockSendRaw).not.toHaveBeenCalled();
+  });
+
+  it("should handle successful replacement flow", async () => {
+    const mockUpdateTransaction = jest.fn<any>().mockResolvedValue(undefined);
+    const mockAddTransaction = jest.fn<any>().mockResolvedValue(undefined);
+
+    const store = mockedStore({
+      zondStore: {
+        signAndSendReplacementTransaction: async () => ({
+          transactionHash: "0xnewtx123",
+          rawTransaction: "0xraw123",
+          error: "",
+        }),
+        sendRawTransaction: async () => ({
+          status: BigInt(1),
+          blockNumber: BigInt(200),
+          gasUsed: BigInt(21000),
+          effectiveGasPrice: BigInt(2000000000),
+        } as any),
+      },
+      transactionHistoryStore: {
+        updateTransaction: mockUpdateTransaction,
+        addTransaction: mockAddTransaction,
+      },
+    });
+
+    renderComponent(pendingTransaction, store);
+
+    await userEvent.click(screen.getByText("Speed Up"));
+    await waitFor(() => {
+      expect(screen.getByText("Speed Up Transaction")).toBeInTheDocument();
+    });
+
+    const dialogButtons = screen.getAllByText("Speed Up");
+    await userEvent.click(dialogButtons[dialogButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(mockUpdateTransaction).toHaveBeenCalledWith(
+        pendingTransaction.from,
+        pendingTransaction.transactionHash,
+        expect.objectContaining({
+          pendingStatus: "replaced",
+          replacementTransactionHash: "0xnewtx123",
+          replacedByAction: "speed-up",
+        }),
+      );
+    });
+
+    expect(mockAddTransaction).toHaveBeenCalled();
+  });
+
+  it("should display Dropped status badge", () => {
+    renderComponent({
+      ...sampleTransaction,
+      pendingStatus: "dropped",
+    });
+
+    expect(screen.getByText("Dropped")).toBeInTheDocument();
   });
 });

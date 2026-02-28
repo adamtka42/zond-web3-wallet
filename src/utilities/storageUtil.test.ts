@@ -790,4 +790,88 @@ describe("StorageUtil", () => {
       expect(mockLocal.clear).toHaveBeenCalled();
     });
   });
+
+  // ── updateTransactionHistoryEntry ──
+
+  describe("updateTransactionHistoryEntry", () => {
+    it("should update a specific transaction by hash", async () => {
+      const entry1 = makeTxEntry({ transactionHash: "0xhash1", id: "0xhash1", pendingStatus: "pending" });
+      const entry2 = makeTxEntry({ transactionHash: "0xhash2", id: "0xhash2", pendingStatus: "pending" });
+
+      await StorageUtil.setTransactionHistoryEntry(ACCOUNT, entry1);
+      await StorageUtil.setTransactionHistoryEntry(ACCOUNT, entry2);
+
+      await StorageUtil.updateTransactionHistoryEntry(
+        ACCOUNT,
+        "0xhash1",
+        { pendingStatus: "confirmed", status: true },
+      );
+
+      const history = await StorageUtil.getTransactionHistory(ACCOUNT);
+      const updated = history.find((tx) => tx.transactionHash === "0xhash1");
+      const unchanged = history.find((tx) => tx.transactionHash === "0xhash2");
+
+      expect(updated?.pendingStatus).toBe("confirmed");
+      expect(updated?.status).toBe(true);
+      expect(unchanged?.pendingStatus).toBe("pending");
+    });
+
+    it("should not modify other transactions when updating one", async () => {
+      const entry = makeTxEntry({ transactionHash: "0xonly", id: "0xonly", amount: 5 });
+      await StorageUtil.setTransactionHistoryEntry(ACCOUNT, entry);
+
+      await StorageUtil.updateTransactionHistoryEntry(
+        ACCOUNT,
+        "0xonly",
+        { pendingStatus: "failed" },
+      );
+
+      const history = await StorageUtil.getTransactionHistory(ACCOUNT);
+      expect(history).toHaveLength(1);
+      expect(history[0].amount).toBe(5);
+      expect(history[0].pendingStatus).toBe("failed");
+    });
+  });
+
+  // ── getPendingTransactions ──
+
+  describe("getPendingTransactions", () => {
+    it("should return only pending transactions", async () => {
+      const pending = makeTxEntry({
+        transactionHash: "0xpending",
+        id: "0xpending",
+        pendingStatus: "pending",
+      });
+      const confirmed = makeTxEntry({
+        transactionHash: "0xconfirmed",
+        id: "0xconfirmed",
+        pendingStatus: "confirmed",
+      });
+
+      await StorageUtil.setTransactionHistoryEntry(ACCOUNT, pending);
+      await StorageUtil.setTransactionHistoryEntry(ACCOUNT, confirmed);
+
+      const result = await StorageUtil.getPendingTransactions(ACCOUNT);
+      expect(result).toHaveLength(1);
+      expect(result[0].transactionHash).toBe("0xpending");
+    });
+
+    it("should return empty array when no pending transactions", async () => {
+      const confirmed = makeTxEntry({
+        transactionHash: "0xdone",
+        id: "0xdone",
+        pendingStatus: "confirmed",
+      });
+
+      await StorageUtil.setTransactionHistoryEntry(ACCOUNT, confirmed);
+
+      const result = await StorageUtil.getPendingTransactions(ACCOUNT);
+      expect(result).toEqual([]);
+    });
+
+    it("should return empty array for account with no history", async () => {
+      const result = await StorageUtil.getPendingTransactions(ACCOUNT);
+      expect(result).toEqual([]);
+    });
+  });
 });

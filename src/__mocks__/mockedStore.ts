@@ -109,6 +109,13 @@ const mockedStoreValues: StoreType = {
       decimals;
       return { transactionReceipt: undefined, error: "" };
     },
+    signAndSendReplacementTransaction: async () => ({
+      transactionHash: undefined,
+      rawTransaction: undefined,
+      error: "",
+    }),
+    getTransactionReceipt: async () => null,
+    sendRawTransaction: async () => undefined,
     refreshBlockchainData: async () => {},
     addChain: async (chainData: BlockchainDataType) => {
       chainData;
@@ -233,12 +240,22 @@ const mockedStoreValues: StoreType = {
     isLoading: false,
     filter: "all" as const,
     filteredTransactions: [],
-    loadHistory: async (accountAddress: string) => {
+    pendingTransactions: [],
+    loadHistory: async (accountAddress: string, _qrlInstance?: any) => {
       accountAddress;
     },
     addTransaction: async (accountAddress: string, entry: any) => {
       accountAddress;
       entry;
+    },
+    updateTransaction: async (
+      accountAddress: string,
+      transactionHash: string,
+      updates: any,
+    ) => {
+      accountAddress;
+      transactionHash;
+      updates;
     },
     setFilter: (filter: string) => {
       filter;
@@ -246,7 +263,11 @@ const mockedStoreValues: StoreType = {
     clearHistory: async (accountAddress: string) => {
       accountAddress;
     },
-  },
+    startPolling: (accountAddress: string, _qrlInstance: any) => {
+      accountAddress;
+    },
+    stopPolling: () => {},
+  } as any,
   contactsStore: {
     contacts: [],
     isLoading: false,

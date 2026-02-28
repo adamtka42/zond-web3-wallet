@@ -679,6 +679,37 @@ class StorageUtil {
     return transactions as TransactionHistoryEntry[];
   }
 
+  static async updateTransactionHistoryEntry(
+    accountAddress: string,
+    transactionHash: string,
+    updates: Partial<TransactionHistoryEntry>,
+  ) {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(TX_HISTORY_IDENTIFIER);
+    const transactions: TransactionHistoryEntry[] =
+      storageData?.[TX_HISTORY_IDENTIFIER]?.[ALL_TX_HISTORY_IDENTIFIER]?.[
+        accountAddress
+      ]?.[chainId]?.transactions ?? [];
+
+    const updatedTransactions = transactions.map((tx) =>
+      tx.transactionHash === transactionHash ? { ...tx, ...updates } : tx,
+    );
+
+    storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+      accountAddress
+    ][chainId].transactions = updatedTransactions;
+
+    await browser.storage.local.set(storageData);
+  }
+
+  static async getPendingTransactions(
+    accountAddress: string,
+  ): Promise<TransactionHistoryEntry[]> {
+    const history = await this.getTransactionHistory(accountAddress);
+    return history.filter((tx) => tx.pendingStatus === "pending");
+  }
+
   static async clearTransactionHistory(accountAddress: string) {
     const { chainId } = await this.getActiveBlockChain();
 

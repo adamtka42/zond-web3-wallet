@@ -169,7 +169,15 @@ const TokenTransfer = observer(() => {
       } else {
         transactionData = await sendNativeToken(formData);
       }
-      const { transactionReceipt, error } = transactionData;
+      const { transactionReceipt, error, nonce, maxFeePerGas, maxPriorityFeePerGas, gasLimit, data } = transactionData as {
+        transactionReceipt?: import("@theqrl/web3").TransactionReceipt;
+        error: string;
+        nonce?: number;
+        maxFeePerGas?: string;
+        maxPriorityFeePerGas?: string;
+        gasLimit?: number;
+        data?: string;
+      };
 
       if (error) {
         control.setError("amount", {
@@ -200,6 +208,12 @@ const TokenTransfer = observer(() => {
             status: isTransactionSuccessful,
             timestamp: Date.now(),
             chainId,
+            pendingStatus: isTransactionSuccessful ? "confirmed" : "failed",
+            nonce,
+            maxFeePerGas,
+            maxPriorityFeePerGas,
+            gasLimit,
+            data,
           };
           await transactionHistoryStore.addTransaction(
             accountAddress,

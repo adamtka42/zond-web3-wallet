@@ -10,6 +10,7 @@ import {
 import { getHexSeedFromMnemonic } from "@/functions/getHexSeedFromMnemonic";
 import { getOptimalTokenBalance } from "@/functions/getOptimalTokenBalance";
 import type { GasFeeOverrides } from "@/types/gasFee";
+import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 import StorageUtil from "@/utilities/storageUtil";
 import Web3, {
   TransactionReceipt,
@@ -61,6 +62,9 @@ class ZondStore {
       getZrc20TokenDetails: action.bound,
       getZrc20TokenGas: action.bound,
       signAndSendZrc20Token: action.bound,
+      signAndSendReplacementTransaction: action.bound,
+      getTransactionReceipt: action.bound,
+      sendRawTransaction: action.bound,
     });
     this.initializeBlockchain();
   }
@@ -299,6 +303,10 @@ class ZondStore {
     let transaction: {
       transactionReceipt?: TransactionReceipt;
       error: string;
+      nonce?: number;
+      maxFeePerGas?: string;
+      maxPriorityFeePerGas?: string;
+      gasLimit?: number;
     } = { transactionReceipt: undefined, error: "" };
 
     try {
@@ -308,11 +316,12 @@ class ZondStore {
         overrides?.tier === "advanced" && overrides.gasLimit
           ? overrides.gasLimit
           : NATIVE_TOKEN_UNITS_OF_GAS;
+      const nonce = await this.qrlInstance?.getTransactionCount(from);
       const transactionObject = {
         from,
         to,
         value: utils.toPlanck(value, "quanta"),
-        nonce: await this.qrlInstance?.getTransactionCount(from),
+        nonce,
         gasLimit,
         maxFeePerGas: Number(maxFeePerGas),
         maxPriorityFeePerGas: Number(maxPriorityFeePerGas),
@@ -328,7 +337,14 @@ class ZondStore {
           await this.qrlInstance?.sendSignedTransaction(
             signedTransaction?.rawTransaction,
           );
-        transaction = { ...transaction, transactionReceipt };
+        transaction = {
+          ...transaction,
+          transactionReceipt,
+          nonce: Number(nonce),
+          maxFeePerGas: maxFeePerGas.toString(),
+          maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
+          gasLimit,
+        };
       } else {
         throw new Error("Transaction could not be signed");
       }
@@ -431,6 +447,11 @@ class ZondStore {
     let transaction: {
       transactionReceipt?: TransactionReceipt;
       error: string;
+      nonce?: number;
+      maxFeePerGas?: string;
+      maxPriorityFeePerGas?: string;
+      gasLimit?: number;
+      data?: string;
     } = { transactionReceipt: undefined, error: "" };
 
     const contractAbi = ZRC_20_CONTRACT_ABI;
@@ -453,11 +474,13 @@ class ZondStore {
           overrides?.tier === "advanced" && overrides.gasLimit
             ? overrides.gasLimit
             : ZRC_20_TOKEN_UNITS_OF_GAS;
+        const nonce = await this.qrlInstance?.getTransactionCount(from);
+        const encodedData = contractTransfer.encodeABI();
         const transactionObject = {
           from,
           to: contractAddress,
-          data: contractTransfer.encodeABI(),
-          nonce: await this.qrlInstance?.getTransactionCount(from),
+          data: encodedData,
+          nonce,
           gasLimit,
           maxFeePerGas: Number(maxFeePerGas),
           maxPriorityFeePerGas: Number(maxPriorityFeePerGas),
@@ -475,6 +498,11 @@ class ZondStore {
         transaction = {
           ...transaction,
           transactionReceipt,
+          nonce: Number(nonce),
+          maxFeePerGas: maxFeePerGas.toString(),
+          maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
+          gasLimit,
+          data: encodedData,
         };
       } catch (error) {
         transaction = {
@@ -485,6 +513,108 @@ class ZondStore {
     }
 
     return transaction;
+  }
+  async signAndSendReplacementTransaction(
+    originalTx: TransactionHistoryEntry,
+    replacementAction: "speed-up" | "cancel",
+    mnemonicPhrases: string,
+    overrides?: GasFeeOverrides,
+  ) {
+    let result: {
+      transactionHash?: string;
+      rawTransaction?: string;
+      error: string;
+    } = { error: "" };
+
+    try {
+      const tier = overrides?.tier ?? "aggressive";
+      const { maxFeePerGas: newMaxFee, maxPriorityFeePerGas: newPriorityFee } =
+        await this.getGasFeeData({ ...overrides, tier });
+
+      // Enforce ≥10% bump over original
+      const origMaxFee = BigInt(originalTx.maxFeePerGas ?? "0");
+      const origPriorityFee = BigInt(originalTx.maxPriorityFeePerGas ?? "0");
+      const minBumpedMaxFee =
+        origMaxFee + (origMaxFee * BigInt(10)) / BigInt(100);
+      const minBumpedPriorityFee =
+        origPriorityFee + (origPriorityFee * BigInt(10)) / BigInt(100);
+
+      const finalMaxFee =
+        newMaxFee > minBumpedMaxFee ? newMaxFee : minBumpedMaxFee;
+      const finalPriorityFee =
+        newPriorityFee > minBumpedPriorityFee
+          ? newPriorityFee
+          : minBumpedPriorityFee;
+
+      const nonce = originalTx.nonce;
+      if (nonce === undefined) {
+        throw new Error("Original transaction nonce is not available");
+      }
+
+      let transactionObject;
+      if (replacementAction === "cancel") {
+        transactionObject = {
+          from: originalTx.from,
+          to: originalTx.from,
+          value: "0",
+          nonce,
+          gasLimit: NATIVE_TOKEN_UNITS_OF_GAS,
+          maxFeePerGas: Number(finalMaxFee),
+          maxPriorityFeePerGas: Number(finalPriorityFee),
+          type: 2,
+        };
+      } else {
+        transactionObject = {
+          from: originalTx.from,
+          to: originalTx.isZrc20Token
+            ? originalTx.tokenContractAddress
+            : originalTx.to,
+          value: originalTx.isZrc20Token
+            ? "0"
+            : utils.toPlanck(originalTx.amount, "quanta"),
+          nonce,
+          gasLimit:
+            originalTx.gasLimit ??
+            (originalTx.isZrc20Token
+              ? ZRC_20_TOKEN_UNITS_OF_GAS
+              : NATIVE_TOKEN_UNITS_OF_GAS),
+          maxFeePerGas: Number(finalMaxFee),
+          maxPriorityFeePerGas: Number(finalPriorityFee),
+          type: 2,
+          ...(originalTx.data && { data: originalTx.data }),
+        };
+      }
+
+      const signedTransaction =
+        await this.qrlInstance?.accounts.signTransaction(
+          transactionObject,
+          getHexSeedFromMnemonic(mnemonicPhrases),
+        );
+
+      if (!signedTransaction) {
+        throw new Error("Replacement transaction could not be signed");
+      }
+
+      result = {
+        transactionHash: signedTransaction.transactionHash?.toString(),
+        rawTransaction: signedTransaction.rawTransaction?.toString(),
+        error: "",
+      };
+    } catch (error) {
+      result = { error: `Replacement transaction failed. ${error}` };
+    }
+
+    return result;
+  }
+
+  async getTransactionReceipt(txHash: string) {
+    return await this.qrlInstance?.getTransactionReceipt(txHash);
+  }
+
+  async sendRawTransaction(rawTransaction: string) {
+    const receipt =
+      await this.qrlInstance?.sendSignedTransaction(rawTransaction);
+    return receipt;
   }
 }
 

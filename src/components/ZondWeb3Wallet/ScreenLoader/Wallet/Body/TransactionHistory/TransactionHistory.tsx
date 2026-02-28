@@ -56,8 +56,11 @@ const TransactionHistory = observer(() => {
 
   useEffect(() => {
     if (accountAddress) {
-      transactionHistoryStore.loadHistory(accountAddress);
+      transactionHistoryStore.loadHistory(accountAddress, zondStore.qrlInstance as any);
     }
+    return () => {
+      transactionHistoryStore.stopPolling();
+    };
   }, [accountAddress]);
 
   return (
