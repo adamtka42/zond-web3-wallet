@@ -62,12 +62,12 @@ const headerClasses = cva(
 
 const Header = observer(() => {
   const { settingsStore } = useStore();
-  const { isPopupWindow } = settingsStore;
+  const { isPopupWindow, isSidePanel } = settingsStore;
 
   return (
     <div
       className={headerClasses({
-        isPopupWindow,
+        isPopupWindow: isPopupWindow || isSidePanel,
       })}
     >
       <ZondWeb3WalletLogo />

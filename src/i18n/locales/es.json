@@ -359,6 +359,8 @@
   "recipient.openAddressBook": "Abrir libreta de direcciones",
 
   "header.openInTab": "Abrir en Pestaña",
+  "header.openSidePanel": "Abrir como Panel Lateral",
+  "header.switchToPopup": "Cambiar a Ventana Emergente",
   "header.contacts": "Contactos",
   "header.settings": "Configuración",
   "header.lockWallet": "Bloquear Billetera",

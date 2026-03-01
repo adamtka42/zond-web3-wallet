@@ -359,6 +359,8 @@
   "recipient.openAddressBook": "Adressbuch öffnen",
 
   "header.openInTab": "In Tab Öffnen",
+  "header.openSidePanel": "Als Seitenleiste Öffnen",
+  "header.switchToPopup": "Zum Popup Wechseln",
   "header.contacts": "Kontakte",
   "header.settings": "Einstellungen",
   "header.lockWallet": "Wallet Sperren",

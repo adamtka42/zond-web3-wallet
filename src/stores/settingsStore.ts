@@ -16,6 +16,7 @@ class SettingsStore {
   isDarkMode: boolean;
   theme: string;
   isPopupWindow = true;
+  isSidePanel = false;
 
   themePreference: ThemePreference = "system";
   autoLockMinutes = 15;
@@ -23,42 +24,56 @@ class SettingsStore {
   language = "en";
   defaultGasTier: GasTier = "market";
   showBalanceAndPrice = true;
+  sidePanelPreferred = false;
 
   constructor() {
     makeAutoObservable(this, {
       isDarkMode: observable,
       theme: observable,
+      isSidePanel: observable,
       themePreference: observable,
       autoLockMinutes: observable,
       currency: observable,
       language: observable,
       defaultGasTier: observable,
       showBalanceAndPrice: observable,
+      sidePanelPreferred: observable,
       setThemePreference: action.bound,
       setAutoLockMinutes: action.bound,
       setCurrency: action.bound,
       setLanguage: action.bound,
       setDefaultGasTier: action.bound,
       setShowBalanceAndPrice: action.bound,
+      setSidePanelPreferred: action.bound,
     });
 
     this.isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
     this.theme = this.isDarkMode ? THEME.DARK : THEME.LIGHT;
     document?.documentElement?.classList?.add(this.theme);
 
-    // Detect the window type based on pixel size, with some pixel tolerance
-    const htmlElement = document?.documentElement;
-    if (htmlElement) {
-      const actualWidth = htmlElement.clientWidth;
-      const actualHeight = htmlElement.clientHeight;
-      const expectedWidth = 368;
-      // In popup mode, the extension content is rendered inside an iframe by the browser.
-      // The height of the iframe will be around 25px.
-      const expectedHeight = 25;
-      const tolerance = 24;
-      this.isPopupWindow =
-        Math.abs(actualWidth - expectedWidth) <= tolerance &&
-        Math.abs(actualHeight - expectedHeight) <= tolerance;
+    // Detect side panel via URL query parameter (set in manifest's side_panel.default_path).
+    const urlParams = new URLSearchParams(window.location.search);
+    this.isSidePanel = urlParams.has("sidepanel");
+
+    // Detect popup vs tab via viewport dimensions.
+    // Popup: narrow width (~368px), very short height (~25px iframe).
+    // Tab: wide width (> 500px) or tall without sidepanel param.
+    if (!this.isSidePanel) {
+      const htmlElement = document?.documentElement;
+      if (htmlElement) {
+        const actualWidth = htmlElement.clientWidth;
+        const actualHeight = htmlElement.clientHeight;
+        const expectedWidth = 368;
+        const expectedHeight = 25;
+        const tolerance = 24;
+        const isNarrow =
+          Math.abs(actualWidth - expectedWidth) <= tolerance;
+        const isShort =
+          Math.abs(actualHeight - expectedHeight) <= tolerance;
+        this.isPopupWindow = isNarrow && isShort;
+      }
+    } else {
+      this.isPopupWindow = false;
     }
 
     this.#loadSettings();
@@ -86,6 +101,9 @@ class SettingsStore {
       }
       if (settings.showBalanceAndPrice !== undefined) {
         this.showBalanceAndPrice = settings.showBalanceAndPrice;
+      }
+      if (settings.sidePanelPreferred !== undefined) {
+        this.sidePanelPreferred = settings.sidePanelPreferred;
       }
     });
   }
@@ -118,6 +136,7 @@ class SettingsStore {
       language: this.language,
       defaultGasTier: this.defaultGasTier,
       showBalanceAndPrice: this.showBalanceAndPrice,
+      sidePanelPreferred: this.sidePanelPreferred,
     });
   }
 
@@ -154,6 +173,23 @@ class SettingsStore {
   async setShowBalanceAndPrice(enabled: boolean) {
     this.showBalanceAndPrice = enabled;
     await this.#persistSettings();
+  }
+
+  async setSidePanelPreferred(preferred: boolean) {
+    this.sidePanelPreferred = preferred;
+    await this.#persistSettings();
+    if (
+      typeof chrome !== "undefined" &&
+      typeof chrome?.sidePanel?.setPanelBehavior === "function"
+    ) {
+      try {
+        await chrome.sidePanel.setPanelBehavior({
+          openPanelOnActionClick: preferred,
+        });
+      } catch {
+        // sidePanel API may not be available in all browsers.
+      }
+    }
   }
 }
 

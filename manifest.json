@@ -34,7 +34,11 @@
     "tabs",
     "activeTab",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "sidePanel"
   ],
+  "side_panel": {
+    "default_path": "index.html"
+  },
   "host_permissions": ["<all_urls>"]
 }

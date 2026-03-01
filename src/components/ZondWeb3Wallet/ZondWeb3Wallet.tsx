@@ -6,29 +6,35 @@ import { useStore } from "@/stores/store";
 import { cva } from "class-variance-authority";
 
 const zondWalletBodyClasses = cva(
-  "relative flex h-[48rem] w-[23rem] flex-col bg-background text-foreground",
+  "relative flex w-[23rem] flex-col bg-background text-foreground",
   {
     variants: {
       isPopupWindow: {
+        true: ["h-[48rem]"],
         false: [
-          "overflow-y-scroll overflow-x-hidden border-2 rounded-md shadow-2xl",
+          "h-[48rem] overflow-y-scroll overflow-x-hidden border-2 rounded-md shadow-2xl",
         ],
+      },
+      isSidePanel: {
+        true: ["h-screen overflow-y-scroll overflow-x-hidden"],
       },
     },
     defaultVariants: {
       isPopupWindow: true,
+      isSidePanel: false,
     },
   },
 );
 
 const ZondWeb3Wallet = observer(() => {
   const { settingsStore } = useStore();
-  const { isPopupWindow } = settingsStore;
+  const { isPopupWindow, isSidePanel } = settingsStore;
 
   return (
     <div
       className={zondWalletBodyClasses({
-        isPopupWindow,
+        isPopupWindow: isSidePanel ? undefined : isPopupWindow,
+        isSidePanel,
       })}
     >
       <RouteMonitor />

@@ -359,6 +359,8 @@
   "recipient.openAddressBook": "Open address book",
 
   "header.openInTab": "Open In Tab",
+  "header.openSidePanel": "Open as Side Panel",
+  "header.switchToPopup": "Switch to Popup",
   "header.contacts": "Contacts",
   "header.settings": "Settings",
   "header.lockWallet": "Lock Wallet",

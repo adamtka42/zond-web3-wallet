@@ -166,6 +166,21 @@ const establishLockManagerConnection = () => {
   });
 };
 
+const applySidePanelPreference = async () => {
+  try {
+    const settings = await StorageUtil.getSettings();
+    await chrome.sidePanel.setPanelBehavior({
+      openPanelOnActionClick: !!settings.sidePanelPreferred,
+    });
+    // Set side panel path with query parameter so the UI can detect side panel mode.
+    await chrome.sidePanel.setOptions({
+      path: "index.html?sidepanel=true",
+    });
+  } catch {
+    // sidePanel API may not be available in all browsers.
+  }
+};
+
 const initializeServiceWorker = async () => {
   // Register listeners first so the popup can always communicate with the service worker,
   // even if script registration fails.
@@ -181,6 +196,8 @@ const initializeServiceWorker = async () => {
       error,
     );
   }
+
+  await applySidePanelPreference();
 };
 
 // This is the starting point of service worker of zond web3 wallet.
