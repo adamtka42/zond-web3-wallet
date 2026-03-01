@@ -3,6 +3,9 @@ import {
   EncryptAccountType,
   LOCK_MANAGER_MESSAGES,
 } from "@/scripts/lockManager/lockManager";
+import type {
+  ChangePasswordWorkerResponse,
+} from "@/scripts/workers/changePasswordWorker";
 import StorageUtil, { LockState } from "@/utilities/storageUtil";
 import { Web3BaseWalletAccount } from "@theqrl/web3";
 import { action, makeAutoObservable, runInAction } from "mobx";
@@ -26,6 +29,7 @@ class LockStore {
       getWalletPassword: action.bound,
       getMnemonicPhrases: action.bound,
       encryptAccount: action.bound,
+      changePassword: action.bound,
       readLockState: action.bound,
       lock: action.bound,
       unlock: action.bound,
@@ -131,6 +135,62 @@ class LockStore {
       name: LOCK_MANAGER_MESSAGES.ENCRYPT_ACCOUNT,
       data: accountData,
     });
+  }
+
+  /**
+   * Change the wallet password.  Decrypts all keystores with the old password,
+   * re-encrypts them with the new password in a Web Worker, then persists the
+   * new keystores and updates the in-memory keys in the service worker.
+   *
+   * Returns true on success, false if the old password is wrong.
+   */
+  async changePassword(
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<boolean> {
+    const keyStores = await StorageUtil.getKeystores();
+    if (!keyStores.length) return false;
+
+    const result = await new Promise<ChangePasswordWorkerResponse>(
+      (resolve) => {
+        const worker = new Worker(
+          new URL(
+            "../scripts/workers/changePasswordWorker.ts",
+            import.meta.url,
+          ),
+          { type: "module" },
+        );
+        worker.onmessage = (
+          event: MessageEvent<ChangePasswordWorkerResponse>,
+        ) => {
+          worker.terminate();
+          resolve(event.data);
+        };
+        worker.onerror = () => {
+          worker.terminate();
+          resolve({ success: false });
+        };
+        worker.postMessage({ keystores: keyStores, oldPassword, newPassword });
+      },
+    );
+
+    if (!result.success) return false;
+
+    // Persist re-encrypted keystores.
+    await StorageUtil.setKeystores(result.newKeystores);
+
+    // Update in-memory keys in the service worker.
+    try {
+      await this.sendWithRetry({
+        name: LOCK_MANAGER_MESSAGES.SET_DECRYPTED_KEYS,
+        data: result.newKeys,
+      });
+    } catch {
+      // Keys are persisted — SW will pick them up on next unlock.
+    }
+
+    this.cachedKeys = result.newKeys as DecryptedKeyType[];
+    return true;
   }
 
   async readLockState() {

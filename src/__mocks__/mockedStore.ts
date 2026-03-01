@@ -201,6 +201,9 @@ const mockedStoreValues: StoreType = {
     getMnemonicPhrases: async (accountAddress: string) => {
       return accountAddress;
     },
+    changePassword: async () => {
+      return true;
+    },
   } as unknown as LockStore,
   ledgerStore: {
     connectionState: "disconnected",

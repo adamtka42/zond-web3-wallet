@@ -1,7 +1,7 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
 import { afterEach, beforeAll, describe, expect, it, jest } from "@jest/globals";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import SettingsSecurity from "./SettingsSecurity";
@@ -133,5 +133,131 @@ describe("SettingsSecurity", () => {
 
     expect(setShowBalanceAndPrice).toHaveBeenCalledWith(false);
     expect(stopAutoRefresh).toHaveBeenCalled();
+  });
+
+  describe("Change Password", () => {
+    it("should render the Change Password button", () => {
+      renderComponent();
+
+      expect(
+        screen.getByRole("button", { name: /Change Password/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("should open the dialog when clicking Change Password", async () => {
+      renderComponent();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /Change Password/i }),
+      );
+
+      expect(
+        screen.getByText("Enter your current password and choose a new one."),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Current password"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("New password"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Confirm new password"),
+      ).toBeInTheDocument();
+    });
+
+    it("should keep the submit button disabled until all fields are valid", async () => {
+      renderComponent();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /Change Password/i }),
+      );
+
+      const submitButton = screen.getByRole("button", { name: "Change Password", exact: true });
+      expect(submitButton).toBeDisabled();
+
+      // Fill only current password — still disabled
+      await userEvent.type(screen.getByLabelText("Current password"), "oldpass123");
+      expect(submitButton).toBeDisabled();
+
+      // Fill new password but not confirm — still disabled
+      await userEvent.type(screen.getByLabelText("New password"), "newpass123");
+      expect(submitButton).toBeDisabled();
+
+      // Fill confirm with matching password — now enabled
+      await userEvent.type(screen.getByLabelText("Confirm new password"), "newpass123");
+      await waitFor(() => {
+        expect(submitButton).toBeEnabled();
+      });
+    });
+
+    it("should show validation error when new passwords don't match", async () => {
+      renderComponent();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /Change Password/i }),
+      );
+
+      await userEvent.type(screen.getByLabelText("Current password"), "oldpass123");
+      await userEvent.type(screen.getByLabelText("New password"), "newpass123");
+      await userEvent.type(screen.getByLabelText("Confirm new password"), "different1");
+
+      await waitFor(() => {
+        expect(screen.getByText("Passwords doesn't match")).toBeInTheDocument();
+      });
+    });
+
+    it("should call changePassword and show success on correct password", async () => {
+      const changePassword = jest.fn<any>(() => Promise.resolve(true));
+      renderComponent(
+        mockedStore({ lockStore: { changePassword } }),
+      );
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /Change Password/i }),
+      );
+
+      await userEvent.type(screen.getByLabelText("Current password"), "oldpass123");
+      await userEvent.type(screen.getByLabelText("New password"), "newpass123");
+      await userEvent.type(screen.getByLabelText("Confirm new password"), "newpass123");
+
+      const submitButton = screen.getByRole("button", { name: "Change Password", exact: true });
+      await waitFor(() => {
+        expect(submitButton).toBeEnabled();
+      });
+
+      await userEvent.click(submitButton);
+
+      await waitFor(() => {
+        expect(changePassword).toHaveBeenCalledWith("oldpass123", "newpass123");
+        expect(screen.getByText("Password changed successfully")).toBeInTheDocument();
+      });
+    });
+
+    it("should show error when current password is incorrect", async () => {
+      const changePassword = jest.fn<any>(() => Promise.resolve(false));
+      renderComponent(
+        mockedStore({ lockStore: { changePassword } }),
+      );
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /Change Password/i }),
+      );
+
+      await userEvent.type(screen.getByLabelText("Current password"), "wrongpass1");
+      await userEvent.type(screen.getByLabelText("New password"), "newpass123");
+      await userEvent.type(screen.getByLabelText("Confirm new password"), "newpass123");
+
+      const submitButton = screen.getByRole("button", { name: "Change Password", exact: true });
+      await waitFor(() => {
+        expect(submitButton).toBeEnabled();
+      });
+
+      await userEvent.click(submitButton);
+
+      await waitFor(() => {
+        expect(changePassword).toHaveBeenCalledWith("wrongpass1", "newpass123");
+        expect(screen.getByText("Current password is incorrect")).toBeInTheDocument();
+      });
+    });
   });
 });

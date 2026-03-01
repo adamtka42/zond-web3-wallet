@@ -1,3 +1,4 @@
+import { Button } from "@/components/UI/Button";
 import {
   Card,
   CardContent,
@@ -5,6 +6,21 @@ import {
   CardTitle,
 } from "@/components/UI/Card";
 import { Checkbox } from "@/components/UI/Checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/UI/Dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/UI/Form";
+import { Input } from "@/components/UI/Input";
 import { Label } from "@/components/UI/Label";
 import {
   Select,
@@ -16,18 +32,89 @@ import {
 import { Separator } from "@/components/UI/Separator";
 import { ROUTES } from "@/router/router";
 import { useStore } from "@/stores/store";
-import { MoveLeft } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { TFunction } from "i18next";
+import { Check, KeyRound, Loader, MoveLeft } from "lucide-react";
 import { observer } from "mobx-react-lite";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 import CircuitBackground from "../../../Shared/CircuitBackground/CircuitBackground";
+
+const createChangePasswordSchema = (t: TFunction) =>
+  z
+    .object({
+      currentPassword: z.string().min(1, t("validation.passwordRequired")),
+      newPassword: z
+        .string()
+        .min(8, t("onboarding.password.validationMinLength")),
+      confirmNewPassword: z
+        .string()
+        .min(8, t("onboarding.password.validationMinLength")),
+    })
+    .refine(
+      (fields) => fields.newPassword === fields.confirmNewPassword,
+      {
+        message: t("onboarding.password.validationMismatch"),
+        path: ["confirmNewPassword"],
+      },
+    );
 
 const SettingsSecurity = observer(() => {
   const navigate = useNavigate();
-  const { settingsStore, priceStore } = useStore();
+  const { settingsStore, lockStore, priceStore } = useStore();
   const { t } = useTranslation();
   const { autoLockMinutes, setAutoLockMinutes, showBalanceAndPrice, setShowBalanceAndPrice } =
     settingsStore;
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [passwordChanged, setPasswordChanged] = useState(false);
+
+  const ChangePasswordSchema = createChangePasswordSchema(t);
+
+  const form = useForm<z.infer<typeof ChangePasswordSchema>>({
+    resolver: zodResolver(ChangePasswordSchema),
+    mode: "onChange",
+    reValidateMode: "onSubmit",
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmNewPassword: "",
+    },
+  });
+  const {
+    handleSubmit,
+    control,
+    formState: { isSubmitting, isValid },
+  } = form;
+
+  const handleOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      form.reset();
+      setPasswordChanged(false);
+    }
+  };
+
+  async function onChangePassword(
+    formData: z.infer<typeof ChangePasswordSchema>,
+  ) {
+    setPasswordChanged(false);
+    const success = await lockStore.changePassword(
+      formData.currentPassword,
+      formData.newPassword,
+    );
+    if (success) {
+      setPasswordChanged(true);
+      form.reset();
+    } else {
+      form.setError("currentPassword", {
+        message: t("settings.security.incorrectPassword"),
+      });
+    }
+  }
 
   const AUTO_LOCK_OPTIONS = [
     { value: "1", label: t("settings.security.1minute") },
@@ -101,9 +188,109 @@ const SettingsSecurity = observer(() => {
                 {t("settings.security.showBalanceDescription")}
               </p>
             </div>
+            <Separator />
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setDialogOpen(true)}
+            >
+              <KeyRound className="mr-2 h-4 w-4" />
+              {t("settings.security.changePassword")}
+            </Button>
           </CardContent>
         </Card>
       </div>
+      <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="w-80 rounded-md">
+          <DialogHeader className="text-left">
+            <DialogTitle>{t("settings.security.changePassword")}</DialogTitle>
+            <DialogDescription>
+              {t("settings.security.changePasswordDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form
+              name="changePassword"
+              className="flex flex-col gap-3"
+              onSubmit={handleSubmit(onChangePassword)}
+            >
+              <FormField
+                control={control}
+                name="currentPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        aria-label={t("settings.security.currentPassword")}
+                        type="password"
+                        autoComplete="current-password"
+                        disabled={isSubmitting}
+                        placeholder={t("settings.security.currentPasswordPlaceholder")}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        aria-label={t("settings.security.newPassword")}
+                        type="password"
+                        autoComplete="new-password"
+                        disabled={isSubmitting}
+                        placeholder={t("settings.security.newPasswordPlaceholder")}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={control}
+                name="confirmNewPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        aria-label={t("settings.security.confirmNewPassword")}
+                        type="password"
+                        autoComplete="new-password"
+                        disabled={isSubmitting}
+                        placeholder={t("settings.security.confirmNewPasswordPlaceholder")}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                disabled={isSubmitting || !isValid}
+                className="w-full"
+                type="submit"
+              >
+                {isSubmitting ? (
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                ) : passwordChanged ? (
+                  <Check className="mr-2 h-4 w-4" />
+                ) : null}
+                {isSubmitting
+                  ? t("settings.security.changingPassword")
+                  : passwordChanged
+                    ? t("settings.security.passwordChanged")
+                    : t("settings.security.changePasswordButton")}
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });
