@@ -44,7 +44,7 @@ const CreateAccount = observer(() => {
   return (
     <>
       <CircuitBackground />
-      <div className="relative z-10 p-8">
+      <div className="relative z-10 w-full p-8">
         {hasAccountCreated ? (
           hasMnemonicNoted ? (
             <AccountCreationSuccess account={account} />

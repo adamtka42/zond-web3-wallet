@@ -51,28 +51,34 @@ class SettingsStore {
     this.theme = this.isDarkMode ? THEME.DARK : THEME.LIGHT;
     document?.documentElement?.classList?.add(this.theme);
 
-    // Detect side panel via URL query parameter (set in manifest's side_panel.default_path).
+    // Detect side panel via URL query parameter or cached localStorage flag.
     const urlParams = new URLSearchParams(window.location.search);
-    this.isSidePanel = urlParams.has("sidepanel");
+    const hasSidePanelParam = urlParams.has("sidepanel");
+    const sidePanelCached =
+      localStorage.getItem("sidePanelPreferred") === "true";
 
-    // Detect popup vs tab via viewport dimensions.
-    // Popup: narrow width (~368px), very short height (~25px iframe).
-    // Tab: wide width (> 500px) or tall without sidepanel param.
-    if (!this.isSidePanel) {
-      const htmlElement = document?.documentElement;
-      if (htmlElement) {
-        const actualWidth = htmlElement.clientWidth;
-        const actualHeight = htmlElement.clientHeight;
-        const expectedWidth = 368;
-        const expectedHeight = 25;
-        const tolerance = 24;
-        const isNarrow =
-          Math.abs(actualWidth - expectedWidth) <= tolerance;
-        const isShort =
-          Math.abs(actualHeight - expectedHeight) <= tolerance;
-        this.isPopupWindow = isNarrow && isShort;
-      }
-    } else {
+    // Detect popup vs tab/sidepanel via viewport dimensions.
+    // Popup: narrow width (~368px) AND very short height (~25px iframe).
+    // Tab: wide viewport (> 600px).
+    // Side panel: narrow-to-medium viewport (≤ 600px), tall, with preference cached.
+    const htmlElement = document?.documentElement;
+    let isNarrow = false;
+    let isShort = false;
+    let isWide = false;
+    if (htmlElement) {
+      const actualWidth = htmlElement.clientWidth;
+      const actualHeight = htmlElement.clientHeight;
+      isNarrow = Math.abs(actualWidth - 368) <= 24;
+      isShort = Math.abs(actualHeight - 25) <= 24;
+      isWide = actualWidth > 600;
+    }
+
+    this.isPopupWindow = isNarrow && isShort;
+    // Side panel: URL param, or not-popup + not-wide + sidePanelPreferred cached.
+    this.isSidePanel =
+      hasSidePanelParam ||
+      (!this.isPopupWindow && !isWide && sidePanelCached);
+    if (this.isSidePanel) {
       this.isPopupWindow = false;
     }
 
@@ -104,6 +110,16 @@ class SettingsStore {
       }
       if (settings.sidePanelPreferred !== undefined) {
         this.sidePanelPreferred = settings.sidePanelPreferred;
+        // Keep localStorage cache in sync with chrome.storage.
+        localStorage.setItem(
+          "sidePanelPreferred",
+          String(settings.sidePanelPreferred),
+        );
+      }
+      // Async fallback: if side panel wasn't detected synchronously but
+      // the preference is enabled and we're not in a popup, switch now.
+      if (!this.isSidePanel && this.sidePanelPreferred && !this.isPopupWindow) {
+        this.isSidePanel = true;
       }
     });
   }
@@ -177,6 +193,7 @@ class SettingsStore {
 
   async setSidePanelPreferred(preferred: boolean) {
     this.sidePanelPreferred = preferred;
+    localStorage.setItem("sidePanelPreferred", String(preferred));
     await this.#persistSettings();
     if (
       typeof chrome !== "undefined" &&

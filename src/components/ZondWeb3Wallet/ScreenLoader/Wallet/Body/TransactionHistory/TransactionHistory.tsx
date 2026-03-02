@@ -111,7 +111,7 @@ const TransactionHistory = observer(() => {
             )}
 
             {!isLoading && groupedTransactions.length > 0 && (
-              <div className="flex max-h-80 flex-col gap-3 overflow-y-auto">
+              <div className="flex flex-col gap-3">
                 {groupedTransactions.map(([dateLabel, transactions]) => (
                   <div key={dateLabel} className="flex flex-col gap-2">
                     <p className="text-xs font-medium text-muted-foreground">

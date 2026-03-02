@@ -6,22 +6,17 @@ import { useStore } from "@/stores/store";
 import { cva } from "class-variance-authority";
 
 const zondWalletBodyClasses = cva(
-  "relative flex w-[23rem] flex-col bg-background text-foreground",
+  "relative flex flex-col overflow-y-auto [scrollbar-gutter:stable] bg-background text-foreground",
   {
     variants: {
-      isPopupWindow: {
-        true: ["h-[48rem]"],
-        false: [
-          "h-[48rem] overflow-y-scroll overflow-x-hidden border-2 rounded-md shadow-2xl",
-        ],
-      },
-      isSidePanel: {
-        true: ["h-screen overflow-y-scroll overflow-x-hidden"],
+      mode: {
+        popup: ["w-[23rem] h-[48rem]"],
+        tab: ["w-full max-w-lg mx-auto h-screen border-2 rounded-md shadow-2xl"],
+        sidepanel: ["w-full max-w-lg mx-auto h-screen"],
       },
     },
     defaultVariants: {
-      isPopupWindow: true,
-      isSidePanel: false,
+      mode: "popup",
     },
   },
 );
@@ -30,13 +25,10 @@ const ZondWeb3Wallet = observer(() => {
   const { settingsStore } = useStore();
   const { isPopupWindow, isSidePanel } = settingsStore;
 
+  const mode = isSidePanel ? "sidepanel" : isPopupWindow ? "popup" : "tab";
+
   return (
-    <div
-      className={zondWalletBodyClasses({
-        isPopupWindow: isSidePanel ? undefined : isPopupWindow,
-        isSidePanel,
-      })}
-    >
+    <div className={zondWalletBodyClasses({ mode })}>
       <RouteMonitor />
       <TooltipProvider>
         <ScreenLoader />

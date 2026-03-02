@@ -1,7 +1,7 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
 import { afterEach, beforeAll, describe, expect, it, jest } from "@jest/globals";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import SettingsSecurity from "./SettingsSecurity";
@@ -172,7 +172,8 @@ describe("SettingsSecurity", () => {
         screen.getByRole("button", { name: /Change Password/i }),
       );
 
-      const submitButton = screen.getByRole("button", { name: "Change Password", exact: true });
+      const dialog = screen.getByRole("dialog");
+      const submitButton = within(dialog).getByRole("button", { name: /Change Password/i });
       expect(submitButton).toBeDisabled();
 
       // Fill only current password — still disabled
@@ -220,7 +221,8 @@ describe("SettingsSecurity", () => {
       await userEvent.type(screen.getByLabelText("New password"), "newpass123");
       await userEvent.type(screen.getByLabelText("Confirm new password"), "newpass123");
 
-      const submitButton = screen.getByRole("button", { name: "Change Password", exact: true });
+      const dialog = screen.getByRole("dialog");
+      const submitButton = within(dialog).getByRole("button", { name: /Change Password/i });
       await waitFor(() => {
         expect(submitButton).toBeEnabled();
       });
@@ -247,7 +249,8 @@ describe("SettingsSecurity", () => {
       await userEvent.type(screen.getByLabelText("New password"), "newpass123");
       await userEvent.type(screen.getByLabelText("Confirm new password"), "newpass123");
 
-      const submitButton = screen.getByRole("button", { name: "Change Password", exact: true });
+      const dialog = screen.getByRole("dialog");
+      const submitButton = within(dialog).getByRole("button", { name: /Change Password/i });
       await waitFor(() => {
         expect(submitButton).toBeEnabled();
       });

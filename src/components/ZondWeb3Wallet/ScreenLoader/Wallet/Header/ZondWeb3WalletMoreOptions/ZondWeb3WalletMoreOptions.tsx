@@ -42,6 +42,7 @@ const ZondWeb3WalletMoreOptions = observer(() => {
   const openAsSidePanel = async () => {
     try {
       await setSidePanelPreferred(true);
+      await chrome.sidePanel.setOptions({ path: "index.html?sidepanel=true" });
       const win = await browser.windows.getCurrent();
       if (win.id !== undefined) {
         await chrome.sidePanel.open({ windowId: win.id });

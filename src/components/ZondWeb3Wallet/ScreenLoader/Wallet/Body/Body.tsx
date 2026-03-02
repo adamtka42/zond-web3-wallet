@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 
 const Body = () => {
   return (
-    <div className="relative mt-16 h-full w-[23rem]">
+    <div className="relative w-full shrink-0">
       <Outlet />
     </div>
   );
