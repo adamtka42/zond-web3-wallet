@@ -16,7 +16,7 @@
 | 12 | ✅ | Fiat Currency Display -- CoinGecko prices, currency selector, privacy toggle |
 | 13 | ✅ | Change Password -- re-encrypt keystores with new password |
 | 14 | ✅ | DApp Phishing Detection -- blocklist check on dApp connection requests |
-| 15 | ⬜ | QRNS Integration -- resolve .qrl names to Q-addresses |
+| 15 | ✅ | QRNS Integration -- resolve .qrl names to Q-addresses |
 | 16 | ✅ | Notifications -- browser push for TX confirmation/failure |
 | 17 | ⬜ | NFT Support (ZRC-721 / ZRC-1155) -- gallery, import, and transfer |
 | 18 | ➖ | ~~Buy Crypto with Fiat -- requires on-ramp provider to support QRL~~ |

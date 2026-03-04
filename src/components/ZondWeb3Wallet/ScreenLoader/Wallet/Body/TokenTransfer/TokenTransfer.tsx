@@ -22,12 +22,13 @@ import { ROUTES } from "@/router/router";
 import { useStore } from "@/stores/store";
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 import StorageUtil from "@/utilities/storageUtil";
+import { isQrnsName, resolveQrnsName } from "@/utilities/qrnsResolver";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { validator, utils, qrl } from "@theqrl/web3";
 import { BigNumber } from "bignumber.js";
 import { Loader, Send, X } from "lucide-react";
 import { observer } from "mobx-react-lite";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -50,10 +51,15 @@ const createFormSchema = (t: TFunction) =>
       receiverAddress: z.string().min(1, t('validation.receiverRequired')),
       amount: z.coerce.number().gt(0, t('validation.amountPositive')),
     })
-    .refine((fields) => validator.isAddressString(fields.receiverAddress), {
-      message: t('validation.addressInvalid'),
-      path: ["receiverAddress"],
-    });
+    .refine(
+      (fields) =>
+        validator.isAddressString(fields.receiverAddress) ||
+        isQrnsName(fields.receiverAddress),
+      {
+        message: t('validation.addressInvalid'),
+        path: ["receiverAddress"],
+      },
+    );
 
 const TokenTransfer = observer(() => {
   const { t } = useTranslation();
@@ -88,6 +94,9 @@ const TokenTransfer = observer(() => {
   const [gasFeeOverrides, setGasFeeOverrides] = useState<
     GasFeeOverrides | undefined
   >();
+  const [resolvedAddress, setResolvedAddress] = useState<string | null>(null);
+  const [qrnsResolving, setQrnsResolving] = useState(false);
+  const [qrnsError, setQrnsError] = useState<string | null>(null);
 
   type SignResult = {
     transactionHash?: string;
@@ -175,6 +184,11 @@ const TokenTransfer = observer(() => {
 
   async function onSubmit(formData: z.infer<typeof FormSchema>) {
     try {
+      // Use resolved QRNS address if available
+      if (isQrnsName(formData.receiverAddress) && resolvedAddress) {
+        formData = { ...formData, receiverAddress: resolvedAddress };
+      }
+
       // Step 1: Sign the transaction (fast — no blockchain wait)
       let signResult: SignResult;
       if (isZrc20Token) {
@@ -409,6 +423,41 @@ const TokenTransfer = observer(() => {
     setBalanceError("");
   }, [watchedAmount, estimatedGasFee, tokenBalance, isZrc20Token, accountAddress]);
 
+  const watchedReceiver = watch("receiverAddress");
+  const resolveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => {
+    clearTimeout(resolveTimerRef.current);
+
+    if (!watchedReceiver || !isQrnsName(watchedReceiver)) {
+      setResolvedAddress(null);
+      setQrnsError(null);
+      setQrnsResolving(false);
+      return;
+    }
+
+    setQrnsResolving(true);
+    setQrnsError(null);
+    setResolvedAddress(null);
+
+    const rpcUrl = zondStore.zondConnection.blockchain.defaultRpcUrl;
+    const nameToResolve = watchedReceiver.trim();
+
+    resolveTimerRef.current = setTimeout(() => {
+      resolveQrnsName(nameToResolve, rpcUrl)
+        .then((addr) => {
+          setResolvedAddress(addr);
+          setQrnsError(null);
+        })
+        .catch(() => {
+          setResolvedAddress(null);
+          setQrnsError(t('transfer.qrnsResolutionFailed'));
+        })
+        .finally(() => setQrnsResolving(false));
+    }, 500);
+
+    return () => clearTimeout(resolveTimerRef.current);
+  }, [watchedReceiver]);
+
   return (
     <Form {...form}>
       <form className="w-full" onSubmit={handleSubmit(onSubmit)}>
@@ -460,6 +509,22 @@ const TokenTransfer = observer(() => {
                         <FormDescription>
                           {t('transfer.receiverDescription')}
                         </FormDescription>
+                        {qrnsResolving && (
+                          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Loader className="h-3 w-3 animate-spin" />
+                            {t('transfer.qrnsResolving')}
+                          </p>
+                        )}
+                        {resolvedAddress && !qrnsResolving && (
+                          <p className="text-xs text-green-500">
+                            → {resolvedAddress}
+                          </p>
+                        )}
+                        {qrnsError && !qrnsResolving && (
+                          <p className="text-xs text-destructive">
+                            {qrnsError}
+                          </p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -533,7 +598,7 @@ const TokenTransfer = observer(() => {
                 <X className="mr-2 h-4 w-4" />
                 {t('transfer.cancelButton')}
               </Button>
-              <Button disabled={isSubmitting || !isValid || !!balanceError} className="w-full">
+              <Button disabled={isSubmitting || !isValid || !!balanceError || qrnsResolving || (isQrnsName(watchedReceiver) && !resolvedAddress)} className="w-full">
                 {isSubmitting ? (
                   <Loader className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
