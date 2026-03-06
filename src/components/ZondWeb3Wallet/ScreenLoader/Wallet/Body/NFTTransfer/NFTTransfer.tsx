@@ -21,7 +21,7 @@ import { useStore } from "@/stores/store";
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 import StorageUtil from "@/utilities/storageUtil";
 import StringUtil from "@/utilities/stringUtil";
-import { isQrnsName, resolveQrnsName } from "@/utilities/qrnsResolver";
+import { isQrnsName, resolveQrnsName, getRegistryForChain } from "@/utilities/qrnsResolver";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { validator } from "@theqrl/web3";
 import { Image, Loader, Send, X } from "lucide-react";
@@ -211,10 +211,12 @@ const NFTTransfer = observer(() => {
     setResolvedAddress(null);
 
     const rpcUrl = zondStore.zondConnection.blockchain.defaultRpcUrl;
+    const chainId = zondStore.zondConnection.blockchain.chainId;
+    const registry = getRegistryForChain(chainId);
     const nameToResolve = watchedReceiver.trim();
 
     resolveTimerRef.current = setTimeout(() => {
-      resolveQrnsName(nameToResolve, rpcUrl)
+      resolveQrnsName(nameToResolve, rpcUrl, registry)
         .then((addr) => {
           setResolvedAddress(addr);
           setQrnsError(null);

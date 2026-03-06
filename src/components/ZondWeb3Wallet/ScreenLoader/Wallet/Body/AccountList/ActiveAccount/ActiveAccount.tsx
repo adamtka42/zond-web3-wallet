@@ -111,13 +111,16 @@ const ActiveAccount = observer(() => {
               </Button>
             </div>
           )}
-          <div className="flex items-center gap-3">
-            <AccountId account={accountAddress} hideLabel={isEditing} />
+          <div className="flex w-full items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <AccountId account={accountAddress} hideLabel={isEditing} />
+            </div>
+            <div className="shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <EllipsisVertical
                   size="16"
-                  className="shrink-0 cursor-pointer"
+                  className="cursor-pointer"
                   data-testid="account-menu"
                 />
               </DropdownMenuTrigger>
@@ -177,6 +180,7 @@ const ActiveAccount = observer(() => {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
         </Card>
       </div>

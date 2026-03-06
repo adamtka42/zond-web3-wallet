@@ -56,9 +56,11 @@ const AccountList = observer(() => {
               hiddenAccounts.map(({ accountAddress }) => (
                 <Card
                   key={accountAddress}
-                  className="flex items-center gap-3 p-3 font-bold text-muted-foreground"
+                  className="flex w-full items-center gap-3 p-3 font-bold text-muted-foreground"
                 >
-                  <AccountId account={accountAddress} />
+                  <div className="min-w-0 flex-1">
+                    <AccountId account={accountAddress} />
+                  </div>
                   <button
                     className="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
                     onClick={() =>
