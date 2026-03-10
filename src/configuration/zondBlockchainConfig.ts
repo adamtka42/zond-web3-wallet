@@ -33,6 +33,7 @@ export type BlockchainAdditionalDataType = {
   isTestnet: boolean;
   defaultWsRpcUrl: string;
   isCustomChain: boolean;
+  qrnsRegistryAddress?: string;
 };
 
 export type BlockchainDataType = BlockchainBaseDataType &

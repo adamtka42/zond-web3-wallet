@@ -1,21 +1,10 @@
-import { QRNS, registryAddresses, networkIds } from "@theqrl/web3-qrl-qrns";
+import { QRNS } from "@theqrl/web3-qrl-qrns";
 
 /**
  * Check if input looks like a QRNS name (e.g. alice.qrl, sub.alice.qrl).
  */
 export function isQrnsName(input: string): boolean {
   return /^[a-z0-9.-]+\.qrl$/i.test(input.trim());
-}
-
-/**
- * Look up the QRNS registry address for a given chain ID.
- */
-export function getRegistryForChain(chainId: string): string | undefined {
-  const networkName = networkIds[chainId];
-  if (networkName) {
-    return registryAddresses[networkName] || undefined;
-  }
-  return undefined;
 }
 
 /**

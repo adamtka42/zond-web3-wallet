@@ -22,7 +22,7 @@ import { ROUTES } from "@/router/router";
 import { useStore } from "@/stores/store";
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 import StorageUtil from "@/utilities/storageUtil";
-import { isQrnsName, resolveQrnsName, getRegistryForChain } from "@/utilities/qrnsResolver";
+import { isQrnsName, resolveQrnsName } from "@/utilities/qrnsResolver";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { validator, utils, qrl } from "@theqrl/web3";
 import { BigNumber } from "bignumber.js";
@@ -440,8 +440,7 @@ const TokenTransfer = observer(() => {
     setResolvedAddress(null);
 
     const rpcUrl = zondStore.zondConnection.blockchain.defaultRpcUrl;
-    const chainId = zondStore.zondConnection.blockchain.chainId;
-    const registry = getRegistryForChain(chainId);
+    const registry = zondStore.zondConnection.blockchain.qrnsRegistryAddress;
     const nameToResolve = watchedReceiver.trim();
 
     resolveTimerRef.current = setTimeout(() => {

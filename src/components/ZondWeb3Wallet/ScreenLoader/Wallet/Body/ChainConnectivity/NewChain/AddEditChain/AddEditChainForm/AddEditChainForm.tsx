@@ -56,6 +56,7 @@ const AddEditChainForm = observer(({ chainToEdit }: AddEditChainFormType) => {
   const [defaultBlockExplorerUrl, setDefaultBlockExplorerUrl] = useState("");
   const [iconUrls, setIconUrls] = useState<string[]>([]);
   const [defaultIconUrl, setDefaultIconUrl] = useState("");
+  const [qrnsRegistryAddress, setQrnsRegistryAddress] = useState("");
   const [error, setError] = useState("");
 
   const isChainEdit = !!chainToEdit;
@@ -96,6 +97,7 @@ const AddEditChainForm = observer(({ chainToEdit }: AddEditChainFormType) => {
       setDefaultBlockExplorerUrl(chainToEdit.defaultBlockExplorerUrl);
       setIconUrls(chainToEdit.iconUrls);
       setDefaultIconUrl(chainToEdit.defaultIconUrl);
+      setQrnsRegistryAddress(chainToEdit.qrnsRegistryAddress ?? "");
     }
   }, [isChainEdit, chainToEdit, form]);
 
@@ -140,6 +142,7 @@ const AddEditChainForm = observer(({ chainToEdit }: AddEditChainFormType) => {
       isTestnet: false,
       defaultWsRpcUrl: "http://127.0.0.1:8545",
       isCustomChain: true,
+      qrnsRegistryAddress: qrnsRegistryAddress || undefined,
     };
     return chainData;
   };
@@ -259,6 +262,20 @@ const AddEditChainForm = observer(({ chainToEdit }: AddEditChainFormType) => {
               defaultUrl={defaultIconUrl}
               setDefaultUrl={setDefaultIconUrl}
             />
+            <div>
+              <Label>{t('chain.qrnsRegistryAddress')}</Label>
+              <Input
+                value={qrnsRegistryAddress}
+                onChange={(e) => setQrnsRegistryAddress(e.target.value)}
+                autoComplete="off"
+                disabled={isSubmitting}
+                placeholder={t('chain.qrnsRegistryAddressPlaceholder')}
+                type="text"
+              />
+              <p className="text-[0.8rem] text-muted-foreground mt-1">
+                {t('chain.qrnsRegistryAddressDescription')}
+              </p>
+            </div>
             <FormField
               control={control}
               name="currencyName"
