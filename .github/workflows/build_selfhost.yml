@@ -1,0 +1,101 @@
+name: Build & Test zond-web3-wallet.
+
+on:
+  push:
+    branches: [main, master, configure-github-action]
+  pull_request:
+    branches: [main, master, configure-github-action]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, x64, zond]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: System info
+        run: |
+          echo "Runner: $(hostname)"
+          echo "Node: $(node --version)"
+          echo "npm: $(npm --version)"
+
+      - name: Clean slate for sibling repos
+        run: |
+          # Self-hosted runner persists files between runs. Stale V8 bytecode
+          # cache causes "Trace/breakpoint trap" crashes in Node.js/yarn.
+          rm -rf ../web3.js ../wallet.js ../qrypto.js ../js-qrl-cryptography ../qrl-contracts
+          rm -rf ~/.cache/yarn ~/.yarn/cache /usr/local/share/.cache/yarn 2>/dev/null || true
+
+      - name: Clone and build sibling dependencies
+        run: |
+          clone() {
+            local dir="$1" repo="$2"
+            if [ ! -d "$dir/.git" ]; then
+              rm -rf "$dir"
+              git clone --depth 1 "https://github.com/$repo.git" "$dir"
+            fi
+            cd "$dir" && npm install 2>/dev/null || yarn install --ignore-engines 2>/dev/null
+            cd -
+          }
+          clone ../js-qrl-cryptography  cyyber/js-zond-cryptography
+          clone ../qrl-contracts        cyyber/qrl-contracts
+          clone ../wallet.js            cyyber/wallet.js
+          clone ../qrypto.js            cyyber/qrypto.js
+
+      - name: Build web3.js
+        run: |
+          if [ ! -d "../web3.js/.git" ]; then
+            rm -rf ../web3.js
+            git clone --depth 1 "https://github.com/adamtka42/web3.js.git" ../web3.js
+          fi
+          cd ../web3.js
+          yarn install --ignore-engines --ignore-scripts
+          # Node.js on this runner segfaults when running rimraf via NX/yarn.
+          # Fresh clone has no dist/lib to clean — make clean scripts no-op.
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            for (const dir of fs.readdirSync("packages")) {
+              const f = path.join("packages", dir, "package.json");
+              if (!fs.existsSync(f)) continue;
+              const p = JSON.parse(fs.readFileSync(f, "utf8"));
+              if (p.scripts?.clean) { p.scripts.clean = "echo clean skipped"; }
+              if (p.scripts?.prebuild) { delete p.scripts.prebuild; }
+              fs.writeFileSync(f, JSON.stringify(p, null, "\t") + "\n");
+            }
+          '
+          yarn run build --concurrency=2
+          cd -
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Package extension
+        #if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          sudo apt-get install -y -qq zip >/dev/null 2>&1 || true
+          VERSION=$(jq -r .version package.json)
+          mkdir -p zond-web3-wallet-chrome-v${VERSION}
+          cp -r Extension/* zond-web3-wallet-chrome-v${VERSION}/
+          zip -r zond-web3-wallet-chrome-v${VERSION}.zip zond-web3-wallet-chrome-v${VERSION}
+          echo "ARTIFACT=zond-web3-wallet-chrome-v${VERSION}.zip" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        #if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: zond-web3-wallet-chrome
+          path: ${{ env.ARTIFACT }}

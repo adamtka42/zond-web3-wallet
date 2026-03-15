@@ -9,6 +9,7 @@
     "build": "tsc && vite build",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "test": "jest",
+    "postinstall": "node scripts/fix-noble-hashes.js",
     "preview": "vite preview"
   },
   "devDependencies": {

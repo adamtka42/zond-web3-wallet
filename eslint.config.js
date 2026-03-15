@@ -5,7 +5,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default [
-  { ignores: ["Extension/**", "coverage/**"] },
+  { ignores: ["Extension/**", "coverage/**", "scripts/**"] },
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
   {
     languageOptions: { globals: globals.browser },
