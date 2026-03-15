@@ -53,7 +53,7 @@ const MnemonicDisplay = ({
     if (account) StringUtil.downloadRecoveryPhrases(account);
   };
 
-  const abbreviatedAddress = `${accountAddress?.substring(0, 6)} ... ${accountAddress?.substring(accountAddress?.length - 5)}`;
+  const abbreviatedAddress = `${accountAddress?.substring(0, 6)} ... ${accountAddress?.substring((accountAddress?.length ?? 0) - 5)}`;
   const cardDescription = t('mnemonic.description', { address: abbreviatedAddress });
   const continueWarning = t('mnemonic.continueWarning');
 

@@ -16,14 +16,14 @@ import {
 const getFromAddress = (req: JsonRpcRequest<JsonRpcRequest>) => {
   switch (req.method) {
     case RESTRICTED_METHODS.QRL_SEND_TRANSACTION:
-      // @ts-ignore
+      // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
       return req.params?.[0]?.from ?? "";
     case RESTRICTED_METHODS.WALLET_GET_CAPABILITIES:
     case RESTRICTED_METHODS.QRL_SIGN_TYPED_DATA_V4:
-      // @ts-ignore
+      // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
       return req.params?.[0];
     case RESTRICTED_METHODS.PERSONAL_SIGN:
-      // @ts-ignore
+      // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
       return req.params?.[1];
   }
 };
@@ -63,7 +63,7 @@ const isAcceptableUrl = (urlString: string) => {
       url.hostname === "127.0.0.1" ||
       url.protocol === "https:"
     );
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -90,6 +90,7 @@ export const checkWalletAddZondChainParams = async (
     "isTestnet",
     "defaultWsRpcUrl",
     "isCustomChain",
+    "qrnsRegistryAddress",
   ];
   const allowedKeys = [
     "chainName",
@@ -386,7 +387,7 @@ export const checkWalletWatchAssetParams = async (paramObject: {
 };
 
 export const checkWalletRequestPermissionParams = async (paramObject: {
-  [k: string]: any;
+  [k: string]: unknown;
 }) => {
   const isAnObject =
     Boolean(paramObject) &&
@@ -416,7 +417,7 @@ export const checkWalletRequestPermissionParams = async (paramObject: {
 };
 
 export const checkWalletSendCallsParams = async (paramObject: {
-  [k: string]: any;
+  [k: string]: unknown;
 }) => {
   const isAnObject =
     Boolean(paramObject) &&

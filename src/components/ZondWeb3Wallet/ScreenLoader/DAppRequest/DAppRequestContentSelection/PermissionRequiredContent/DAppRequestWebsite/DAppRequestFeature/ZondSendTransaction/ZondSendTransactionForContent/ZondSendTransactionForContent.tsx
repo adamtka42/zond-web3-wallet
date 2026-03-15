@@ -18,6 +18,19 @@ import { utils, qrl } from "@theqrl/web3";
 
 const { Common } = qrl.accounts;
 
+type TransactionObject = {
+  from: string;
+  to?: string;
+  data?: string;
+  gas: string;
+  value?: string;
+  nonce: bigint | undefined;
+  type?: string;
+  maxPriorityFeePerGas?: bigint;
+  maxFeePerGas?: string;
+  gasPrice?: bigint | undefined;
+};
+
 type ZondSendTransactionForContentProps = {
   transactionType: keyof typeof SEND_TRANSACTION_TYPES;
 };
@@ -43,8 +56,8 @@ const ZondSendTransactionForContent = observer(
     const accountToAddress = params?.to;
     const { prefix: prefixTo, addressSplit: addressSplitTo } =
       StringUtil.getSplitAddress(accountToAddress);
-    const value = BigInt(params?.value);
-    const gasLimit = BigInt(params?.gas);
+    const value = BigInt(params?.value ?? 0);
+    const gasLimit = BigInt(params?.gas ?? 0);
     const data = params?.data;
 
     useEffect(() => {
@@ -74,7 +87,7 @@ const ZondSendTransactionForContent = observer(
         const isLedgerAccount = ledgerStore.isLedgerAccount(from ?? "");
 
         const gasPrice = await qrlInstance?.getGasPrice();
-        let transactionObject: any = {
+        const transactionObject: TransactionObject = {
           from,
           ...(to && { to }),
           data,
@@ -97,8 +110,8 @@ const ZondSendTransactionForContent = observer(
           const chainId = await qrlInstance?.getChainId();
           const common = Common.custom({ chainId: Number(chainId) });
 
-          const txData: any = {
-            nonce: `0x${transactionObject.nonce.toString(16)}`,
+          const txData: Record<string, unknown> = {
+            nonce: `0x${transactionObject.nonce?.toString(16)}`,
             gasLimit: transactionObject.gas,
             data: transactionObject.data || "0x",
             value: transactionObject.value ? `0x${BigInt(transactionObject.value).toString(16)}` : "0x0",
@@ -112,7 +125,7 @@ const ZondSendTransactionForContent = observer(
             txData.maxPriorityFeePerGas = transactionObject.maxPriorityFeePerGas;
             txData.maxFeePerGas = transactionObject.maxFeePerGas;
           } else {
-            txData.gasPrice = `0x${BigInt(transactionObject.gasPrice).toString(16)}`;
+            txData.gasPrice = `0x${BigInt(transactionObject.gasPrice ?? 0).toString(16)}`;
           }
 
           rawTransactionToSend = await ledgerStore.signAndSerializeTransaction(from ?? "", txData, common);
@@ -174,7 +187,7 @@ const ZondSendTransactionForContent = observer(
         const isLedgerAccount = ledgerStore.isLedgerAccount(from);
 
         const gasPrice = await qrlInstance?.getGasPrice();
-        let transactionObject: any = {
+        const transactionObject: TransactionObject = {
           from,
           to,
           gas,
@@ -198,12 +211,12 @@ const ZondSendTransactionForContent = observer(
           const common = Common.custom({ chainId: Number(chainId) });
 
           const txData = {
-            nonce: `0x${transactionObject.nonce.toString(16)}`,
+            nonce: `0x${transactionObject.nonce?.toString(16)}`,
             maxPriorityFeePerGas: transactionObject.maxPriorityFeePerGas,
             maxFeePerGas: transactionObject.maxFeePerGas,
             gasLimit: transactionObject.gas,
             to: transactionObject.to,
-            value: `0x${BigInt(transactionObject.value).toString(16)}`,
+            value: `0x${BigInt(transactionObject.value ?? 0).toString(16)}`,
             data: "0x",
           };
 

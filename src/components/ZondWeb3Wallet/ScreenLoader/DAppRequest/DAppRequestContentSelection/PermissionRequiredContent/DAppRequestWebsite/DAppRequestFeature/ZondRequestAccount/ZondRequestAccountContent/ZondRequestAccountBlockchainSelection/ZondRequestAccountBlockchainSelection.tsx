@@ -37,7 +37,7 @@ const ZondRequestAccountBlockchainSelection = observer(
         ) : hasBlockchains ? (
           <div className="flex flex-col gap-3">
             {allBlockchains.map((blockchain) => (
-              <div className="flex items-start space-x-3">
+              <div key={blockchain.chainId} className="flex items-start space-x-3">
                 <Checkbox
                   id={blockchain.chainId}
                   checked={selectedBlockchainIds.includes(blockchain.chainId)}

@@ -9,6 +9,7 @@ export type PhishingCheckResult = {
 
 export type DAppRequestType = {
   method: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params?: any;
   requestData?: AdditionalJsonRpcRequestKeys;
   phishingResult?: PhishingCheckResult;
@@ -18,6 +19,7 @@ export type DAppResponseType = {
   method: string;
   action: string;
   hasApproved: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   response?: any;
 };
 
@@ -30,6 +32,7 @@ type CaveatsTypeType = (typeof CAVEAT_TYPES)[keyof typeof CAVEAT_TYPES];
 
 type Caveat = {
   type: CaveatsTypeType;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 };
 

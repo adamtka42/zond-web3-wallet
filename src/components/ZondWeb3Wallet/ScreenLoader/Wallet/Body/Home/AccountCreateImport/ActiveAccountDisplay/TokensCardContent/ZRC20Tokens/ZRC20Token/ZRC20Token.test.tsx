@@ -58,8 +58,7 @@ describe("ZRC20Token", () => {
     renderComponent(
       mockedStore({
         zondStore: {
-          getZrc20TokenDetails: async (contractAddress: string) => {
-            contractAddress;
+          getZrc20TokenDetails: async (_contractAddress: string) => {
             return {
               token: {
                 balance: 65,

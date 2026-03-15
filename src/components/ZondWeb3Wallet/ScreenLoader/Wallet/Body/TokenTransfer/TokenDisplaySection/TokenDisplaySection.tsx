@@ -14,7 +14,7 @@ const TokenDisplaySection = ({
 }: TokenDisplaySectionProps) => {
   return (
     <div className="flex gap-6">
-      {!!tokenImage ? (
+      {tokenImage ? (
         <img className="h-16 w-16" src={tokenImage} />
       ) : (
         <FileBox

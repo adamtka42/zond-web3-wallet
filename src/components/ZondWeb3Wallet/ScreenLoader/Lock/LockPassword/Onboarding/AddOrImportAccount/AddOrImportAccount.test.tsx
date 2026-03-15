@@ -37,9 +37,7 @@ describe("AddOrImportAccount", () => {
     mockedStoreValues = mockedStore(),
     mockedProps: ComponentProps<typeof AddOrImportAccount> = {
       selectStep: () => {},
-      addAnAccountToWallet: async (account: Web3BaseWalletAccount) => {
-        account;
-      },
+      addAnAccountToWallet: async (_account: Web3BaseWalletAccount) => {},
     },
   ) =>
     render(

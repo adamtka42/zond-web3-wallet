@@ -34,6 +34,7 @@ const OtherChains = observer(() => {
       {otherChains.map((blockchain) => {
         return (
           <OtherChainItem
+            key={blockchain.chainId}
             blockchain={blockchain}
             triggerReRender={triggerReRender}
           />

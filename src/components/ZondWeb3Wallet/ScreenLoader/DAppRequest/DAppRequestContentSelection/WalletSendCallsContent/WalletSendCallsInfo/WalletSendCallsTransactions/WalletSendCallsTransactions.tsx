@@ -23,7 +23,7 @@ const WalletSendCallsTransactions = observer(() => {
     <Accordion type="multiple" className="w-full space-y-4">
       {transactions.map(({ to, value }, index) => {
         return (
-          <AccordionItem value={to} className="border-b-0">
+          <AccordionItem key={`${to}-${index}`} value={to} className="border-b-0">
             <AccordionTrigger className="rounded-md bg-muted p-2">
               Transaction {index + 1}
             </AccordionTrigger>

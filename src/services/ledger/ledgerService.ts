@@ -493,7 +493,7 @@ class LedgerService {
 
       // Send last chunk - this triggers TX display on Ledger
       // and requires user approval
-      let signatureResponse = await ledgerTransport.send(
+      const signatureResponse = await ledgerTransport.send(
         LEDGER_CONFIG.CLA,
         LEDGER_CONFIG.INS.SIGN_TX,
         0x02, // P1: last transaction data packet

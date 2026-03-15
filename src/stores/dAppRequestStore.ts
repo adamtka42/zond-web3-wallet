@@ -20,7 +20,7 @@ type CurrentTabData = {
 class DAppRequestStore {
   currentTabData?: CurrentTabData;
   dAppRequestData?: DAppRequestType;
-  responseData: any = {};
+  responseData: Record<string, unknown> = {};
   canProceed: boolean = false;
   onPermissionCallBack: (hasApproved: boolean) => Promise<void> = async () =>
     undefined;
@@ -86,7 +86,7 @@ class DAppRequestStore {
     this.dAppRequestData = storedDAppRequestData;
   }
 
-  addToResponseData(data: any) {
+  addToResponseData(data: Record<string, unknown>) {
     const serializableData = getSerializableObject(data);
     this.responseData = { ...this.responseData, ...serializableData };
   }

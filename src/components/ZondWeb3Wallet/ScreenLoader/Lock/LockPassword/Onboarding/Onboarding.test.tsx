@@ -31,9 +31,7 @@ describe("Onboarding", () => {
       mockedStore({
         lockStore: { encryptAccount: async () => {} },
         zondStore: {
-          setActiveAccount: async (accountAddress: string) => {
-            accountAddress;
-          },
+          setActiveAccount: async (_accountAddress: string) => {},
         },
       }),
     );

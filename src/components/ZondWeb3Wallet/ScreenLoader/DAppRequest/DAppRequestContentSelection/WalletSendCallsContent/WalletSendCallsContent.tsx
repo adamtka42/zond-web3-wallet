@@ -23,7 +23,7 @@ const WalletSendCallsContent = observer(() => {
     const onPermissionCallBack = async (hasApproved: boolean) => {
       if (hasApproved) {
         // TODO: add the transactions to the smart contract
-        dAppRequestData;
+        void dAppRequestData;
         addToResponseData({ batchId: "0xSamppleBatchId" });
       }
     };

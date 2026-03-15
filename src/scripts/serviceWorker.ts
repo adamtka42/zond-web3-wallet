@@ -36,7 +36,7 @@ const registerScripts = async () => {
       js: ["src/scripts/inPageScript.js"],
       runAt: "document_start",
       allFrames: true,
-      // @ts-expect-error.
+      // @ts-expect-error - webextension-polyfill types do not include the "world" property for content scripts
       // This is important. The script must run in the "MAIN" world,
       // so that the zond provider will be available browser wide, not just isolated to the extension.
       world: "MAIN",
@@ -56,7 +56,7 @@ const prepareListeners = () => {
   // Listening to storage for displaying the badge in the extension.
   browser.storage.onChanged.addListener(async () => {
     const storedDAppRequestData = await StorageUtil.getDAppsRequestData();
-    if (!!storedDAppRequestData) {
+    if (storedDAppRequestData) {
       // If there is a pending request, the badge with 1 notification will be displayed.
       browser.action.setBadgeText({ text: "1" });
       browser.action.setBadgeBackgroundColor({ color: "#4AAFFF" });
@@ -169,7 +169,7 @@ const setupProviderConnectionEip1193 = async (port: browser.Runtime.Port) => {
 
   // messages between inpage and background
   const engine = setupProviderEngineEip1193({
-    // @ts-ignore
+    // @ts-expect-error - port.sender may be undefined but is always present for content script connections
     sender,
   });
   // setup connection
@@ -178,8 +178,8 @@ const setupProviderConnectionEip1193 = async (port: browser.Runtime.Port) => {
   pipeline(outStream, providerStream, outStream, (err) => {
     console.warn("ZondWeb3Wallet: Error in stream pipeline\n", err);
     // handle any middleware cleanup
-    // @ts-ignore
-    engine?._middleware?.forEach((mid: any) => {
+    // @ts-expect-error - _middleware is a private property on JsonRpcEngine not exposed in type definitions
+    engine?._middleware?.forEach((mid: { destroy?: () => void }) => {
       if (mid.destroy && typeof mid.destroy === "function") {
         mid.destroy();
       }

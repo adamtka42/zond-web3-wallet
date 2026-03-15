@@ -195,8 +195,8 @@ const prepareListeners = () => {
       const { provider, qrl, defaultWsRpcUrl } = await getQrlProperties();
       const method = message.data.method;
       if (method === UNRESTRICTED_METHODS.QRL_GET_BLOCK_BY_NUMBER) {
-        // @ts-ignore
-        const [block, hydrated] = message?.data?.params;
+        // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
+        const [block, hydrated] = message?.data?.params ?? [];
         const blockInformation = await qrl.getBlock(block, hydrated);
         return getSerializableObject(blockInformation);
       } else if (
@@ -205,6 +205,7 @@ const prepareListeners = () => {
         method ===
           UNRESTRICTED_METHODS.QRL_GET_BLOCK_TRANSACTION_COUNT_BY_NUMBER
       ) {
+        // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime
         const [blockHashOrNumber] = message.data.params;
         const transactionCount =
           await qrl.getBlockTransactionCount(blockHashOrNumber);
@@ -224,7 +225,7 @@ const prepareListeners = () => {
         const isSyncing = await qrl.isSyncing();
         return isSyncing;
       } else if (method === UNRESTRICTED_METHODS.QRL_UNINSTALL_FILTER) {
-        const [filterIdentifier] = message?.data?.params;
+        const [filterIdentifier] = message?.data?.params ?? [];
         const isSuccess = await qrlRpcMethods.uninstallFilter(
           new Web3RequestManager(provider),
           filterIdentifier,
@@ -302,7 +303,7 @@ const prepareListeners = () => {
         );
         return filterIdentifier;
       } else if (method === UNRESTRICTED_METHODS.QRL_NEW_FILTER) {
-        const [filter] = message?.data?.params;
+        const [filter] = message?.data?.params ?? [];
         const filterIdentifier = await qrlRpcMethods.newFilter(
           new Web3RequestManager(provider),
           filter,
@@ -317,7 +318,7 @@ const prepareListeners = () => {
           );
         return filterIdentifier;
       } else if (method === UNRESTRICTED_METHODS.QRL_SEND_RAW_TRANSACTION) {
-        const [rawTransaction] = message?.data?.params;
+        const [rawTransaction] = message?.data?.params ?? [];
         const transactionHash = (
           await qrl.sendSignedTransaction(rawTransaction)
         )?.transactionHash;
@@ -379,7 +380,7 @@ const prepareListeners = () => {
         method ===
           UNRESTRICTED_METHODS.QRL_GET_TRANSACTION_BY_BLOCK_NUMBER_AND_INDEX
       ) {
-        const [blockHashOrNumber, transactionIndex] = message?.data?.params;
+        const [blockHashOrNumber, transactionIndex] = message?.data?.params ?? [];
         const transactionInformation = qrl?.getTransactionFromBlock(
           blockHashOrNumber,
           transactionIndex,

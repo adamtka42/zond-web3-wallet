@@ -161,7 +161,7 @@ class ZondStore {
           isConnected: isListening,
         };
       });
-    } catch (error) {
+    } catch {
       runInAction(() => {
         this.zondConnection = { ...this.zondConnection, isConnected: false };
       });
@@ -199,7 +199,7 @@ class ZondStore {
           accounts: accountsWithBalance,
         };
       });
-    } catch (error) {
+    } catch {
       runInAction(() => {
         this.zondAccounts = {
           ...this.zondAccounts,
@@ -237,6 +237,7 @@ class ZondStore {
 
   private async getBaseTip(): Promise<bigint> {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const tip = await (this.qrlInstance as any)?.requestManager?.send({
         method: "qrl_maxPriorityFeePerGas",
         params: [],
@@ -367,7 +368,7 @@ class ZondStore {
   }
 
   async getZrc20TokenDetails(contractAddress: string) {
-    let tokenDetails = {
+    const tokenDetails = {
       token: undefined,
       error: "",
     };
@@ -397,7 +398,7 @@ class ZondStore {
           ...tokenDetails,
           token: { name, symbol, decimals, totalSupply, balance, image: "" },
         };
-      } catch (error) {
+      } catch {
         return {
           ...tokenDetails,
           error:
@@ -410,7 +411,7 @@ class ZondStore {
   }
 
   async getNftCollectionDetails(contractAddress: string) {
-    let result: {
+    const result: {
       collection?: { name: string; symbol: string; balance: number };
       error: string;
     } = { error: "" };
@@ -440,7 +441,7 @@ class ZondStore {
         );
 
         return { ...result, collection: { name, symbol, balance } };
-      } catch (error) {
+      } catch {
         return {
           ...result,
           error:

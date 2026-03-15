@@ -40,6 +40,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
+      "@noble/hashes": path.resolve(__dirname, "node_modules/@noble/hashes"),
       events: path.resolve(__dirname, "node_modules/rollup-plugin-node-polyfills/polyfills/events.js"),
       buffer: "buffer",
     },

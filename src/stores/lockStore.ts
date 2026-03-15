@@ -85,7 +85,7 @@ class LockStore {
           this.isLoading = false;
         });
         break;
-      } catch (error) {
+      } catch {
         // Also try reconnecting the port to wake the SW
         this.connectKeepAlive();
         await new Promise((r) => setTimeout(r, 300 * (i + 1)));
@@ -257,7 +257,7 @@ class LockStore {
   private async sendWithRetry(
     message: Record<string, unknown>,
     maxRetries = 3,
-  ): Promise<any> {
+  ): Promise<unknown> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await browser.runtime.sendMessage(message);
@@ -319,7 +319,7 @@ class LockStore {
         name: LOCK_MANAGER_MESSAGES.SET_DECRYPTED_KEYS,
         data: decryptedKeys,
       });
-    } catch (error) {
+    } catch {
       throw new Error(
         "Unable to communicate with the wallet service. Please check your connection and try again.",
       );

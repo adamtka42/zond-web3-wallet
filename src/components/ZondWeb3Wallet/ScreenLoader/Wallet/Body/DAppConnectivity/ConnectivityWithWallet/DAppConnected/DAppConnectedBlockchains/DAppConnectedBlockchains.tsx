@@ -52,7 +52,7 @@ const DAppConnectedBlockchains = observer(() => {
       <div className="flex flex-col gap-2">
         {currentTabData?.connectedBlockchains?.map(
           ({ chainId, chainName, defaultIconUrl, defaultRpcUrl }) => (
-            <Card className="flex justify-between gap-3 p-3">
+            <Card key={chainId} className="flex justify-between gap-3 p-3">
               <div className="flex gap-3">
                 <div className="pt-1">
                   <ChainIcon src={defaultIconUrl} alt={chainName} />

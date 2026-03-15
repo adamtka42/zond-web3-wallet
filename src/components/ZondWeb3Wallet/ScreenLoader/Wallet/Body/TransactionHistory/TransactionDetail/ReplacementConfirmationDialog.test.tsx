@@ -184,10 +184,10 @@ describe("ReplacementConfirmationDialog", () => {
 
     expect(
       screen.getByRole("button", { name: "Speed Up" }),
-    ).not.toBeDisabled();
+    ).toBeEnabled();
     expect(
       screen.getByRole("button", { name: "Go Back" }),
-    ).not.toBeDisabled();
+    ).toBeEnabled();
   });
 
   // ── Callbacks ──

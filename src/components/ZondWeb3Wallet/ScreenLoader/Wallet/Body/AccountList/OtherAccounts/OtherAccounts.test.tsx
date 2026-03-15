@@ -75,9 +75,7 @@ describe("OtherAccounts", () => {
   });
 
   it("should call the setActiveAccount function on click of switch", async () => {
-    const mockedSetActiveAccount = jest.fn(async (activeAccount: string) => {
-      activeAccount;
-    });
+    const mockedSetActiveAccount = jest.fn(async (_activeAccount: string) => {});
     renderComponent(
       twoAccountStore({ setActiveAccount: mockedSetActiveAccount }),
     );

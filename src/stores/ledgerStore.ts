@@ -564,12 +564,15 @@ class LedgerStore {
    */
   async signAndSerializeTransaction(
     fromAddress: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     txData: Record<string, any>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     common: any,
   ): Promise<string> {
     const unsignedTx = FeeMarketEIP1559Transaction.fromTxData(txData, { common });
     const descriptor = newMLDSA87Descriptor().toBytes();
-    const messageToSign = unsignedTx.getMessageToSign(descriptor, false);
+    const extraParams = new Uint8Array([]);
+    const messageToSign = unsignedTx.getMessageToSign(descriptor, extraParams, false);
     const serializedTx = Buffer.from(messageToSign).toString("hex");
 
     const signResult = await this.signTransaction(fromAddress, serializedTx);
@@ -596,6 +599,7 @@ class LedgerStore {
     const publicKeyBytes = Buffer.from(publicKey.replace("0x", ""), "hex");
 
     const signedTxValues = [...rawValues.slice(0, 9), publicKeyBytes, signatureBytes, descriptor];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const signedTx = FeeMarketEIP1559Transaction.fromValuesArray(signedTxValues as any, { common });
     const signedRawTx = signedTx.serialize();
     return "0x" + Buffer.from(signedRawTx).toString("hex");

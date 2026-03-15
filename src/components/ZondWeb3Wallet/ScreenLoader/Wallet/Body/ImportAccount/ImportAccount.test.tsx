@@ -86,17 +86,14 @@ describe("ImportAccount", () => {
         zondStore: {
           qrlInstance: {
             accounts: {
-              seedToAccount: (seed: string | Uint8Array) => {
-                seed;
+              seedToAccount: (_seed: string | Uint8Array) => {
                 return {
                   address: "Q2090E9F38771876FB6Fc51a6b464121d3cC093A1",
                   seed: "",
-                  sign: (data: string | Record<string, unknown>) => {
-                    data;
+                  sign: (_data: string | Record<string, unknown>) => {
                     return { messageHash: "", signature: "" };
                   },
-                  signTransaction: async (tx: Transaction) => {
-                    tx;
+                  signTransaction: async (_tx: Transaction) => {
                     return {
                       messageHash: "",
                       rawTransaction: "",

@@ -195,7 +195,6 @@ describe("GasFeeSelector", () => {
       (call: any) => call[0].tier === "advanced",
     );
     expect(advancedCalls.length).toBeGreaterThan(0);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((advancedCalls[advancedCalls.length - 1] as any)[0].tier).toBe("advanced");
   });
 

@@ -15,12 +15,12 @@ jest.mock("@theqrl/web3", () => {
   };
 });
 
-let mockGetTransactionValues = jest.fn<any>().mockResolvedValue({
+const mockGetTransactionValues = jest.fn<any>().mockResolvedValue({
   receiverAddress: "",
   amount: 0,
 });
-let mockSetTransactionValues = jest.fn<any>().mockResolvedValue(undefined);
-let mockClearTransactionValues = jest.fn<any>().mockResolvedValue(undefined);
+const mockSetTransactionValues = jest.fn<any>().mockResolvedValue(undefined);
+const mockClearTransactionValues = jest.fn<any>().mockResolvedValue(undefined);
 
 jest.mock("@/utilities/storageUtil", () => {
   return {

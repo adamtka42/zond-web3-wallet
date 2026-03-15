@@ -48,28 +48,21 @@ const mockedStoreValues: StoreType = {
     qrlInstance: undefined,
     fetchAccounts: async () => {},
     fetchZondConnection: async () => {},
-    getAccountBalance: (accountAddress: string) => {
-      accountAddress;
+    getAccountBalance: (_accountAddress: string) => {
       return "0.0 QRL";
     },
     initializeBlockchain: async () => {},
-    selectBlockchain: async (chainId: string) => {
-      chainId;
-    },
+    selectBlockchain: async (_chainId: string) => {},
     setActiveAccount: async () => {},
     getNativeTokenGas: async () => {
       return "";
     },
     signNativeToken: async (
-      from: string,
-      to: string,
-      value: number,
-      mnemonicPhrases: string,
+      _from: string,
+      _to: string,
+      _value: number,
+      _mnemonicPhrases: string,
     ) => {
-      from;
-      to;
-      value;
-      mnemonicPhrases;
       return { transactionHash: undefined, rawTransaction: undefined, error: "" };
     },
     validateActiveAccount: async () => {},
@@ -97,33 +90,22 @@ const mockedStoreValues: StoreType = {
       error: "",
     }),
     getZrc20TokenGas: async (
-      from: string,
-      to: string,
-      value: number,
-      contractAddress: string,
-      decimals: number,
+      _from: string,
+      _to: string,
+      _value: number,
+      _contractAddress: string,
+      _decimals: number,
     ) => {
-      from;
-      to;
-      value;
-      contractAddress;
-      decimals;
       return "";
     },
     signZrc20Token: async (
-      from: string,
-      to: string,
-      value: number,
-      mnemonicPhrases: string,
-      contractAddress: string,
-      decimals: number,
+      _from: string,
+      _to: string,
+      _value: number,
+      _mnemonicPhrases: string,
+      _contractAddress: string,
+      _decimals: number,
     ) => {
-      from;
-      to;
-      value;
-      mnemonicPhrases;
-      contractAddress;
-      decimals;
       return { transactionHash: undefined, rawTransaction: undefined, error: "" };
     },
     signAndSendReplacementTransaction: async () => ({
@@ -134,12 +116,10 @@ const mockedStoreValues: StoreType = {
     getTransactionReceipt: async () => null,
     sendRawTransaction: async () => undefined,
     refreshBlockchainData: async () => {},
-    addChain: async (chainData: BlockchainDataType) => {
-      chainData;
+    addChain: async (_chainData: BlockchainDataType) => {
       return { chainFound: false, updatedChainList: [] };
     },
-    editChain: async (chainData: BlockchainDataType) => {
-      chainData;
+    editChain: async (_chainData: BlockchainDataType) => {
       return { updatedChainList: [] };
     },
   } as unknown as ZondStore,
@@ -160,38 +140,26 @@ const mockedStoreValues: StoreType = {
     },
     hasDAppConnected: false,
     hasDAppRequest: true,
-    responseData: undefined,
+    responseData: {},
     canProceed: false,
-    onPermissionCallBack: async (hasApproved: boolean) => {
-      hasApproved;
-    },
+    onPermissionCallBack: async (_hasApproved: boolean) => {},
     approvalProcessingStatus: {
       hasApproved: false,
       isProcessing: false,
       hasCompleted: false,
     },
     readDAppRequestData: async () => {},
-    addToResponseData: (data: any) => {
-      data;
-    },
-    setCanProceed: (decision: boolean) => {
-      decision;
-    },
+    addToResponseData: (_data: any) => {},
+    setCanProceed: (_decision: boolean) => {},
     setOnPermissionCallBack: (
-      callBack: (hasApproved: boolean) => Promise<void>,
-    ) => {
-      callBack;
-    },
-    setApprovalProcessingStatus: async (status: {
+      _callBack: (hasApproved: boolean) => Promise<void>,
+    ) => {},
+    setApprovalProcessingStatus: async (_status: {
       isProcessing?: boolean;
       hasApproved?: boolean;
       hasCompleted?: boolean;
-    }) => {
-      status;
-    },
-    onPermission: async (hasApproved: boolean) => {
-      hasApproved;
-    },
+    }) => {},
+    onPermission: async (_hasApproved: boolean) => {},
     fetchCurrentTabData: async () => {},
     disconnectFromCurrentTab: async () => {},
   },
@@ -204,12 +172,9 @@ const mockedStoreValues: StoreType = {
       return !!password;
     },
     encryptAccount: async (
-      account: Web3BaseWalletAccount,
-      password: string,
-    ) => {
-      account;
-      password;
-    },
+      _account: Web3BaseWalletAccount,
+      _password: string,
+    ) => {},
     initialize: () => {},
     lock: async () => {},
     initializeStorageListener: () => {},
@@ -264,31 +229,16 @@ const mockedStoreValues: StoreType = {
     filter: "all" as const,
     filteredTransactions: [],
     pendingTransactions: [],
-    loadHistory: async (accountAddress: string, _qrlInstance?: any) => {
-      accountAddress;
-    },
-    addTransaction: async (accountAddress: string, entry: any) => {
-      accountAddress;
-      entry;
-    },
+    loadHistory: async (_accountAddress: string, _qrlInstance?: any) => {},
+    addTransaction: async (_accountAddress: string, _entry: any) => {},
     updateTransaction: async (
-      accountAddress: string,
-      transactionHash: string,
-      updates: any,
-    ) => {
-      accountAddress;
-      transactionHash;
-      updates;
-    },
-    setFilter: (filter: string) => {
-      filter;
-    },
-    clearHistory: async (accountAddress: string) => {
-      accountAddress;
-    },
-    startPolling: (accountAddress: string, _qrlInstance: any) => {
-      accountAddress;
-    },
+      _accountAddress: string,
+      _transactionHash: string,
+      _updates: any,
+    ) => {},
+    setFilter: (_filter: string) => {},
+    clearHistory: async (_accountAddress: string) => {},
+    startPolling: (_accountAddress: string, _qrlInstance: any) => {},
     stopPolling: () => {},
   } as any,
   contactsStore: {

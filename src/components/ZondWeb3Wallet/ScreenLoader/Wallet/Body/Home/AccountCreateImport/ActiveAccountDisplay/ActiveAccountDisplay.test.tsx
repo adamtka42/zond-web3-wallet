@@ -24,8 +24,7 @@ describe("ActiveAccountDisplay", () => {
           activeAccount: {
             accountAddress: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
           },
-          getAccountBalance: (accountAddress: string) => {
-            accountAddress;
+          getAccountBalance: (_accountAddress: string) => {
             return "2.45 QRL";
           },
         },

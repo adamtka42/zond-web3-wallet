@@ -119,17 +119,12 @@ describe("GasFeeNotice", () => {
         zondStore: {
           getZrc20TokenGas: jest.fn(
             async (
-              from: string,
-              to: string,
-              value: number,
-              contractAddress: string,
-              decimals: number,
+              _from: string,
+              _to: string,
+              _value: number,
+              _contractAddress: string,
+              _decimals: number,
             ) => {
-              from;
-              to;
-              value;
-              contractAddress;
-              decimals;
               return "5.2564854";
             },
           ),

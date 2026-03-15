@@ -36,8 +36,7 @@ describe("LockPasswordCheck", () => {
     renderComponent(
       mockedStore({
         lockStore: {
-          unlock: async (password: string) => {
-            password;
+          unlock: async (_password: string) => {
             return false;
           },
         },

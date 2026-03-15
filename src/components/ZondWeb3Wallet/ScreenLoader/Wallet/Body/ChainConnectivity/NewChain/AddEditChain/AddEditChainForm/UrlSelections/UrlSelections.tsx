@@ -57,7 +57,7 @@ const UrlSelections = ({
         <AddUrlItem addUrl={addUrl} />
         {urls.map((urlItem) => {
           return (
-            <Card className="flex items-center justify-between gap-2 rounded-md p-2">
+            <Card key={urlItem} className="flex items-center justify-between gap-2 rounded-md p-2">
               <div className="break-all">{urlItem}</div>
               <div className="flex shrink-0 gap-2">
                 <Tooltip delayDuration={0}>

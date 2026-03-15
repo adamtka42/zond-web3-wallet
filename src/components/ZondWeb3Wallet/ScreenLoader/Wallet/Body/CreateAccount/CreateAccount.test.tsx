@@ -43,8 +43,7 @@ describe("CreateAccount", () => {
               create: () => ({
                 address: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
                 seed: "",
-                sign: (data: Record<string, unknown> | string) => {
-                  data;
+                sign: (_data: Record<string, unknown> | string) => {
                   return { messageHash: "", signature: "", message: "" };
                 },
                 signTransaction: async () => ({
@@ -92,8 +91,7 @@ describe("CreateAccount", () => {
               create: () => ({
                 address: "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",
                 seed: "",
-                sign: (data: Record<string, unknown> | string) => {
-                  data;
+                sign: (_data: Record<string, unknown> | string) => {
                   return { messageHash: "", signature: "", message: "" };
                 },
                 signTransaction: async () => ({

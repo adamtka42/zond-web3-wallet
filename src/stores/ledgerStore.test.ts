@@ -951,7 +951,7 @@ describe("LedgerStore", () => {
       );
 
       expect(mockFromTxData).toHaveBeenCalledWith(mockTxData, { common: mockCommon });
-      expect(mockGetMessageToSign).toHaveBeenCalledWith(expect.any(Uint8Array), false);
+      expect(mockGetMessageToSign).toHaveBeenCalledWith(expect.any(Uint8Array), expect.any(Uint8Array), false);
       expect(mockRaw).toHaveBeenCalled();
       expect(mockFromValuesArray).toHaveBeenCalled();
       expect(mockSerialize).toHaveBeenCalled();

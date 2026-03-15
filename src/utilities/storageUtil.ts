@@ -349,9 +349,9 @@ class StorageUtil {
     storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER][accountAddress][
       chainId
     ].tokens = [
-      ...storedTokenContracts?.filter(
+      ...(storedTokenContracts?.filter(
         (token) => token.address !== tokenContract.address,
-      ),
+      ) ?? []),
       tokenContract,
     ];
 

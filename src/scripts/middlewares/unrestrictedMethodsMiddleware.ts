@@ -52,16 +52,16 @@ export const unrestrictedMethodsMiddleware: JsonRpcMiddleware<
     // check if the request can proceed
     const { canProceed, proceedError } = await checkRequestCanProceed(req);
     if (!canProceed) {
-      // @ts-ignore
+      // @ts-expect-error - proceedError type from provider library is not assignable to res.error's narrow type
       res.error = proceedError;
       return end();
     }
 
     try {
       res.result = await getUnrestrictedMethodResult(req);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.error = providerErrors.unsupportedMethod({
-        message: error?.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
     return end();
