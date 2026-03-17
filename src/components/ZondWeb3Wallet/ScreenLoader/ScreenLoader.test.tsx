@@ -1,20 +1,20 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ScreenLoader from "./ScreenLoader";
 
-jest.mock("@/components/ZondWeb3Wallet/ScreenLoader/ScreenLoader", () => () => (
-  <div>Mocked Screen Loading</div>
-));
-jest.mock(
+vi.mock("@/components/ZondWeb3Wallet/ScreenLoader/ScreenLoader", () => ({
+  default: () => <div>Mocked Screen Loading</div>,
+}));
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequest",
-  () => () => <div>Mocked DApp Request</div>,
+  () => ({ default: () => <div>Mocked DApp Request</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Wallet",
-  () => () => <div>Mocked Wallet</div>,
+  () => ({ default: () => <div>Mocked Wallet</div> }),
 );
 
 describe("ScreenLoader", () => {

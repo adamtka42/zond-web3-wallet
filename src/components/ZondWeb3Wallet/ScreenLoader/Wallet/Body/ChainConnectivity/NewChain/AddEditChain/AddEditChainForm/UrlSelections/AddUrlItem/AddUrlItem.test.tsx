@@ -1,7 +1,7 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
@@ -39,7 +39,7 @@ describe("AddUrlItem", () => {
   });
 
   it("should call the addUrl method on clicking add button", async () => {
-    const mockedAddUrl = jest.fn(() => {});
+    const mockedAddUrl = vi.fn(() => {});
     renderComponent(mockedStore(), {
       addUrl: mockedAddUrl,
     });

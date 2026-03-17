@@ -1,7 +1,7 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
-import { afterEach, describe, expect, it } from "@jest/globals";
+import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";

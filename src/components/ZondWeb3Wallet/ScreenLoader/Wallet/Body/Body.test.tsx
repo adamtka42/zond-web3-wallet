@@ -1,13 +1,13 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Body from "./Body";
 
-jest.mock("react-router-dom", () => {
+vi.mock("react-router-dom", async () => {
   const originalModule =
-    jest.requireActual<typeof import("react-router-dom")>("react-router-dom");
+    await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
   return {
     __esModule: true,
     ...originalModule,

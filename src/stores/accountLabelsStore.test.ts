@@ -1,31 +1,31 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import AccountLabelsStore from "./accountLabelsStore";
 
 const localStore: Record<string, any> = {};
-jest.mock("webextension-polyfill", () => ({
+vi.mock("webextension-polyfill", () => ({
   __esModule: true,
   default: {
     storage: {
       local: {
-        get: jest.fn((key: string) =>
+        get: vi.fn((key: string) =>
           Promise.resolve(key in localStore ? { [key]: localStore[key] } : {}),
         ),
-        set: jest.fn((data: Record<string, any>) => {
+        set: vi.fn((data: Record<string, any>) => {
           Object.assign(localStore, data);
           return Promise.resolve();
         }),
-        remove: jest.fn((key: string) => {
+        remove: vi.fn((key: string) => {
           delete localStore[key];
           return Promise.resolve();
         }),
-        clear: jest.fn(() => {
+        clear: vi.fn(() => {
           for (const k of Object.keys(localStore)) delete localStore[k];
           return Promise.resolve();
         }),
       },
       session: {
-        get: jest.fn(() => Promise.resolve({})),
-        set: jest.fn(() => Promise.resolve()),
+        get: vi.fn(() => Promise.resolve({})),
+        set: vi.fn(() => Promise.resolve()),
       },
     },
   },
@@ -142,14 +142,14 @@ describe("AccountLabelsStore", () => {
       ];
 
       const browser = (await import("webextension-polyfill")).default;
-      const setCalls = (browser.storage.local.set as jest.Mock).mock.calls
+      const setCalls = (browser.storage.local.set as Mock).mock.calls
         .length;
 
       await store.syncLabels(accounts, noLedger);
 
       // set should not be called again since label already exists
       expect(
-        (browser.storage.local.set as jest.Mock).mock.calls.length,
+        (browser.storage.local.set as Mock).mock.calls.length,
       ).toBe(setCalls);
     });
 

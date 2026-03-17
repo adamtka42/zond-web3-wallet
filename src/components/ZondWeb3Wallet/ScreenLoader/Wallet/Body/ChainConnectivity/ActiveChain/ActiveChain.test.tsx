@@ -2,14 +2,14 @@ import { mockedStore } from "@/__mocks__/mockedStore";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import { ROUTES } from "@/router/router";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ActiveChain from "./ActiveChain";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/ChainIcon/ChainIcon",
-  () => () => <div>Mocked Chain Icon</div>,
+  () => ({ default: () => <div>Mocked Chain Icon</div> }),
 );
 
 describe("ActiveChain", () => {

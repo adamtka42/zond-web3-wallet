@@ -1,5 +1,5 @@
 import type { Contact } from "@/types/contact";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ContactItem from "./ContactItem";
@@ -16,8 +16,8 @@ describe("ContactItem", () => {
     render(
       <ContactItem
         contact={contact}
-        onEdit={jest.fn()}
-        onDelete={jest.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
       />,
     );
 
@@ -28,8 +28,8 @@ describe("ContactItem", () => {
     render(
       <ContactItem
         contact={contact}
-        onEdit={jest.fn()}
-        onDelete={jest.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
       />,
     );
 
@@ -39,9 +39,9 @@ describe("ContactItem", () => {
   });
 
   it("should call onEdit when edit button is clicked", async () => {
-    const onEdit = jest.fn<any>();
+    const onEdit = vi.fn<any>();
     render(
-      <ContactItem contact={contact} onEdit={onEdit} onDelete={jest.fn()} />,
+      <ContactItem contact={contact} onEdit={onEdit} onDelete={vi.fn()} />,
     );
 
     await userEvent.click(screen.getByLabelText("Edit contact"));
@@ -49,11 +49,11 @@ describe("ContactItem", () => {
   });
 
   it("should call onDelete when delete button is clicked", async () => {
-    const onDelete = jest.fn<any>();
+    const onDelete = vi.fn<any>();
     render(
       <ContactItem
         contact={contact}
-        onEdit={jest.fn()}
+        onEdit={vi.fn()}
         onDelete={onDelete}
       />,
     );

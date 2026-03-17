@@ -1,21 +1,21 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ChainConnectivity from "./ChainConnectivity";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/NewChain/NewChain",
-  () => () => <div>Mocked New Chain</div>,
+  () => ({ default: () => <div>Mocked New Chain</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/ActiveChain/ActiveChain",
-  () => () => <div>Mocked Active Chain</div>,
+  () => ({ default: () => <div>Mocked Active Chain</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/OtherChains/OtherChains",
-  () => () => <div>Mocked Other Chains</div>,
+  () => ({ default: () => <div>Mocked Other Chains</div> }),
 );
 
 describe("ChainConnectivity", () => {

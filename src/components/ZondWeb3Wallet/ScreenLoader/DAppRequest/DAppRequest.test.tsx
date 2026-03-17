@@ -1,14 +1,14 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import DAppRequest from "./DAppRequest";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Header/ChainBadge/ChainBadge",
-  () => () => <div>Mocked ChainBadge</div>,
+  () => ({ default: () => <div>Mocked ChainBadge</div> }),
 );
 
 describe("DAppRequest", () => {

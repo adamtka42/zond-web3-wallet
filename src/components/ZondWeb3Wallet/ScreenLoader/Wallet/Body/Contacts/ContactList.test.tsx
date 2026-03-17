@@ -1,5 +1,5 @@
 import type { Contact } from "@/types/contact";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import ContactList from "./ContactList";
 
@@ -8,7 +8,7 @@ describe("ContactList", () => {
 
   it("should show empty state when no contacts", () => {
     render(
-      <ContactList contacts={[]} onEdit={jest.fn()} onDelete={jest.fn()} />,
+      <ContactList contacts={[]} onEdit={vi.fn()} onDelete={vi.fn()} />,
     );
 
     expect(screen.getByText("No contacts yet")).toBeInTheDocument();
@@ -29,8 +29,8 @@ describe("ContactList", () => {
     render(
       <ContactList
         contacts={contacts}
-        onEdit={jest.fn()}
-        onDelete={jest.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
       />,
     );
 

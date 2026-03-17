@@ -1,72 +1,72 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Plain object stores (hoisting-safe) ────────────────────────────
 const localStore: Record<string, any> = {};
 const sessionStore: Record<string, any> = {};
 const alarmsStore: Record<string, any> = {};
 
-jest.mock("webextension-polyfill", () => ({
+vi.mock("webextension-polyfill", () => ({
   __esModule: true,
   default: {
     storage: {
       local: {
-        get: jest.fn((key: string) =>
+        get: vi.fn((key: string) =>
           Promise.resolve(
             key in localStore ? { [key]: localStore[key] } : {},
           ),
         ),
-        set: jest.fn((data: Record<string, any>) => {
+        set: vi.fn((data: Record<string, any>) => {
           Object.assign(localStore, data);
           return Promise.resolve();
         }),
-        remove: jest.fn((key: string) => {
+        remove: vi.fn((key: string) => {
           delete localStore[key];
           return Promise.resolve();
         }),
-        clear: jest.fn(() => {
+        clear: vi.fn(() => {
           for (const k of Object.keys(localStore)) delete localStore[k];
           return Promise.resolve();
         }),
       },
       session: {
-        get: jest.fn((key: string) =>
+        get: vi.fn((key: string) =>
           Promise.resolve(
             key in sessionStore ? { [key]: sessionStore[key] } : {},
           ),
         ),
-        set: jest.fn((data: Record<string, any>) => {
+        set: vi.fn((data: Record<string, any>) => {
           Object.assign(sessionStore, data);
           return Promise.resolve();
         }),
-        remove: jest.fn((key: string) => {
+        remove: vi.fn((key: string) => {
           delete sessionStore[key];
           return Promise.resolve();
         }),
       },
     },
     alarms: {
-      create: jest.fn((name: string, info: any) => {
+      create: vi.fn((name: string, info: any) => {
         alarmsStore[name] = info;
         return Promise.resolve();
       }),
-      clear: jest.fn((name: string) => {
+      clear: vi.fn((name: string) => {
         delete alarmsStore[name];
         return Promise.resolve(true);
       }),
-      get: jest.fn((name: string) =>
+      get: vi.fn((name: string) =>
         Promise.resolve(alarmsStore[name] ?? null),
       ),
     },
   },
 }));
 
-jest.mock("@theqrl/web3", () => ({ Bytes: class {} }));
-jest.mock("@theqrl/web3-qrl-accounts", () => ({
-  decrypt: jest.fn(),
-  encrypt: jest.fn(),
+vi.mock("@theqrl/web3", () => ({ Bytes: class {} }));
+vi.mock("@theqrl/web3-qrl-accounts", () => ({
+  decrypt: vi.fn(),
+  encrypt: vi.fn(),
 }));
-jest.mock("@/functions/getMnemonicFromHexSeed", () => ({
-  getMnemonicFromHexSeed: jest.fn(() => "mocked mnemonic"),
+vi.mock("@/functions/getMnemonicFromHexSeed", () => ({
+  getMnemonicFromHexSeed: vi.fn(() => "mocked mnemonic"),
 }));
 
 import browser from "webextension-polyfill";
@@ -89,7 +89,7 @@ const MOCK_KEYS: DecryptedKeyType[] = [
 
 describe("LockManager – keep-alive & auto-lock", () => {
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     clearStore(localStore);
     clearStore(sessionStore);
     clearStore(alarmsStore);

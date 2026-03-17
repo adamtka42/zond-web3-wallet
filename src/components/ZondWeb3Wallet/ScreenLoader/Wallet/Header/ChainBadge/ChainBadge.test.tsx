@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
@@ -8,15 +8,17 @@ import { TooltipProvider } from "@/components/UI/Tooltip";
 import { ROUTES } from "@/router/router";
 import ChainBadge from "./ChainBadge";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Header/ChainBadge/ChainBadgeIcon/ChainBadgeIcon",
-  () => () => <div>Mocked Chain Badge Icon</div>,
+  () => ({ default: () => <div>Mocked Chain Badge Icon</div> }),
 );
 
-const mockedUseLocation = jest.fn(() => ({ pathname: "/" }));
-jest.mock("react-router-dom", () => {
+const { mockedUseLocation } = vi.hoisted(() => ({
+  mockedUseLocation: vi.fn(() => ({ pathname: "/" })),
+}));
+vi.mock("react-router-dom", async () => {
   const originalModule =
-    jest.requireActual<typeof import("react-router-dom")>("react-router-dom");
+    await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
   return {
     __esModule: true,
     ...originalModule,

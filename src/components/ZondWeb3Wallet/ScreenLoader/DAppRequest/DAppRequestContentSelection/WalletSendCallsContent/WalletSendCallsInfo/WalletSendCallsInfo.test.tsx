@@ -1,13 +1,13 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import WalletSendCallsInfo from "./WalletSendCallsInfo";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/WalletSendCallsContent/WalletSendCallsInfo/WalletSendCallsTransactions/WalletSendCallsTransactions",
-  () => () => <div>Mocked Wallet Send Calls Transactions</div>,
+  () => ({ default: () => <div>Mocked Wallet Send Calls Transactions</div> }),
 );
 
 describe("WalletSendCallsInfo", () => {

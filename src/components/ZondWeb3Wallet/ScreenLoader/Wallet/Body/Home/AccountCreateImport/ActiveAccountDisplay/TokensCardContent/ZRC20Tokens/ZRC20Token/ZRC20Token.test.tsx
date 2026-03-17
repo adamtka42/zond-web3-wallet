@@ -1,18 +1,18 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import ZRC20Token from "./ZRC20Token";
 
-jest.mock("@/utilities/storageUtil", () => {
-  const originalModule = jest.requireActual<
+vi.mock("@/utilities/storageUtil", async () => {
+  const originalModule = await vi.importActual<
     typeof import("@/utilities/storageUtil")
   >("@/utilities/storageUtil");
   return {
     ...originalModule,
-    getTokenContractsList: jest.fn(async () => [
+    getTokenContractsList: vi.fn(async () => [
       {
         address: "Q28c4113a9d3a2e836f28c23ed8e3c1e7c243f566",
         image: "testImage1",
@@ -28,13 +28,13 @@ jest.mock("@/utilities/storageUtil", () => {
     ]),
   };
 });
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Home/AccountCreateImport/ActiveAccountDisplay/TokensCardContent/TokenListItemLoading/TokenListItemLoading",
-  () => () => <div>Mocked Token List Item Loading</div>,
+  () => ({ default: () => <div>Mocked Token List Item Loading</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Home/AccountCreateImport/ActiveAccountDisplay/TokensCardContent/TokenListItem/TokenListItem",
-  () => () => <div>Mocked Token List Item</div>,
+  () => ({ default: () => <div>Mocked Token List Item</div> }),
 );
 
 describe("ZRC20Token", () => {

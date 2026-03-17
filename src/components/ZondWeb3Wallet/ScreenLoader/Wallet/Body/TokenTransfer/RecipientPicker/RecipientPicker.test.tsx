@@ -1,36 +1,39 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import RecipientPicker from "./RecipientPicker";
 
-const localStore: Record<string, any> = {};
-jest.mock("webextension-polyfill", () => ({
+const { localStore } = vi.hoisted(() => {
+  const localStore: Record<string, any> = {};
+  return { localStore };
+});
+vi.mock("webextension-polyfill", () => ({
   __esModule: true,
   default: {
     storage: {
       local: {
-        get: jest.fn((key: string) =>
+        get: vi.fn((key: string) =>
           Promise.resolve(key in localStore ? { [key]: localStore[key] } : {}),
         ),
-        set: jest.fn((data: Record<string, any>) => {
+        set: vi.fn((data: Record<string, any>) => {
           Object.assign(localStore, data);
           return Promise.resolve();
         }),
-        remove: jest.fn((key: string) => {
+        remove: vi.fn((key: string) => {
           delete localStore[key];
           return Promise.resolve();
         }),
-        clear: jest.fn(() => {
+        clear: vi.fn(() => {
           for (const k of Object.keys(localStore)) delete localStore[k];
           return Promise.resolve();
         }),
       },
       session: {
-        get: jest.fn(() => Promise.resolve({})),
-        set: jest.fn(() => Promise.resolve()),
+        get: vi.fn(() => Promise.resolve({})),
+        set: vi.fn(() => Promise.resolve()),
       },
     },
   },
@@ -43,7 +46,7 @@ describe("RecipientPicker", () => {
   afterEach(cleanup);
 
   const renderComponent = (
-    onSelect = jest.fn<any>(),
+    onSelect = vi.fn<any>(),
     mockedStoreValues = mockedStore(),
   ) =>
     render(
@@ -51,7 +54,7 @@ describe("RecipientPicker", () => {
         <MemoryRouter>
           <RecipientPicker
             open={true}
-            onOpenChange={jest.fn()}
+            onOpenChange={vi.fn()}
             onSelect={onSelect}
           />
         </MemoryRouter>
@@ -84,7 +87,7 @@ describe("RecipientPicker", () => {
       Q20fB08fF1f1376A14C055E9F56df80563E16722b: "Account 2",
     };
     renderComponent(
-      jest.fn(),
+      vi.fn(),
       mockedStore({
         zondStore: {
           activeAccount: {
@@ -123,7 +126,7 @@ describe("RecipientPicker", () => {
       Q30aA00aA0a0000A00A000A0A00aa00000A00000c: "Ledger 1",
     };
     renderComponent(
-      jest.fn(),
+      vi.fn(),
       mockedStore({
         zondStore: {
           activeAccount: {
@@ -159,7 +162,7 @@ describe("RecipientPicker", () => {
 
   it("should show address as fallback when no label exists", () => {
     renderComponent(
-      jest.fn(),
+      vi.fn(),
       mockedStore({
         zondStore: {
           activeAccount: {
@@ -198,7 +201,7 @@ describe("RecipientPicker", () => {
 
   it("should show contacts on contacts tab", async () => {
     renderComponent(
-      jest.fn(),
+      vi.fn(),
       mockedStore({
         contactsStore: {
           contacts: [
@@ -226,7 +229,7 @@ describe("RecipientPicker", () => {
 
   it("should show recent addresses on recent tab", async () => {
     renderComponent(
-      jest.fn(),
+      vi.fn(),
       mockedStore({
         transactionHistoryStore: {
           transactions: [
@@ -261,7 +264,7 @@ describe("RecipientPicker", () => {
   });
 
   it("should call onSelect when an address is clicked", async () => {
-    const onSelect = jest.fn<any>();
+    const onSelect = vi.fn<any>();
     const labels: Record<string, string> = {
       Q20B714091cF2a62DADda2847803e3f1B9D2D3779: "Account 1",
       Q20fB08fF1f1376A14C055E9F56df80563E16722b: "Account 2",
@@ -306,7 +309,7 @@ describe("RecipientPicker", () => {
   });
 
   it("should call onSelect when a contact is clicked", async () => {
-    const onSelect = jest.fn<any>();
+    const onSelect = vi.fn<any>();
     renderComponent(
       onSelect,
       mockedStore({
@@ -331,7 +334,7 @@ describe("RecipientPicker", () => {
   });
 
   it("should call onSelect when a recent address is clicked", async () => {
-    const onSelect = jest.fn<any>();
+    const onSelect = vi.fn<any>();
     renderComponent(
       onSelect,
       mockedStore({
@@ -377,8 +380,8 @@ describe("RecipientPicker", () => {
         <MemoryRouter>
           <RecipientPicker
             open={false}
-            onOpenChange={jest.fn()}
-            onSelect={jest.fn()}
+            onOpenChange={vi.fn()}
+            onSelect={vi.fn()}
           />
         </MemoryRouter>
       </StoreProvider>,

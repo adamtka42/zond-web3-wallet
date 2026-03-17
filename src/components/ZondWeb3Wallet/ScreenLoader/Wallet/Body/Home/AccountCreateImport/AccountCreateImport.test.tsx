@@ -1,26 +1,26 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import AccountCreateImport from "./AccountCreateImport";
 
-jest.mock("@/utilities/storageUtil", () => {
-  const originalModule = jest.requireActual<
+vi.mock("@/utilities/storageUtil", async () => {
+  const originalModule = await vi.importActual<
     typeof import("@/utilities/storageUtil")
   >("@/utilities/storageUtil");
   return {
     ...originalModule,
-    getTokenContractsList: jest.fn(async () => [
+    getTokenContractsList: vi.fn(async () => [
       "Qd180388b9a863728fdc2e865d5fea87ce100eb2f",
     ]),
-    getNFTCollectionsList: jest.fn(async () => []),
+    getNFTCollectionsList: vi.fn(async () => []),
   };
 });
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Home/AccountCreateImport/ActiveAccountDisplay/ActiveAccountDisplay",
-  () => () => <div>Mocked Active Account Display</div>,
+  () => ({ default: () => <div>Mocked Active Account Display</div> }),
 );
 
 describe("AccountCreateImport", () => {

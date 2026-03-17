@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
@@ -59,7 +59,7 @@ describe("PersonalSign", () => {
         },
       }),
     );
-    const clipboardMock = jest.fn().mockResolvedValue(void 0 as never);
+    const clipboardMock = vi.fn().mockResolvedValue(void 0 as never);
     Object.defineProperty(navigator, "clipboard", {
       value: {
         writeText: clipboardMock,

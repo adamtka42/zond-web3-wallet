@@ -1,13 +1,13 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import DAppRequestWebsite from "./DAppRequestWebsite";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/PermissionRequiredContent/DAppRequestWebsite/DAppRequestFeature/DAppRequestFeature",
-  () => () => <div>Mocked DApp Request Feature</div>,
+  () => ({ default: () => <div>Mocked DApp Request Feature</div> }),
 );
 
 describe("DAppRequestWebsite", () => {

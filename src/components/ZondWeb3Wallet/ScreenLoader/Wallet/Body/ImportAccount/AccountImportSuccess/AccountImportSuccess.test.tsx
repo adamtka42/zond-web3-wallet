@@ -6,8 +6,8 @@ import {
   describe,
   expect,
   it,
-  jest,
-} from "@jest/globals";
+  vi,
+} from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Transaction } from "@theqrl/web3";
@@ -17,7 +17,7 @@ import AccountImportSuccess from "./AccountImportSuccess";
 
 describe("AccountImportSuccess", () => {
   beforeAll(() => {
-    jest.useFakeTimers({ advanceTimers: true });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
   afterEach(cleanup);
 
@@ -79,8 +79,8 @@ describe("AccountImportSuccess", () => {
 
   it("should copy the account address on clicking the copy button", async () => {
     renderComponent();
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-    const clipboardMock = jest.fn().mockResolvedValue(void 0 as never);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const clipboardMock = vi.fn().mockResolvedValue(void 0 as never);
     Object.defineProperty(navigator, "clipboard", {
       value: {
         writeText: clipboardMock,
@@ -91,7 +91,7 @@ describe("AccountImportSuccess", () => {
     expect(screen.getByText("Copy")).toBeInTheDocument();
     await user.click(copyButton);
     expect(screen.getByText("Copied")).toBeInTheDocument();
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     expect(clipboardMock).toHaveBeenCalledTimes(1);
     expect(clipboardMock).toHaveBeenCalledWith(
       "Q20fB08fF1f1376A14C055E9F56df80563E16722b",

@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
@@ -8,31 +8,34 @@ import { TooltipProvider } from "@/components/UI/Tooltip";
 import { ZRC_20_ITEMS_DISPLAY_LIMIT } from "@/constants/zrc20Token";
 import ZRC20Tokens from "./ZRC20Tokens";
 
-jest.mock("@/utilities/storageUtil", () => {
-  const originalModule = jest.requireActual<
+vi.mock("@/utilities/storageUtil", async () => {
+  const originalModule = await vi.importActual<
     typeof import("@/utilities/storageUtil")
   >("@/utilities/storageUtil");
   return {
     ...originalModule,
-    getTokenContractsList: jest.fn(async () => [
-      {
-        address: "Q28c4113a9d3a2e836f28c23ed8e3c1e7c243f566",
-        image: "testImage1",
-      },
-      {
-        address: "Q978918b7b544ad491d0b294cc6ac4d7bb0ef7112",
-        image: "testImage2",
-      },
-      {
-        address: "Q0db3981cb93db985e4e3a62ff695f7a1b242dd7c",
-        image: "testImage3",
-      },
-    ]),
+    default: {
+      ...originalModule.default,
+      getTokenContractsList: vi.fn(async () => [
+        {
+          address: "Q28c4113a9d3a2e836f28c23ed8e3c1e7c243f566",
+          image: "testImage1",
+        },
+        {
+          address: "Q978918b7b544ad491d0b294cc6ac4d7bb0ef7112",
+          image: "testImage2",
+        },
+        {
+          address: "Q0db3981cb93db985e4e3a62ff695f7a1b242dd7c",
+          image: "testImage3",
+        },
+      ]),
+    },
   };
 });
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Home/AccountCreateImport/ActiveAccountDisplay/TokensCardContent/ZRC20Tokens/ZRC20Token/ZRC20Token",
-  () => () => <div>Mocked ZRC 20 token</div>,
+  () => ({ default: () => <div>Mocked ZRC 20 token</div> }),
 );
 
 describe("ZRC20Tokens", () => {

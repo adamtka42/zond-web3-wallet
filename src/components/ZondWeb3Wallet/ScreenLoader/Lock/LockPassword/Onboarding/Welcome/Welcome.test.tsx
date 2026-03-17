@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { ComponentProps } from "react";
@@ -8,9 +8,9 @@ import userEvent from "@testing-library/user-event";
 import Welcome from "./Welcome";
 import { ONBOARDING_STEPS } from "../Onboarding";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Lock/LockPassword/Onboarding/LockPasswordSetup/LockPasswordSetup",
-  () => () => <div>Mocked Lock Password Setup</div>,
+  () => ({ default: () => <div>Mocked Lock Password Setup</div> }),
 );
 
 describe("Welcome", () => {
@@ -49,7 +49,7 @@ describe("Welcome", () => {
   });
 
   it("should invoke the selectStep method on clicking continue", async () => {
-    const mockedSelectStep = jest.fn();
+    const mockedSelectStep = vi.fn();
     renderComponent(mockedStore(), { selectStep: mockedSelectStep });
 
     const continueButton = screen.getByRole("button", { name: "Continue" });

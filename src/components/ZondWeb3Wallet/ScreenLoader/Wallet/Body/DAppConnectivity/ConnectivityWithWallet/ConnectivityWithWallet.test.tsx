@@ -1,17 +1,17 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ConnectivityWithWallet from "./ConnectivityWithWallet";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/DAppConnectivity/ConnectivityWithWallet/DAppConnected/DAppConnected",
-  () => () => <div>Mocked DApp Connected</div>,
+  () => ({ default: () => <div>Mocked DApp Connected</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/DAppConnectivity/ConnectivityWithWallet/DAppNotConnected/DAppNotConnected",
-  () => () => <div>Mocked DApp Not Connected</div>,
+  () => ({ default: () => <div>Mocked DApp Not Connected</div> }),
 );
 
 describe("ConnectivityWithWallet", () => {

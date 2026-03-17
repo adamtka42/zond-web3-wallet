@@ -1,23 +1,31 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import ImportLedger from "./ImportLedger";
 
-const mockNavigate = jest.fn();
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual<typeof import("react-router-dom")>("react-router-dom"),
+const {
+  mockNavigate,
+  mockAddLedgerAccountToAllAccounts,
+  mockSetLedgerAccounts,
+  mockGetLedgerAccounts,
+  mockGetAllAccounts,
+} = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+  mockAddLedgerAccountToAllAccounts: vi.fn<any>().mockResolvedValue(undefined),
+  mockSetLedgerAccounts: vi.fn<any>().mockResolvedValue(undefined),
+  mockGetLedgerAccounts: vi.fn<any>().mockResolvedValue([]),
+  mockGetAllAccounts: vi.fn<any>().mockResolvedValue([]),
+}));
+
+vi.mock("react-router-dom", async () => ({
+  ...await vi.importActual<typeof import("react-router-dom")>("react-router-dom"),
   useNavigate: () => mockNavigate,
 }));
 
-let mockAddLedgerAccountToAllAccounts = jest.fn<any>().mockResolvedValue(undefined);
-let mockSetLedgerAccounts = jest.fn<any>().mockResolvedValue(undefined);
-let mockGetLedgerAccounts = jest.fn<any>().mockResolvedValue([]);
-let mockGetAllAccounts = jest.fn<any>().mockResolvedValue([]);
-
-jest.mock("@/utilities/storageUtil", () => {
+vi.mock("@/utilities/storageUtil", async () => {
   const addFn = (...args: any[]) => mockAddLedgerAccountToAllAccounts(...args);
   const setFn = (...args: any[]) => mockSetLedgerAccounts(...args);
   const getFn = (...args: any[]) => mockGetLedgerAccounts(...args);
@@ -37,10 +45,10 @@ describe("ImportLedger", () => {
   afterEach(() => {
     cleanup();
     mockNavigate.mockClear();
-    mockAddLedgerAccountToAllAccounts = jest.fn<any>().mockResolvedValue(undefined);
-    mockSetLedgerAccounts = jest.fn<any>().mockResolvedValue(undefined);
-    mockGetLedgerAccounts = jest.fn<any>().mockResolvedValue([]);
-    mockGetAllAccounts = jest.fn<any>().mockResolvedValue([]);
+    mockAddLedgerAccountToAllAccounts.mockReset().mockResolvedValue(undefined);
+    mockSetLedgerAccounts.mockReset().mockResolvedValue(undefined);
+    mockGetLedgerAccounts.mockReset().mockResolvedValue([]);
+    mockGetAllAccounts.mockReset().mockResolvedValue([]);
   });
 
   const renderComponent = (storeOverrides = {}) =>
@@ -81,7 +89,7 @@ describe("ImportLedger", () => {
     });
 
     it("should call ledgerStore.connect when button is clicked", async () => {
-      const mockConnect = jest.fn<any>().mockResolvedValue(undefined);
+      const mockConnect = vi.fn<any>().mockResolvedValue(undefined);
 
       renderComponent({
         ledgerStore: { connect: mockConnect } as any,
@@ -112,7 +120,7 @@ describe("ImportLedger", () => {
     });
 
     it("should display error when connect throws an Error", async () => {
-      const mockConnect = jest.fn<any>().mockRejectedValue(new Error("WebHID not supported"));
+      const mockConnect = vi.fn<any>().mockRejectedValue(new Error("WebHID not supported"));
 
       renderComponent({
         ledgerStore: { connect: mockConnect } as any,
@@ -126,7 +134,7 @@ describe("ImportLedger", () => {
     });
 
     it("should display generic error when connect throws a non-Error", async () => {
-      const mockConnect = jest.fn<any>().mockRejectedValue("unknown error");
+      const mockConnect = vi.fn<any>().mockRejectedValue("unknown error");
 
       renderComponent({
         ledgerStore: { connect: mockConnect } as any,
@@ -152,7 +160,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -168,7 +176,7 @@ describe("ImportLedger", () => {
           isConnected: true,
           accounts: ledgerAccounts,
           deviceInfo: { model: "Nano S Plus", version: "1.2.3" },
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -183,7 +191,7 @@ describe("ImportLedger", () => {
           isConnected: true,
           accounts: [],
           isLoadingAccounts: true,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -195,7 +203,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -212,7 +220,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -240,7 +248,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -255,15 +263,15 @@ describe("ImportLedger", () => {
         derivationPath: "m/44'/238'/0'/0/5",
         publicKey: "0xpubExisting",
       };
-      mockGetLedgerAccounts = jest.fn<any>().mockResolvedValue([existingAccount]);
+      mockGetLedgerAccounts.mockReset().mockResolvedValue([existingAccount]);
 
-      const mockFetchAccounts = jest.fn<any>().mockResolvedValue(undefined);
+      const mockFetchAccounts = vi.fn<any>().mockResolvedValue(undefined);
 
       renderComponent({
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
         zondStore: {
           fetchAccounts: mockFetchAccounts,
@@ -303,7 +311,7 @@ describe("ImportLedger", () => {
     });
 
     it("should show error when import fails", async () => {
-      mockAddLedgerAccountToAllAccounts = jest.fn<any>().mockRejectedValue(
+      mockAddLedgerAccountToAllAccounts.mockReset().mockRejectedValue(
         new Error("Storage full"),
       );
 
@@ -311,7 +319,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -326,13 +334,13 @@ describe("ImportLedger", () => {
     });
 
     it("should show generic error when import fails with non-Error", async () => {
-      mockAddLedgerAccountToAllAccounts = jest.fn<any>().mockRejectedValue("unknown");
+      mockAddLedgerAccountToAllAccounts.mockReset().mockRejectedValue("unknown");
 
       renderComponent({
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -358,7 +366,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -371,7 +379,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -380,7 +388,7 @@ describe("ImportLedger", () => {
     });
 
     it("should call fetchPageAccounts with next page offset when Next is clicked", async () => {
-      const mockFetchPageAccounts = jest.fn<any>().mockResolvedValue(undefined);
+      const mockFetchPageAccounts = vi.fn<any>().mockResolvedValue(undefined);
 
       renderComponent({
         ledgerStore: {
@@ -399,7 +407,7 @@ describe("ImportLedger", () => {
     });
 
     it("should call fetchPageAccounts with previous page offset when Previous is clicked after Next", async () => {
-      const mockFetchPageAccounts = jest.fn<any>().mockResolvedValue(undefined);
+      const mockFetchPageAccounts = vi.fn<any>().mockResolvedValue(undefined);
 
       renderComponent({
         ledgerStore: {
@@ -428,7 +436,7 @@ describe("ImportLedger", () => {
           isConnected: true,
           accounts: ledgerAccounts,
           isLoadingAccounts: true,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -437,7 +445,7 @@ describe("ImportLedger", () => {
     });
 
     it("should show error when pagination fails", async () => {
-      const mockFetchPageAccounts = jest.fn<any>()
+      const mockFetchPageAccounts = vi.fn<any>()
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce(new Error("Transport error"));
 
@@ -457,7 +465,7 @@ describe("ImportLedger", () => {
     });
 
     it("should show generic error when pagination fails with non-Error", async () => {
-      const mockFetchPageAccounts = jest.fn<any>()
+      const mockFetchPageAccounts = vi.fn<any>()
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce("unknown");
 
@@ -485,7 +493,7 @@ describe("ImportLedger", () => {
     ];
 
     it("should show 'Already imported' for previously imported accounts", async () => {
-      mockGetAllAccounts = jest.fn<any>().mockResolvedValue([
+      mockGetAllAccounts.mockReset().mockResolvedValue([
         ledgerAccounts[0].address,
         ledgerAccounts[2].address,
       ]);
@@ -494,7 +502,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -505,13 +513,13 @@ describe("ImportLedger", () => {
     });
 
     it("should not toggle already-imported accounts when clicked", async () => {
-      mockGetAllAccounts = jest.fn<any>().mockResolvedValue([ledgerAccounts[0].address]);
+      mockGetAllAccounts.mockReset().mockResolvedValue([ledgerAccounts[0].address]);
 
       renderComponent({
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -527,13 +535,13 @@ describe("ImportLedger", () => {
     });
 
     it("should only count newly selected accounts in Import button", async () => {
-      mockGetAllAccounts = jest.fn<any>().mockResolvedValue([ledgerAccounts[0].address]);
+      mockGetAllAccounts.mockReset().mockResolvedValue([ledgerAccounts[0].address]);
 
       renderComponent({
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
       });
 
@@ -550,17 +558,17 @@ describe("ImportLedger", () => {
 
     it("should not re-import already-imported accounts during merge", async () => {
       const existingAccount = ledgerAccounts[0];
-      mockGetAllAccounts = jest.fn<any>().mockResolvedValue([existingAccount.address]);
-      mockGetLedgerAccounts = jest.fn<any>().mockResolvedValue([existingAccount]);
+      mockGetAllAccounts.mockReset().mockResolvedValue([existingAccount.address]);
+      mockGetLedgerAccounts.mockReset().mockResolvedValue([existingAccount]);
 
       renderComponent({
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
         zondStore: {
-          fetchAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchAccounts: vi.fn<any>().mockResolvedValue(undefined),
         },
       });
 
@@ -597,10 +605,10 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: ledgerAccounts,
-          fetchPageAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchPageAccounts: vi.fn<any>().mockResolvedValue(undefined),
         } as any,
         zondStore: {
-          fetchAccounts: jest.fn<any>().mockResolvedValue(undefined),
+          fetchAccounts: vi.fn<any>().mockResolvedValue(undefined),
         },
       });
 
@@ -635,7 +643,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: [],
-          fetchPageAccounts: jest.fn<any>().mockRejectedValue(new Error("App not open")),
+          fetchPageAccounts: vi.fn<any>().mockRejectedValue(new Error("App not open")),
         } as any,
       });
 
@@ -649,7 +657,7 @@ describe("ImportLedger", () => {
         ledgerStore: {
           isConnected: true,
           accounts: [],
-          fetchPageAccounts: jest.fn<any>().mockRejectedValue("unknown"),
+          fetchPageAccounts: vi.fn<any>().mockRejectedValue("unknown"),
         } as any,
       });
 

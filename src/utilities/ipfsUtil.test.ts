@@ -1,4 +1,4 @@
-import { describe, expect, it, jest, beforeEach } from "@jest/globals";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { resolveIpfsUrl, fetchMetadata } from "./ipfsUtil";
 
 describe("resolveIpfsUrl", () => {
@@ -42,7 +42,7 @@ describe("resolveIpfsUrl", () => {
 
 describe("fetchMetadata", () => {
   beforeEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("should return null for empty URI", async () => {
@@ -52,7 +52,7 @@ describe("fetchMetadata", () => {
 
   it("should return parsed JSON on success", async () => {
     const mockData = { name: "Test NFT", image: "ipfs://Qm123" };
-    global.fetch = jest.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve(mockData),
@@ -68,7 +68,7 @@ describe("fetchMetadata", () => {
   });
 
   it("should return null on non-ok response", async () => {
-    global.fetch = jest.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({ ok: false }),
     ) as any;
 
@@ -77,7 +77,7 @@ describe("fetchMetadata", () => {
   });
 
   it("should return null on fetch error", async () => {
-    global.fetch = jest.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.reject(new Error("Network error")),
     ) as any;
 

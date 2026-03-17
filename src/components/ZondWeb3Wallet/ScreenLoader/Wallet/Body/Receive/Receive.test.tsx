@@ -1,12 +1,12 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Receive from "./Receive";
 
-jest.mock("qrcode.react", () => ({
+vi.mock("qrcode.react", () => ({
   QRCodeSVG: ({ value }: { value: string }) => (
     <div data-testid="qr-code" data-value={value} />
   ),
@@ -70,7 +70,7 @@ describe("Receive", () => {
 
   it("should copy address to clipboard on click", async () => {
     const address = "Q20B714091cF2a62DADda2847803e3f1B9D2D3779";
-    const mockedWriteText = jest.fn(() => Promise.resolve());
+    const mockedWriteText = vi.fn(() => Promise.resolve());
     Object.defineProperty(navigator, "clipboard", {
       value: { writeText: mockedWriteText },
       writable: true,

@@ -1,33 +1,34 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import LockPassword from "./LockPassword";
 
-jest.mock("webextension-polyfill", () => {
-  const originalModule = jest.requireActual<
-    typeof import("webextension-polyfill")
-  >("webextension-polyfill");
+vi.mock("webextension-polyfill", async () => {
+  const originalModule: any = await vi.importActual("webextension-polyfill");
   return {
     ...originalModule,
-    tabs: {
-      ...originalModule.tabs,
-      create: jest.fn(),
-    },
-    runtime: {
-      ...originalModule.runtime,
-      getURL: jest.fn().mockReturnValue("chrome-extension://id/index.html"),
+    default: {
+      ...originalModule.default,
+      tabs: {
+        ...originalModule.default?.tabs,
+        create: vi.fn(),
+      },
+      runtime: {
+        ...originalModule.default?.runtime,
+        getURL: vi.fn().mockReturnValue("chrome-extension://id/index.html"),
+      },
     },
   };
 });
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Lock/LockPassword/Onboarding/Onboarding",
-  () => () => <div>Mocked Onboarding</div>,
+  () => ({ default: () => <div>Mocked Onboarding</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Lock/LockPassword/LockPasswordCheck/LockPasswordCheck",
-  () => () => <div>Mocked Lock Password Check</div>,
+  () => ({ default: () => <div>Mocked Lock Password Check</div> }),
 );
 
 describe("LockPassword", () => {

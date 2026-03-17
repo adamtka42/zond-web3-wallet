@@ -1,17 +1,17 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import TokensCardContent from "./TokensCardContent";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Home/AccountCreateImport/ActiveAccountDisplay/TokensCardContent/NativeToken/NativeToken",
-  () => () => <div>Mocked Native token</div>,
+  () => ({ default: () => <div>Mocked Native token</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Home/AccountCreateImport/ActiveAccountDisplay/TokensCardContent/ZRC20Tokens/ZRC20Tokens",
-  () => () => <div>Mocked ZRC 20 token</div>,
+  () => ({ default: () => <div>Mocked ZRC 20 token</div> }),
 );
 
 describe("TokensCardContent", () => {

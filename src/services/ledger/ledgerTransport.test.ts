@@ -1,12 +1,12 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { LEDGER_CONFIG, LEDGER_ERROR_MESSAGES } from "@/constants/ledger";
 import type Transport from "@ledgerhq/hw-transport";
 
 // Mock transport instance
-const mockOn = jest.fn<any>();
-const mockClose = jest.fn<any>();
-const mockSend = jest.fn<any>();
-const mockExchange = jest.fn<any>();
+const mockOn = vi.fn<any>();
+const mockClose = vi.fn<any>();
+const mockSend = vi.fn<any>();
+const mockExchange = vi.fn<any>();
 
 const mockTransportInstance = {
   on: mockOn,
@@ -16,10 +16,10 @@ const mockTransportInstance = {
 };
 
 // Mock the WebHID transport module
-jest.mock("@ledgerhq/hw-transport-webhid", () => ({
+vi.mock("@ledgerhq/hw-transport-webhid", () => ({
   __esModule: true,
   default: {
-    create: jest.fn<any>(),
+    create: vi.fn<any>(),
   },
 }));
 
@@ -122,17 +122,17 @@ class LedgerTransportService {
 }
 
 // Mock the entire ledgerTransport module to avoid import.meta.env parsing
-// Note: We can't reference external variables in jest.mock factory, so we use inline definitions
-jest.mock("./ledgerTransport", () => ({
+// Note: We can't reference external variables in vi.mock factory, so we use inline definitions
+vi.mock("./ledgerTransport", () => ({
   __esModule: true,
   LedgerTransportService: class MockedLedgerTransportService {},
   ledgerTransport: {
-    isSupported: jest.fn<any>(),
-    isConnected: jest.fn<any>(),
-    connect: jest.fn<any>(),
-    disconnect: jest.fn<any>(),
-    send: jest.fn<any>(),
-    onDisconnect: jest.fn<any>(),
+    isSupported: vi.fn<any>(),
+    isConnected: vi.fn<any>(),
+    connect: vi.fn<any>(),
+    disconnect: vi.fn<any>(),
+    send: vi.fn<any>(),
+    onDisconnect: vi.fn<any>(),
   },
 }));
 
@@ -142,7 +142,7 @@ describe("LedgerTransportService", () => {
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockOn.mockReset();
     mockClose.mockReset();
     mockSend.mockReset();
@@ -288,7 +288,7 @@ describe("LedgerTransportService", () => {
       (mockedTransportWebHID.create as any).mockResolvedValue(
         mockTransportInstance
       );
-      const onDisconnect = jest.fn<any>();
+      const onDisconnect = vi.fn<any>();
 
       service.onDisconnect(onDisconnect);
       await service.connect();
@@ -404,7 +404,7 @@ describe("LedgerTransportService", () => {
 
   describe("onDisconnect", () => {
     it("should register callback", () => {
-      const callback = jest.fn<any>();
+      const callback = vi.fn<any>();
 
       service.onDisconnect(callback);
 

@@ -1,26 +1,26 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import TransactionDetail from "./TransactionDetail";
 
-jest.mock("webextension-polyfill", () => ({
+vi.mock("webextension-polyfill", () => ({
   __esModule: true,
   default: {
     tabs: {
-      create: jest.fn(),
+      create: vi.fn(),
     },
   },
 }));
 
-jest.mock("@/utilities/storageUtil", () => ({
+vi.mock("@/utilities/storageUtil", () => ({
   __esModule: true,
   default: {
-    isLedgerAccount: jest.fn<any>().mockResolvedValue(false),
-    getActiveBlockChain: jest.fn<any>().mockResolvedValue({ chainId: "0x1" }),
+    isLedgerAccount: vi.fn<any>().mockResolvedValue(false),
+    getActiveBlockChain: vi.fn<any>().mockResolvedValue({ chainId: "0x1" }),
   },
 }));
 
@@ -166,7 +166,7 @@ describe("TransactionDetail", () => {
   });
 
   it("should copy value to clipboard on copy button click", async () => {
-    const writeText = jest.fn<any>().mockResolvedValue(undefined);
+    const writeText = vi.fn<any>().mockResolvedValue(undefined);
     Object.assign(navigator, { clipboard: { writeText } });
 
     renderComponent(sampleTransaction);
@@ -306,9 +306,9 @@ describe("TransactionDetail", () => {
 
   it("should not call sendRawTransaction for Ledger account replacement", async () => {
     const StorageUtil = (await import("@/utilities/storageUtil")).default;
-    (StorageUtil.isLedgerAccount as jest.Mock<any>).mockResolvedValueOnce(true);
+    (StorageUtil.isLedgerAccount as Mock<any>).mockResolvedValueOnce(true);
 
-    const mockSendRawTransaction = jest.fn<any>();
+    const mockSendRawTransaction = vi.fn<any>();
     const store = mockedStore({
       zondStore: {
         sendRawTransaction: mockSendRawTransaction,
@@ -334,12 +334,12 @@ describe("TransactionDetail", () => {
   });
 
   it("should not call signAndSendReplacement when mnemonic is empty", async () => {
-    const mockSign = jest.fn<any>().mockResolvedValue({
+    const mockSign = vi.fn<any>().mockResolvedValue({
       transactionHash: undefined,
       rawTransaction: undefined,
       error: "",
     });
-    const mockGetMnemonic = jest.fn<any>().mockResolvedValue("");
+    const mockGetMnemonic = vi.fn<any>().mockResolvedValue("");
     const store = mockedStore({
       lockStore: {
         getMnemonicPhrases: mockGetMnemonic,
@@ -367,8 +367,8 @@ describe("TransactionDetail", () => {
   });
 
   it("should not call sendRawTransaction when signAndSend returns error", async () => {
-    const mockSendRaw = jest.fn<any>();
-    const mockSign = jest.fn<any>().mockResolvedValue({
+    const mockSendRaw = vi.fn<any>();
+    const mockSign = vi.fn<any>().mockResolvedValue({
       transactionHash: undefined,
       rawTransaction: undefined,
       error: "Insufficient funds for gas",
@@ -398,8 +398,8 @@ describe("TransactionDetail", () => {
   });
 
   it("should handle successful replacement flow", async () => {
-    const mockUpdateTransaction = jest.fn<any>().mockResolvedValue(undefined);
-    const mockAddTransaction = jest.fn<any>().mockResolvedValue(undefined);
+    const mockUpdateTransaction = vi.fn<any>().mockResolvedValue(undefined);
+    const mockAddTransaction = vi.fn<any>().mockResolvedValue(undefined);
 
     const store = mockedStore({
       zondStore: {

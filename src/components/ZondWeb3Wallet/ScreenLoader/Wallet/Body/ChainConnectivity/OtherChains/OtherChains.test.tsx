@@ -1,17 +1,17 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import OtherChains from "./OtherChains";
 
-jest.mock("@/utilities/storageUtil", () => {
-  const originalModule = jest.requireActual<
+vi.mock("@/utilities/storageUtil", async () => {
+  const originalModule = await vi.importActual<
     typeof import("@/utilities/storageUtil")
   >("@/utilities/storageUtil");
   return {
     ...originalModule,
-    getAllBlockChains: jest.fn(async () => [
+    getAllBlockChains: vi.fn(async () => [
       {
         defaultRpcUrl: "http://testDefaultRpcUrl",
         defaultBlockExplorerUrl: "http://testDefaultExplorerUrl",
@@ -23,9 +23,9 @@ jest.mock("@/utilities/storageUtil", () => {
     ]),
   };
 });
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/OtherChains/OtherChainItem/OtherChainItem",
-  () => () => <div>Mocked Other Chain Item</div>,
+  () => ({ default: () => <div>Mocked Other Chain Item</div> }),
 );
 
 describe("OtherChains", () => {

@@ -1,21 +1,21 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import EditDAppConnectedBlockchains from "./EditDAppConnectedBlockchains";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Shared/BackButton/BackButton",
-  () => () => <div>Mocked Back Button</div>,
+  () => ({ default: () => <div>Mocked Back Button</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/DAppConnectivity/ActiveBrowserTab/ActiveBrowserTabIcon/ActiveBrowserTabIcon",
-  () => () => <div>Mocked Active Browser Tab Icon</div>,
+  () => ({ default: () => <div>Mocked Active Browser Tab Icon</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/PermissionRequiredContent/DAppRequestWebsite/DAppRequestFeature/ZondRequestAccount/ZondRequestAccountContent/ZondRequestAccountBlockchainSelection/ZondRequestAccountBlockchainSelection",
-  () => () => <div>Mocked Zond Request Account Blockchain Selection</div>,
+  () => ({ default: () => <div>Mocked Zond Request Account Blockchain Selection</div> }),
 );
 
 describe("EditDAppConnectedBlockchains", () => {

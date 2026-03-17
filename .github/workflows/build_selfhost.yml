@@ -2,9 +2,9 @@ name: Build & Test zond-web3-wallet.
 
 on:
   push:
-    branches: [main, master, configure-github-action]
+    branches: [main, master, configure-github-action, migrate-jest-to-vitest]
   pull_request:
-    branches: [main, master, configure-github-action]
+    branches: [main, master, configure-github-action, migrate-jest-to-vitest]
   workflow_dispatch:
 
 concurrency:

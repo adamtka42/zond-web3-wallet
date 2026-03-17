@@ -1,7 +1,7 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
@@ -61,7 +61,7 @@ describe("ActiveBrowserTab", () => {
   });
 
   it("should call the disconnectFromCurrentTab function on clicking the disconnect button", async () => {
-    const mockedDisconnectFromCurrentTab = jest.fn(async () => {});
+    const mockedDisconnectFromCurrentTab = vi.fn(async () => {});
     renderComponent(
       mockedStore({
         dAppRequestStore: {

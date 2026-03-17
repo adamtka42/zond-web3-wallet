@@ -1,31 +1,31 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import HiddenAccountsStore from "./hiddenAccountsStore";
 
 const localStore: Record<string, any> = {};
-jest.mock("webextension-polyfill", () => ({
+vi.mock("webextension-polyfill", () => ({
   __esModule: true,
   default: {
     storage: {
       local: {
-        get: jest.fn((key: string) =>
+        get: vi.fn((key: string) =>
           Promise.resolve(key in localStore ? { [key]: localStore[key] } : {}),
         ),
-        set: jest.fn((data: Record<string, any>) => {
+        set: vi.fn((data: Record<string, any>) => {
           Object.assign(localStore, data);
           return Promise.resolve();
         }),
-        remove: jest.fn((key: string) => {
+        remove: vi.fn((key: string) => {
           delete localStore[key];
           return Promise.resolve();
         }),
-        clear: jest.fn(() => {
+        clear: vi.fn(() => {
           for (const k of Object.keys(localStore)) delete localStore[k];
           return Promise.resolve();
         }),
       },
       session: {
-        get: jest.fn(() => Promise.resolve({})),
-        set: jest.fn(() => Promise.resolve()),
+        get: vi.fn(() => Promise.resolve({})),
+        set: vi.fn(() => Promise.resolve()),
       },
     },
   },

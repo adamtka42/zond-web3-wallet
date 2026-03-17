@@ -1,12 +1,12 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import ContactsPage from "./ContactsPage";
 
-jest.mock("@theqrl/web3", () => ({
+vi.mock("@theqrl/web3", () => ({
   validator: {
     isAddressString: (addr: string) =>
       typeof addr === "string" && addr.startsWith("Q") && addr.length >= 41,
@@ -95,7 +95,7 @@ describe("ContactsPage", () => {
   });
 
   it("should call removeContact when delete button is clicked", async () => {
-    const removeContact = jest.fn<any>(() => Promise.resolve());
+    const removeContact = vi.fn<any>(() => Promise.resolve());
     renderComponent(
       mockedStore({
         contactsStore: {
@@ -118,7 +118,7 @@ describe("ContactsPage", () => {
   });
 
   it("should call addContact when saving a new contact", async () => {
-    const addContact = jest.fn<any>(() => Promise.resolve());
+    const addContact = vi.fn<any>(() => Promise.resolve());
     renderComponent(
       mockedStore({
         contactsStore: {
@@ -157,7 +157,7 @@ describe("ContactsPage", () => {
   });
 
   it("should call updateContact when saving an edited contact", async () => {
-    const updateContact = jest.fn<any>(() => Promise.resolve());
+    const updateContact = vi.fn<any>(() => Promise.resolve());
     renderComponent(
       mockedStore({
         contactsStore: {

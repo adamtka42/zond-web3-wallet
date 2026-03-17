@@ -1,13 +1,13 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import AddEditChain from "./AddEditChain";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/NewChain/AddEditChain/AddEditChainForm/AddEditChainForm",
-  () => () => <div>Mocked Add Edit Chain Form</div>,
+  () => ({ default: () => <div>Mocked Add Edit Chain Form</div> }),
 );
 
 describe("AddEditChain", () => {

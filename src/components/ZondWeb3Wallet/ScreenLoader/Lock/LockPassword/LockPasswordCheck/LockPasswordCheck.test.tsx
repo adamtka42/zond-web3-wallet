@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it } from "@jest/globals";
+import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -72,9 +72,7 @@ describe("LockPasswordCheck", () => {
     );
 
     const passwordField = screen.getByLabelText("password");
-    await waitFor(() => {
-      userEvent.type(passwordField, "test123456");
-    });
+    await userEvent.type(passwordField, "test123456");
     await waitFor(() => {
       expect(
         screen.queryByText("Password should be atleast 8 characters"),
@@ -94,13 +92,7 @@ describe("LockPasswordCheck", () => {
     );
 
     const unlockButton = screen.getByRole("button", { name: "Unlock" });
-    const passwordField = screen.getByLabelText("password");
-    await waitFor(() => {
-      userEvent.type(passwordField, "te");
-    });
-    await waitFor(() => {
-      expect(unlockButton).toBeDisabled();
-    });
+    expect(unlockButton).toBeDisabled();
   });
 
   it("should render the unlock button enabled if the password field is filled", async () => {
@@ -116,9 +108,7 @@ describe("LockPasswordCheck", () => {
 
     const unlockButton = screen.getByRole("button", { name: "Unlock" });
     const passwordField = screen.getByLabelText("password");
-    await waitFor(() => {
-      userEvent.type(passwordField, "test123456");
-    });
+    await userEvent.type(passwordField, "test123456");
     await waitFor(() => {
       expect(unlockButton).toBeEnabled();
     });

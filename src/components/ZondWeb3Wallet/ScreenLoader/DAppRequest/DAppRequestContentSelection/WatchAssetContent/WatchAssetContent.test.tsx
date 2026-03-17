@@ -1,21 +1,21 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import WatchAssetContent from "./WatchAssetContent";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Header/ChainBadge/ChainBadge",
-  () => () => <div>Mocked Chain Badge</div>,
+  () => ({ default: () => <div>Mocked Chain Badge</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/WatchAssetContent/WatchAssetInfo/WatchAssetInfo",
-  () => () => <div>Mocked Watch Asset Info</div>,
+  () => ({ default: () => <div>Mocked Watch Asset Info</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/WatchAssetContent/WatchAssetVerification/WatchAssetVerification",
-  () => () => <div>Mocked Watch Asset Verification</div>,
+  () => ({ default: () => <div>Mocked Watch Asset Verification</div> }),
 );
 
 describe("WatchAssetContent", () => {

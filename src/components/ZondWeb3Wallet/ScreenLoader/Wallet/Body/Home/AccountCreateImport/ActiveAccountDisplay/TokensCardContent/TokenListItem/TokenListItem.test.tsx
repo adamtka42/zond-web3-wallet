@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/UI/Tooltip";
@@ -8,18 +8,21 @@ import userEvent from "@testing-library/user-event";
 import { ComponentProps } from "react";
 import TokenListItem from "./TokenListItem";
 
-jest.mock("@/utilities/storageUtil", () => {
-  const originalModule = jest.requireActual<
+vi.mock("@/utilities/storageUtil", async () => {
+  const originalModule = await vi.importActual<
     typeof import("@/utilities/storageUtil")
   >("@/utilities/storageUtil");
   return {
     ...originalModule,
-    clearFromTokenContractsList: jest.fn(async () => {}),
+    default: {
+      ...originalModule.default,
+      clearFromTokenContractsList: vi.fn(async () => {}),
+    },
   };
 });
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Home/AccountCreateImport/ActiveAccountDisplay/TokensCardContent/TokenListItem/TokenListItemIcon/TokenListItemIcon",
-  () => () => <div>Mocked Token List Item Icon</div>,
+  () => ({ default: () => <div>Mocked Token List Item Icon</div> }),
 );
 
 describe("TokenListItem", () => {
@@ -76,7 +79,7 @@ describe("TokenListItem", () => {
   });
 
   it("should hide the token on clicking the hide token button", async () => {
-    const mockedTriggerReRender = jest.fn(() => {});
+    const mockedTriggerReRender = vi.fn(() => {});
     renderComponent(mockedStore(), {
       isZrc20Token: true,
       image: "",

@@ -1,16 +1,16 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, beforeAll, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import SettingsSecurity from "./SettingsSecurity";
 
 beforeAll(() => {
-  Element.prototype.hasPointerCapture = jest.fn(() => false);
-  Element.prototype.setPointerCapture = jest.fn();
-  Element.prototype.releasePointerCapture = jest.fn();
-  Element.prototype.scrollIntoView = jest.fn();
+  Element.prototype.hasPointerCapture = vi.fn(() => false);
+  Element.prototype.setPointerCapture = vi.fn();
+  Element.prototype.releasePointerCapture = vi.fn();
+  Element.prototype.scrollIntoView = vi.fn();
 });
 
 describe("SettingsSecurity", () => {
@@ -40,7 +40,7 @@ describe("SettingsSecurity", () => {
   });
 
   it("should call setAutoLockMinutes when selecting an option", async () => {
-    const setAutoLockMinutes = jest.fn<any>(() => Promise.resolve());
+    const setAutoLockMinutes = vi.fn<any>(() => Promise.resolve());
     renderComponent(mockedStore({ settingsStore: { setAutoLockMinutes } }));
 
     await userEvent.click(
@@ -52,7 +52,7 @@ describe("SettingsSecurity", () => {
   });
 
   it("should call setAutoLockMinutes with 0 for Never", async () => {
-    const setAutoLockMinutes = jest.fn<any>(() => Promise.resolve());
+    const setAutoLockMinutes = vi.fn<any>(() => Promise.resolve());
     renderComponent(mockedStore({ settingsStore: { setAutoLockMinutes } }));
 
     await userEvent.click(
@@ -78,9 +78,9 @@ describe("SettingsSecurity", () => {
   });
 
   it("should call setShowBalanceAndPrice when toggling checkbox", async () => {
-    const setShowBalanceAndPrice = jest.fn<any>(() => Promise.resolve());
-    const fetchPrices = jest.fn<any>(() => Promise.resolve());
-    const startAutoRefresh = jest.fn<any>();
+    const setShowBalanceAndPrice = vi.fn<any>(() => Promise.resolve());
+    const fetchPrices = vi.fn<any>(() => Promise.resolve());
+    const startAutoRefresh = vi.fn<any>();
     renderComponent(
       mockedStore({
         settingsStore: { showBalanceAndPrice: true, setShowBalanceAndPrice },
@@ -97,9 +97,9 @@ describe("SettingsSecurity", () => {
   });
 
   it("should start auto-refresh when enabling balance display", async () => {
-    const setShowBalanceAndPrice = jest.fn<any>(() => Promise.resolve());
-    const fetchPrices = jest.fn<any>(() => Promise.resolve());
-    const startAutoRefresh = jest.fn<any>();
+    const setShowBalanceAndPrice = vi.fn<any>(() => Promise.resolve());
+    const fetchPrices = vi.fn<any>(() => Promise.resolve());
+    const startAutoRefresh = vi.fn<any>();
     renderComponent(
       mockedStore({
         settingsStore: { showBalanceAndPrice: false, setShowBalanceAndPrice },
@@ -118,8 +118,8 @@ describe("SettingsSecurity", () => {
   });
 
   it("should stop auto-refresh when disabling balance display", async () => {
-    const setShowBalanceAndPrice = jest.fn<any>(() => Promise.resolve());
-    const stopAutoRefresh = jest.fn<any>();
+    const setShowBalanceAndPrice = vi.fn<any>(() => Promise.resolve());
+    const stopAutoRefresh = vi.fn<any>();
     renderComponent(
       mockedStore({
         settingsStore: { showBalanceAndPrice: true, setShowBalanceAndPrice },
@@ -208,7 +208,7 @@ describe("SettingsSecurity", () => {
     });
 
     it("should call changePassword and show success on correct password", async () => {
-      const changePassword = jest.fn<any>(() => Promise.resolve(true));
+      const changePassword = vi.fn<any>(() => Promise.resolve(true));
       renderComponent(
         mockedStore({ lockStore: { changePassword } }),
       );
@@ -236,7 +236,7 @@ describe("SettingsSecurity", () => {
     });
 
     it("should show error when current password is incorrect", async () => {
-      const changePassword = jest.fn<any>(() => Promise.resolve(false));
+      const changePassword = vi.fn<any>(() => Promise.resolve(false));
       renderComponent(
         mockedStore({ lockStore: { changePassword } }),
       );

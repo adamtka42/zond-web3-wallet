@@ -1,12 +1,12 @@
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ReplacementConfirmationDialog from "./ReplacementConfirmationDialog";
 
-jest.mock("@theqrl/web3", () => ({
+vi.mock("@theqrl/web3", () => ({
   utils: {
-    fromPlanck: jest.fn<any>(
+    fromPlanck: vi.fn<any>(
       (value: number | bigint, _unit: string) => String(Number(value) / 1e18),
     ),
   },
@@ -38,13 +38,13 @@ const baseTransaction: TransactionHistoryEntry = {
 
 const defaultProps = {
   open: true,
-  onOpenChange: jest.fn<(open: boolean) => void>(),
+  onOpenChange: vi.fn<(open: boolean) => void>(),
   action: "speed-up" as const,
   originalTransaction: baseTransaction,
   estimatedNewGasFee: "0.000000025",
   isProcessing: false,
   error: "",
-  onConfirm: jest.fn(),
+  onConfirm: vi.fn(),
 };
 
 describe("ReplacementConfirmationDialog", () => {
@@ -193,7 +193,7 @@ describe("ReplacementConfirmationDialog", () => {
   // ── Callbacks ──
 
   it("should call onConfirm when confirm button is clicked", async () => {
-    const onConfirm = jest.fn();
+    const onConfirm = vi.fn();
     render(
       <ReplacementConfirmationDialog
         {...defaultProps}

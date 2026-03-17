@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ComponentProps } from "react";
@@ -78,8 +78,8 @@ describe("LockPasswordSetup", () => {
   });
 
   it("should invoke the selectStep method on clicking continue", async () => {
-    const mockedSelectStep = jest.fn();
-    const mockedSetNewPassword = jest.fn();
+    const mockedSelectStep = vi.fn();
+    const mockedSetNewPassword = vi.fn();
     renderComponent(mockedStore(), {
       selectStep: mockedSelectStep,
       setNewPassword: mockedSetNewPassword,

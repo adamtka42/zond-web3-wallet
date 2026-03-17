@@ -1,14 +1,16 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import BackButton from "./BackButton";
 
-const mockedNavigateFunction = jest.fn();
-jest.mock("react-router-dom", () => {
+const { mockedNavigateFunction } = vi.hoisted(() => ({
+  mockedNavigateFunction: vi.fn(),
+}));
+vi.mock("react-router-dom", async () => {
   const originalModule =
-    jest.requireActual<typeof import("react-router-dom")>("react-router-dom");
+    await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
   return {
     __esModule: true,
     ...originalModule,

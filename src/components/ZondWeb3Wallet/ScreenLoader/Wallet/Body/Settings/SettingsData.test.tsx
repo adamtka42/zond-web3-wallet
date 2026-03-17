@@ -1,19 +1,19 @@
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import SettingsData from "./SettingsData";
 
-jest.mock("webextension-polyfill", () => ({
+vi.mock("webextension-polyfill", () => ({
   __esModule: true,
   default: {
     storage: {
       local: {
-        get: jest.fn(() => Promise.resolve({})),
-        set: jest.fn(() => Promise.resolve()),
+        get: vi.fn(() => Promise.resolve({})),
+        set: vi.fn(() => Promise.resolve()),
       },
       session: {
-        get: jest.fn(() => Promise.resolve({})),
-        set: jest.fn(() => Promise.resolve()),
+        get: vi.fn(() => Promise.resolve({})),
+        set: vi.fn(() => Promise.resolve()),
       },
     },
   },

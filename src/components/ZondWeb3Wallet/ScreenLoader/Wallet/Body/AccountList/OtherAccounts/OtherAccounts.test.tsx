@@ -1,15 +1,15 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import OtherAccounts from "./OtherAccounts";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/AccountList/AccountId/AccountId",
-  () => () => <div>Mocked Account Id</div>,
+  () => ({ default: () => <div>Mocked Account Id</div> }),
 );
 
 describe("OtherAccounts", () => {
@@ -75,7 +75,7 @@ describe("OtherAccounts", () => {
   });
 
   it("should call the setActiveAccount function on click of switch", async () => {
-    const mockedSetActiveAccount = jest.fn(async (_activeAccount: string) => {});
+    const mockedSetActiveAccount = vi.fn(async (_activeAccount: string) => {});
     renderComponent(
       twoAccountStore({ setActiveAccount: mockedSetActiveAccount }),
     );
@@ -92,7 +92,7 @@ describe("OtherAccounts", () => {
   it("should call the copyAccount function on clicking the copy item", async () => {
     renderComponent(twoAccountStore());
 
-    const mockedWriteText = jest.fn();
+    const mockedWriteText = vi.fn();
     Object.defineProperty(navigator, "clipboard", {
       value: {
         writeText: mockedWriteText,
@@ -170,7 +170,7 @@ describe("OtherAccounts", () => {
   });
 
   it("should call setLabel on save", async () => {
-    const setLabel = jest.fn<any>(() => Promise.resolve());
+    const setLabel = vi.fn<any>(() => Promise.resolve());
     renderComponent(storeWithLabel({ setLabel }));
 
     await openMenu();
@@ -213,7 +213,7 @@ describe("OtherAccounts", () => {
   });
 
   it("should save on Enter key", async () => {
-    const setLabel = jest.fn<any>(() => Promise.resolve());
+    const setLabel = vi.fn<any>(() => Promise.resolve());
     renderComponent(storeWithLabel({ setLabel }));
 
     await openMenu();
@@ -259,7 +259,7 @@ describe("OtherAccounts", () => {
   });
 
   it("should call hideAccount when Hide is clicked", async () => {
-    const hideAccount = jest.fn<any>(() => Promise.resolve());
+    const hideAccount = vi.fn<any>(() => Promise.resolve());
     renderComponent(
       mockedStore({
         zondStore: {

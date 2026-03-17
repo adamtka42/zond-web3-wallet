@@ -2,7 +2,7 @@ import { mockedStore } from "@/__mocks__/mockedStore";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import { BlockchainDataType } from "@/configuration/zondBlockchainConfig";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi, type MockedFunction } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ComponentProps } from "react";
@@ -11,14 +11,17 @@ import StorageUtil from "@/utilities/storageUtil";
 import ZondStore from "@/stores/zondStore";
 import AddEditChainForm from "./AddEditChainForm";
 
-jest.mock("@/utilities/storageUtil", () => {
-  const originalModule = jest.requireActual<
+vi.mock("@/utilities/storageUtil", async () => {
+  const originalModule = await vi.importActual<
     typeof import("@/utilities/storageUtil")
   >("@/utilities/storageUtil");
   return {
     ...originalModule,
-    getAllBlockChains: jest.fn(),
-    setAllBlockChains: jest.fn(),
+    default: {
+      ...originalModule.default,
+      getAllBlockChains: vi.fn(),
+      setAllBlockChains: vi.fn(),
+    },
   };
 });
 
@@ -106,7 +109,7 @@ describe("AddEditChainForm", () => {
   it("should render the edit chain form component", async () => {
     renderComponent(
       mockedStore({
-        zondStore: { refreshBlockchainData: jest.fn(async () => {}) },
+        zondStore: { refreshBlockchainData: vi.fn(async () => {}) },
       }),
       {
         chainToEdit: {
@@ -208,12 +211,12 @@ describe("AddEditChainForm", () => {
       },
     ];
     (
-      StorageUtil.getAllBlockChains as jest.MockedFunction<
+      StorageUtil.getAllBlockChains as MockedFunction<
         typeof StorageUtil.getAllBlockChains
       >
     ).mockResolvedValue(mockChains);
     (
-      StorageUtil.setAllBlockChains as jest.MockedFunction<
+      StorageUtil.setAllBlockChains as MockedFunction<
         typeof StorageUtil.setAllBlockChains
       >
     ).mockResolvedValue();
@@ -335,12 +338,12 @@ describe("AddEditChainForm", () => {
       },
     ];
     (
-      StorageUtil.getAllBlockChains as jest.MockedFunction<
+      StorageUtil.getAllBlockChains as MockedFunction<
         typeof StorageUtil.getAllBlockChains
       >
     ).mockResolvedValue(mockChains);
     (
-      StorageUtil.setAllBlockChains as jest.MockedFunction<
+      StorageUtil.setAllBlockChains as MockedFunction<
         typeof StorageUtil.setAllBlockChains
       >
     ).mockResolvedValue();
@@ -348,7 +351,7 @@ describe("AddEditChainForm", () => {
       mockedStore({
         zondStore: {
           editChain: ZondStore.prototype.editChain,
-          refreshBlockchainData: jest.fn(async () => {}),
+          refreshBlockchainData: vi.fn(async () => {}),
         },
       }),
       {

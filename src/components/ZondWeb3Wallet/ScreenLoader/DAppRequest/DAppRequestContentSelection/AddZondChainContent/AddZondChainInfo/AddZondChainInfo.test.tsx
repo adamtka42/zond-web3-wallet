@@ -1,17 +1,17 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import AddZondChainInfo from "./AddZondChainInfo";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/AddZondChainContent/AddZondChainInfo/AddZondChainDetails/AddZondChainDetails",
-  () => () => <div>Mocked Add Zond Chain Details</div>,
+  () => ({ default: () => <div>Mocked Add Zond Chain Details</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/AddZondChainContent/AddZondChainInfo/AddZondChainAlert/AddZondChainAlert",
-  () => () => <div>Mocked Add Zond Chain Alert</div>,
+  () => ({ default: () => <div>Mocked Add Zond Chain Alert</div> }),
 );
 
 describe("AddZondChainInfo", () => {

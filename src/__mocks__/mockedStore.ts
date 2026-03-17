@@ -1,12 +1,12 @@
 import {
-  BlockchainDataType,
+  type BlockchainDataType,
   DEFAULT_BLOCKCHAIN,
 } from "@/configuration/zondBlockchainConfig";
-import LockStore from "@/stores/lockStore";
-import SettingsStore from "@/stores/settingsStore";
-import { StoreType } from "@/stores/store";
-import ZondStore from "@/stores/zondStore";
-import { Web3BaseWalletAccount } from "@theqrl/web3";
+import type LockStore from "@/stores/lockStore";
+import type SettingsStore from "@/stores/settingsStore";
+import type { StoreType } from "@/stores/store";
+import type ZondStore from "@/stores/zondStore";
+import type { Web3BaseWalletAccount } from "@theqrl/web3";
 import deepmerge from "deepmerge";
 import { createContext, useContext } from "react";
 import type { PartialDeep } from "type-fest";

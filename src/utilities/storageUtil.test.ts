@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 
 // In-memory mock of browser.storage.local and browser.storage.session
@@ -6,18 +6,18 @@ const localStore: Record<string, any> = {};
 const sessionStore: Record<string, any> = {};
 
 const makeStorageArea = (store: Record<string, any>) => ({
-  get: jest.fn((key: string) =>
+  get: vi.fn((key: string) =>
     Promise.resolve(key in store ? { [key]: store[key] } : {}),
   ),
-  set: jest.fn((data: Record<string, any>) => {
+  set: vi.fn((data: Record<string, any>) => {
     Object.assign(store, data);
     return Promise.resolve();
   }),
-  remove: jest.fn((key: string) => {
+  remove: vi.fn((key: string) => {
     delete store[key];
     return Promise.resolve();
   }),
-  clear: jest.fn(() => {
+  clear: vi.fn(() => {
     for (const k of Object.keys(store)) delete store[k];
     return Promise.resolve();
   }),
@@ -26,7 +26,7 @@ const makeStorageArea = (store: Record<string, any>) => ({
 const mockLocal = makeStorageArea(localStore);
 const mockSession = makeStorageArea(sessionStore);
 
-jest.mock("webextension-polyfill", () => ({
+vi.mock("webextension-polyfill", () => ({
   __esModule: true,
   default: {
     storage: {
@@ -36,7 +36,7 @@ jest.mock("webextension-polyfill", () => ({
   },
 }));
 
-jest.mock("@/configuration/zondBlockchainConfig", () => ({
+vi.mock("@/configuration/zondBlockchainConfig", () => ({
   DEFAULT_BLOCKCHAIN: {
     chainId: "0x1",
     chainName: "Test Chain",
@@ -57,7 +57,7 @@ jest.mock("@/configuration/zondBlockchainConfig", () => ({
   ],
 }));
 
-jest.mock("@theqrl/web3", () => ({
+vi.mock("@theqrl/web3", () => ({
   KeyStore: class {},
 }));
 
@@ -95,7 +95,7 @@ describe("StorageUtil", () => {
   let LockState: typeof import("@/utilities/storageUtil").LockState;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     clearStore(localStore);
     clearStore(sessionStore);
     const module = await import("@/utilities/storageUtil");

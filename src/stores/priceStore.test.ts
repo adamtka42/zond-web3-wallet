@@ -1,9 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-const mockGetPriceCache = jest.fn<any>().mockResolvedValue(null);
-const mockSetPriceCache = jest.fn<any>().mockResolvedValue(undefined);
+const { mockGetPriceCache, mockSetPriceCache } = vi.hoisted(() => ({
+  mockGetPriceCache: vi.fn<any>().mockResolvedValue(null),
+  mockSetPriceCache: vi.fn<any>().mockResolvedValue(undefined),
+}));
 
-jest.mock("@/utilities/storageUtil", () => ({
+vi.mock("@/utilities/storageUtil", () => ({
   __esModule: true,
   default: {
     getPriceCache: (...args: any[]) => mockGetPriceCache(...args),
@@ -12,15 +14,15 @@ jest.mock("@/utilities/storageUtil", () => ({
 }));
 
 // Mock global fetch
-const mockFetch = jest.fn<any>();
+const mockFetch = vi.fn<any>();
 (globalThis as any).fetch = mockFetch;
 
 describe("PriceStore", () => {
   let PriceStore: typeof import("@/stores/priceStore").default;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    vi.clearAllMocks();
+    vi.useFakeTimers();
     mockGetPriceCache.mockResolvedValue(null);
     mockFetch.mockReset();
     const module = await import("@/stores/priceStore");
@@ -28,7 +30,7 @@ describe("PriceStore", () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it("should initialize with default state", () => {
@@ -157,7 +159,7 @@ describe("PriceStore", () => {
 
   it("should set hasError on fetch failure", async () => {
     mockFetch.mockRejectedValue(new Error("Network error"));
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const store = new PriceStore();
     await store.fetchPrices();
@@ -169,7 +171,7 @@ describe("PriceStore", () => {
 
   it("should set hasError on non-ok response", async () => {
     mockFetch.mockResolvedValue({ ok: false, status: 429 });
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const store = new PriceStore();
     await store.fetchPrices();
@@ -184,7 +186,7 @@ describe("PriceStore", () => {
       ok: true,
       json: async () => ({}),
     });
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const store = new PriceStore();
     await store.fetchPrices();
@@ -207,8 +209,8 @@ describe("PriceStore", () => {
     store.startAutoRefresh();
 
     // Advance by 60 seconds
-    jest.advanceTimersByTime(60_000);
-    await jest.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(60_000);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(mockFetch).toHaveBeenCalled();
 
@@ -222,7 +224,7 @@ describe("PriceStore", () => {
 
     // Advance past interval — should not trigger fetch
     mockFetch.mockClear();
-    jest.advanceTimersByTime(120_000);
+    vi.advanceTimersByTime(120_000);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -234,7 +236,7 @@ describe("PriceStore", () => {
 
     // Should be fully stopped
     mockFetch.mockClear();
-    jest.advanceTimersByTime(120_000);
+    vi.advanceTimersByTime(120_000);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 

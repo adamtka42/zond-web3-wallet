@@ -8,9 +8,9 @@
  * callbacks when Jest's fake clock advances past the scheduled time.
  * This lets us "fast-forward" 15, 30, or 60 real minutes in milliseconds.
  */
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// ── Stores (must be prefixed with "mock" for jest.mock hoisting) ────
+// ── Stores (must be prefixed with "mock" for vi.mock hoisting) ────
 const mockLocalStore: Record<string, any> = {};
 const mockSessionStore: Record<string, any> = {};
 
@@ -18,48 +18,48 @@ const mockSessionStore: Record<string, any> = {};
 type MockPendingAlarm = { name: string; scheduledTime: number };
 let mockPendingAlarms: MockPendingAlarm[] = [];
 
-jest.mock("webextension-polyfill", () => ({
+vi.mock("webextension-polyfill", () => ({
   __esModule: true,
   default: {
     storage: {
       local: {
-        get: jest.fn((key: string) =>
+        get: vi.fn((key: string) =>
           Promise.resolve(
             key in mockLocalStore ? { [key]: mockLocalStore[key] } : {},
           ),
         ),
-        set: jest.fn((data: Record<string, any>) => {
+        set: vi.fn((data: Record<string, any>) => {
           Object.assign(mockLocalStore, data);
           return Promise.resolve();
         }),
-        remove: jest.fn((key: string) => {
+        remove: vi.fn((key: string) => {
           delete mockLocalStore[key];
           return Promise.resolve();
         }),
-        clear: jest.fn(() => {
+        clear: vi.fn(() => {
           for (const k of Object.keys(mockLocalStore)) delete mockLocalStore[k];
           return Promise.resolve();
         }),
       },
       session: {
-        get: jest.fn((key: string) =>
+        get: vi.fn((key: string) =>
           Promise.resolve(
             key in mockSessionStore ? { [key]: mockSessionStore[key] } : {},
           ),
         ),
-        set: jest.fn((data: Record<string, any>) => {
+        set: vi.fn((data: Record<string, any>) => {
           Object.assign(mockSessionStore, data);
           return Promise.resolve();
         }),
-        remove: jest.fn((key: string) => {
+        remove: vi.fn((key: string) => {
           delete mockSessionStore[key];
           return Promise.resolve();
         }),
       },
-      onChanged: { addListener: jest.fn() },
+      onChanged: { addListener: vi.fn() },
     },
     alarms: {
-      create: jest.fn((name: string, info: any) => {
+      create: vi.fn((name: string, info: any) => {
         // Remove any existing alarm with the same name (Chrome behaviour)
         mockPendingAlarms = mockPendingAlarms.filter((a) => a.name !== name);
         if (info.periodInMinutes) {
@@ -72,32 +72,32 @@ jest.mock("webextension-polyfill", () => ({
         }
         return Promise.resolve();
       }),
-      clear: jest.fn((name: string) => {
+      clear: vi.fn((name: string) => {
         mockPendingAlarms = mockPendingAlarms.filter((a) => a.name !== name);
         return Promise.resolve(true);
       }),
       onAlarm: {
-        addListener: jest.fn(),
+        addListener: vi.fn(),
       },
     },
     runtime: {
-      onMessage: { addListener: jest.fn() },
-      sendMessage: jest.fn(() => Promise.resolve()),
-      connect: jest.fn(() => ({
-        onDisconnect: { addListener: jest.fn() },
-        disconnect: jest.fn(),
+      onMessage: { addListener: vi.fn() },
+      sendMessage: vi.fn(() => Promise.resolve()),
+      connect: vi.fn(() => ({
+        onDisconnect: { addListener: vi.fn() },
+        disconnect: vi.fn(),
       })),
     },
   },
 }));
 
-jest.mock("@theqrl/web3", () => ({ Bytes: class {} }));
-jest.mock("@theqrl/web3-qrl-accounts", () => ({
-  decrypt: jest.fn(),
-  encrypt: jest.fn(),
+vi.mock("@theqrl/web3", () => ({ Bytes: class {} }));
+vi.mock("@theqrl/web3-qrl-accounts", () => ({
+  decrypt: vi.fn(),
+  encrypt: vi.fn(),
 }));
-jest.mock("@/functions/getMnemonicFromHexSeed", () => ({
-  getMnemonicFromHexSeed: jest.fn(() => "mocked mnemonic"),
+vi.mock("@/functions/getMnemonicFromHexSeed", () => ({
+  getMnemonicFromHexSeed: vi.fn(() => "mocked mnemonic"),
 }));
 
 import LockManager, {
@@ -134,7 +134,7 @@ const minutes = (m: number) => m * 60_000;
  * alarms fired.
  */
 async function advanceAndFireAlarms(ms: number): Promise<number> {
-  jest.advanceTimersByTime(ms);
+  vi.advanceTimersByTime(ms);
   let fired = 0;
   const now = Date.now();
   const due = mockPendingAlarms.filter((a) => a.scheduledTime <= now);
@@ -173,8 +173,8 @@ async function checkLocked(): Promise<boolean> {
 
 describe("Auto-lock integration scenarios", () => {
   beforeEach(async () => {
-    jest.useFakeTimers();
-    jest.clearAllMocks();
+    vi.useFakeTimers();
+    vi.clearAllMocks();
     clearStore(mockLocalStore);
     clearStore(mockSessionStore);
     mockPendingAlarms = [];
@@ -184,7 +184,7 @@ describe("Auto-lock integration scenarios", () => {
 
   afterEach(async () => {
     await LockManager.lock();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // ── Scenario 1: Basic auto-lock at 15 minutes ─────────────────

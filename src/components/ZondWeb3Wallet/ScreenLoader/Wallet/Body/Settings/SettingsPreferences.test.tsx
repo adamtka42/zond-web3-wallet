@@ -1,16 +1,16 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, beforeAll, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import SettingsPreferences from "./SettingsPreferences";
 
 beforeAll(() => {
-  Element.prototype.hasPointerCapture = jest.fn(() => false);
-  Element.prototype.setPointerCapture = jest.fn();
-  Element.prototype.releasePointerCapture = jest.fn();
-  Element.prototype.scrollIntoView = jest.fn();
+  Element.prototype.hasPointerCapture = vi.fn(() => false);
+  Element.prototype.setPointerCapture = vi.fn();
+  Element.prototype.releasePointerCapture = vi.fn();
+  Element.prototype.scrollIntoView = vi.fn();
 });
 
 describe("SettingsPreferences", () => {
@@ -48,7 +48,7 @@ describe("SettingsPreferences", () => {
   });
 
   it("should call setCurrency when selecting a currency", async () => {
-    const setCurrency = jest.fn<any>(() => Promise.resolve());
+    const setCurrency = vi.fn<any>(() => Promise.resolve());
     renderComponent(mockedStore({ settingsStore: { setCurrency } }));
 
     await userEvent.click(
@@ -68,7 +68,7 @@ describe("SettingsPreferences", () => {
   });
 
   it("should call setDefaultGasTier when selecting a gas tier", async () => {
-    const setDefaultGasTier = jest.fn<any>(() => Promise.resolve());
+    const setDefaultGasTier = vi.fn<any>(() => Promise.resolve());
     renderComponent(
       mockedStore({ settingsStore: { setDefaultGasTier } }),
     );

@@ -1,28 +1,34 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import TokenTransfer from "./TokenTransfer";
 
-jest.mock("@theqrl/web3", () => {
+vi.mock("@theqrl/web3", async () => {
   const originalModule =
-    jest.requireActual<typeof import("@theqrl/web3")>("@theqrl/web3");
+    await vi.importActual<typeof import("@theqrl/web3")>("@theqrl/web3");
   return {
     ...originalModule,
-    validator: { isAddressString: jest.fn(() => true) },
+    validator: { isAddressString: vi.fn(() => true) },
   };
 });
 
-const mockGetTransactionValues = jest.fn<any>().mockResolvedValue({
-  receiverAddress: "",
-  amount: 0,
-});
-const mockSetTransactionValues = jest.fn<any>().mockResolvedValue(undefined);
-const mockClearTransactionValues = jest.fn<any>().mockResolvedValue(undefined);
+const {
+  mockGetTransactionValues,
+  mockSetTransactionValues,
+  mockClearTransactionValues,
+} = vi.hoisted(() => ({
+  mockGetTransactionValues: vi.fn<any>().mockResolvedValue({
+    receiverAddress: "",
+    amount: 0,
+  }),
+  mockSetTransactionValues: vi.fn<any>().mockResolvedValue(undefined),
+  mockClearTransactionValues: vi.fn<any>().mockResolvedValue(undefined),
+}));
 
-jest.mock("@/utilities/storageUtil", () => {
+vi.mock("@/utilities/storageUtil", async () => {
   return {
     __esModule: true,
     default: {
@@ -172,7 +178,7 @@ describe("TokenTransfer", () => {
   });
 
   it("should sign and add pending transaction for Ledger account", async () => {
-    const mockAddTransaction = jest.fn<any>().mockResolvedValue(undefined);
+    const mockAddTransaction = vi.fn<any>().mockResolvedValue(undefined);
     const validRawTxHex = "0x02f8a00180843b9aca00843b9aca0082520894";
 
     renderComponent(
@@ -186,7 +192,7 @@ describe("TokenTransfer", () => {
             getTransactionCount: async () => 0,
             getChainId: async () => 1,
           } as any,
-          sendRawTransaction: jest.fn<any>().mockResolvedValue(undefined),
+          sendRawTransaction: vi.fn<any>().mockResolvedValue(undefined),
         },
         transactionHistoryStore: {
           addTransaction: mockAddTransaction,
@@ -230,12 +236,12 @@ describe("TokenTransfer", () => {
   });
 
   it("should add pending transaction and navigate home on successful sign", async () => {
-    const mockAddTransaction = jest.fn<any>().mockResolvedValue(undefined);
+    const mockAddTransaction = vi.fn<any>().mockResolvedValue(undefined);
     renderComponent(
       mockedStore({
         zondStore: {
           signNativeToken: async () => successSignResult,
-          sendRawTransaction: jest.fn<any>().mockResolvedValue(undefined),
+          sendRawTransaction: vi.fn<any>().mockResolvedValue(undefined),
         },
         transactionHistoryStore: {
           addTransaction: mockAddTransaction,
@@ -255,12 +261,12 @@ describe("TokenTransfer", () => {
   });
 
   it("should call addTransaction with pending entry on successful sign", async () => {
-    const mockAddTransaction = jest.fn<any>().mockResolvedValue(undefined);
+    const mockAddTransaction = vi.fn<any>().mockResolvedValue(undefined);
     renderComponent(
       mockedStore({
         zondStore: {
           signNativeToken: async () => successSignResult,
-          sendRawTransaction: jest.fn<any>().mockResolvedValue(undefined),
+          sendRawTransaction: vi.fn<any>().mockResolvedValue(undefined),
         },
         transactionHistoryStore: {
           addTransaction: mockAddTransaction,
@@ -322,11 +328,11 @@ describe("TokenTransfer", () => {
   });
 
   it("should sign ZRC20 token and add pending transaction when token details are set from state", async () => {
-    const mockSignZrc20Token = jest.fn<any>().mockResolvedValue({
+    const mockSignZrc20Token = vi.fn<any>().mockResolvedValue({
       ...successSignResult,
       data: "0xcontractdata",
     });
-    const mockAddTransaction = jest.fn<any>().mockResolvedValue(undefined);
+    const mockAddTransaction = vi.fn<any>().mockResolvedValue(undefined);
 
     renderComponentWithState(
       {
@@ -343,7 +349,7 @@ describe("TokenTransfer", () => {
       mockedStore({
         zondStore: {
           signZrc20Token: mockSignZrc20Token,
-          sendRawTransaction: jest.fn<any>().mockResolvedValue(undefined),
+          sendRawTransaction: vi.fn<any>().mockResolvedValue(undefined),
         },
         transactionHistoryStore: {
           addTransaction: mockAddTransaction,
@@ -401,7 +407,7 @@ describe("TokenTransfer", () => {
       mockedStore({
         zondStore: {
           getAccountBalance: () => "5.0 QRL",
-          getNativeTokenGas: jest.fn(async () => "0.001"),
+          getNativeTokenGas: vi.fn(async () => "0.001"),
         },
       }),
     );
@@ -441,7 +447,7 @@ describe("TokenTransfer", () => {
       mockedStore({
         zondStore: {
           getAccountBalance: () => "100.0 QRL",
-          getNativeTokenGas: jest.fn(async () => "0.001"),
+          getNativeTokenGas: vi.fn(async () => "0.001"),
         },
       }),
     );
@@ -492,7 +498,7 @@ describe("TokenTransfer", () => {
       mockedStore({
         zondStore: {
           getAccountBalance: () => "10.0 QRL",
-          getZrc20TokenGas: jest.fn(async () => "0.001"),
+          getZrc20TokenGas: vi.fn(async () => "0.001"),
         },
       }),
     );
@@ -542,7 +548,7 @@ describe("TokenTransfer", () => {
       mockedStore({
         zondStore: {
           getAccountBalance: () => "0.0 QRL",
-          getZrc20TokenGas: jest.fn(async () => "0.001"),
+          getZrc20TokenGas: vi.fn(async () => "0.001"),
         },
       }),
     );

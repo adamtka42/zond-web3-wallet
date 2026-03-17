@@ -1,17 +1,17 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Wallet from "./Wallet";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Header/Header",
-  () => () => <div>Mocked Header</div>,
+  () => ({ default: () => <div>Mocked Header</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Body",
-  () => () => <div>Mocked Body</div>,
+  () => ({ default: () => <div>Mocked Body</div> }),
 );
 
 describe("Wallet", () => {

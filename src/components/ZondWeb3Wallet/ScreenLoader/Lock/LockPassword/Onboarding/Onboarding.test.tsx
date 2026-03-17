@@ -1,17 +1,17 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Onboarding from "./Onboarding";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Lock/LockPassword/Onboarding/Welcome/Welcome",
-  () => () => <div>Mocked Welcome</div>,
+  () => ({ default: () => <div>Mocked Welcome</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Lock/LockPassword/Onboarding/LockPasswordSetup/LockPasswordSetup",
-  () => () => <div>Mocked Lock Password Setup</div>,
+  () => ({ default: () => <div>Mocked Lock Password Setup</div> }),
 );
 
 describe("Onboarding", () => {

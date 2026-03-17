@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
@@ -9,25 +9,26 @@ import userEvent from "@testing-library/user-event";
 import AddOrImportAccount from "./AddOrImportAccount";
 import { ONBOARDING_STEPS } from "../Onboarding";
 
-jest.mock("@theqrl/web3", () => {
-  return jest.fn().mockImplementation(() => ({
+vi.mock("@theqrl/web3", () => ({
+  default: vi.fn().mockImplementation(() => ({
     qrl: {
       accounts: {
-        create: jest.fn().mockReturnValue({
+        create: vi.fn().mockReturnValue({
           address: "MockedNewAddress",
           seed: "MockedNewSeed",
         }),
-        seedToAccount: jest.fn().mockReturnValue({
+        seedToAccount: vi.fn().mockReturnValue({
           address: "MockedAddress",
           seed: "MockedSeed",
         }),
       },
     },
-  }));
-});
-jest.mock(
+  })),
+  Web3BaseWalletAccount: class {},
+}));
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Lock/LockPassword/Onboarding/AddOrImportAccount/AccountAddressDisplay/AccountAddressDisplay",
-  () => () => <div>Mocked Account Address Display</div>,
+  () => ({ default: () => <div>Mocked Account Address Display</div> }),
 );
 
 describe("AddOrImportAccount", () => {
@@ -77,8 +78,8 @@ describe("AddOrImportAccount", () => {
   });
 
   it("should add a new account on clicking the create a new account button", async () => {
-    const mockedSelectStep = jest.fn();
-    const mockedAddAnAccountToWallet = jest.fn(async () => {});
+    const mockedSelectStep = vi.fn();
+    const mockedAddAnAccountToWallet = vi.fn(async () => {});
     renderComponent(
       mockedStore({
         zondStore: {
@@ -109,8 +110,8 @@ describe("AddOrImportAccount", () => {
   });
 
   it("should import the account on clicking the import account button", async () => {
-    const mockedSelectStep = jest.fn();
-    const mockedAddAnAccountToWallet = jest.fn(async () => {});
+    const mockedSelectStep = vi.fn();
+    const mockedAddAnAccountToWallet = vi.fn(async () => {});
     renderComponent(
       mockedStore({ zondStore: { activeAccount: { accountAddress: "" } } }),
       {
@@ -154,8 +155,8 @@ describe("AddOrImportAccount", () => {
   });
 
   it("should display the account address if account is available", async () => {
-    const mockedSelectStep = jest.fn();
-    const mockedAddAnAccountToWallet = jest.fn(async () => {});
+    const mockedSelectStep = vi.fn();
+    const mockedAddAnAccountToWallet = vi.fn(async () => {});
     renderComponent(
       mockedStore({
         zondStore: {

@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -9,7 +9,7 @@ import TokenImportSuccess from "./TokenImportSuccess";
 describe("TokenImportSuccess", () => {
   afterEach(cleanup);
 
-  const mockedOnCancelImport = jest.fn();
+  const mockedOnCancelImport = vi.fn();
 
   const renderComponent = (mockedStoreValues = mockedStore()) =>
     render(

@@ -1,13 +1,13 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import WatchAssetVerification from "./WatchAssetVerification";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/AddZondChainContent/AddZondChainInfo/AddZondChainDetails/CurrencyImagePreload/CurrencyImagePreload",
-  () => () => <div>Mocked Currency Image Preload</div>,
+  () => ({ default: () => <div>Mocked Currency Image Preload</div> }),
 );
 
 describe("WatchAssetVerification", () => {

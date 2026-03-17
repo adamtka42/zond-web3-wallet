@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 import { LEDGER_CONFIG } from "@/constants/ledger";
 import {
   packDerivationPath,

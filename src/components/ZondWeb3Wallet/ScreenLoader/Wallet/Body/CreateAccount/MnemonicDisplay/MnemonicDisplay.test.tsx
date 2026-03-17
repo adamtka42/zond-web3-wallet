@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Transaction } from "@theqrl/web3";
@@ -11,7 +11,7 @@ import MnemonicDisplay from "./MnemonicDisplay";
 describe("MnemonicDisplay", () => {
   afterEach(cleanup);
 
-  const mockedOnMnemonicNoted = jest.fn();
+  const mockedOnMnemonicNoted = vi.fn();
   const renderComponent = (
     mockedStoreValues = mockedStore(),
     mockedProps: ComponentProps<typeof MnemonicDisplay> = {
@@ -75,7 +75,7 @@ describe("MnemonicDisplay", () => {
     const confirmContinueButton = screen.getByRole("button", {
       name: "Continue",
     });
-    const mockedMnemonicNotedFunction = jest.fn();
+    const mockedMnemonicNotedFunction = vi.fn();
     confirmContinueButton.onclick = mockedMnemonicNotedFunction;
     await act(async () => {
       await userEvent.click(confirmContinueButton);
@@ -86,12 +86,12 @@ describe("MnemonicDisplay", () => {
   it("should download the mnemonic phrases on clicking the download button", async () => {
     renderComponent();
 
-    const mockedCreateObjectURLFunction = jest.fn();
+    const mockedCreateObjectURLFunction = vi.fn();
     Object.defineProperty(URL, "createObjectURL", {
       value: mockedCreateObjectURLFunction,
       writable: true,
     });
-    const mockedRevokeObjectURLFunction = jest.fn();
+    const mockedRevokeObjectURLFunction = vi.fn();
     Object.defineProperty(URL, "revokeObjectURL", {
       value: mockedRevokeObjectURLFunction,
       writable: true,

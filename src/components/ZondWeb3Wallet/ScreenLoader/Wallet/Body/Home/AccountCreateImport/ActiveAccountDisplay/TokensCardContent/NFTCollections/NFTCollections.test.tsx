@@ -1,13 +1,15 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import NFTCollections from "./NFTCollections";
 
-const mockGetNFTCollectionsList = jest.fn<any>().mockResolvedValue([]);
+const { mockGetNFTCollectionsList } = vi.hoisted(() => ({
+  mockGetNFTCollectionsList: vi.fn<any>().mockResolvedValue([]),
+}));
 
-jest.mock("@/utilities/storageUtil", () => ({
+vi.mock("@/utilities/storageUtil", () => ({
   __esModule: true,
   default: {
     getNFTCollectionsList: (...args: any[]) =>
@@ -15,7 +17,7 @@ jest.mock("@/utilities/storageUtil", () => ({
   },
 }));
 
-jest.mock("./NFTCollectionItem/NFTCollectionItem", () => {
+vi.mock("./NFTCollectionItem/NFTCollectionItem", () => {
   const MockItem = ({ contractAddress }: { contractAddress: string }) => (
     <div data-testid={`collection-${contractAddress}`}>{contractAddress}</div>
   );

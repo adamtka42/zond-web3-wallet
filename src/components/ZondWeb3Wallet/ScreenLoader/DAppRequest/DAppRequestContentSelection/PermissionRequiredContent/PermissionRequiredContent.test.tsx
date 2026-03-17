@@ -1,18 +1,18 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import PermissionRequiredContent from "./PermissionRequiredContent";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Header/ChainBadge/ChainBadge",
-  () => () => <div>Mocked Chain Badge</div>,
+  () => ({ default: () => <div>Mocked Chain Badge</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/PermissionRequiredContent/DAppRequestWebsite/DAppRequestWebsite",
-  () => () => <div>Mocked DApp Request Website</div>,
+  () => ({ default: () => <div>Mocked DApp Request Website</div> }),
 );
 
 describe("PermissionRequiredContent", () => {
@@ -51,7 +51,7 @@ describe("PermissionRequiredContent", () => {
   });
 
   it("should call onPermission with false if request is rejected", async () => {
-    const mockedOnPermission = jest.fn(async () => {});
+    const mockedOnPermission = vi.fn(async () => {});
     renderComponent(
       mockedStore({ dAppRequestStore: { onPermission: mockedOnPermission } }),
     );
@@ -65,7 +65,7 @@ describe("PermissionRequiredContent", () => {
   });
 
   it("should call onPermission with true if request is approved", async () => {
-    const mockedOnPermission = jest.fn(async () => {});
+    const mockedOnPermission = vi.fn(async () => {});
     renderComponent(
       mockedStore({
         dAppRequestStore: {

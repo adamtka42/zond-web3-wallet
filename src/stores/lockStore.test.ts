@@ -1,50 +1,52 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Plain object stores (hoisting-safe) ────────────────────────────
 const localStore: Record<string, any> = {};
 
-const mockSendMessage = jest.fn(() => Promise.resolve({} as any));
+const { mockSendMessage } = vi.hoisted(() => ({
+  mockSendMessage: vi.fn(() => Promise.resolve({} as any)),
+}));
 
-jest.mock("webextension-polyfill", () => ({
+vi.mock("webextension-polyfill", () => ({
   __esModule: true,
   default: {
     storage: {
       local: {
-        get: jest.fn((key: string) =>
+        get: vi.fn((key: string) =>
           Promise.resolve(
             key in localStore ? { [key]: localStore[key] } : {},
           ),
         ),
-        set: jest.fn((data: Record<string, any>) => {
+        set: vi.fn((data: Record<string, any>) => {
           Object.assign(localStore, data);
           return Promise.resolve();
         }),
-        remove: jest.fn((key: string) => {
+        remove: vi.fn((key: string) => {
           delete localStore[key];
           return Promise.resolve();
         }),
-        clear: jest.fn(() => {
+        clear: vi.fn(() => {
           for (const k of Object.keys(localStore)) delete localStore[k];
           return Promise.resolve();
         }),
       },
       session: {
-        get: jest.fn(() => Promise.resolve({})),
-        set: jest.fn(() => Promise.resolve()),
+        get: vi.fn(() => Promise.resolve({})),
+        set: vi.fn(() => Promise.resolve()),
       },
-      onChanged: { addListener: jest.fn() },
+      onChanged: { addListener: vi.fn() },
     },
     runtime: {
       sendMessage: mockSendMessage,
-      connect: jest.fn(() => ({
-        onDisconnect: { addListener: jest.fn() },
-        disconnect: jest.fn(),
+      connect: vi.fn(() => ({
+        onDisconnect: { addListener: vi.fn() },
+        disconnect: vi.fn(),
       })),
     },
   },
 }));
 
-jest.mock("@theqrl/web3", () => ({
+vi.mock("@theqrl/web3", () => ({
   Web3BaseWalletAccount: class {},
 }));
 
@@ -64,7 +66,7 @@ const MOCK_KEYS: DecryptedKeyType[] = [
 
 describe("LockStore – readLockState timestamp check", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     clearStore(localStore);
   });
 

@@ -1,18 +1,18 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import ZondRequestAccountContent from "./ZondRequestAccountContent";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/PermissionRequiredContent/DAppRequestWebsite/DAppRequestFeature/ZondRequestAccount/ZondRequestAccountContent/ZondRequestAccountAccountSelection/ZondRequestAccountAccountSelection",
-  () => () => <div>Mocked Zond Request Account Account Selection</div>,
+  () => ({ default: () => <div>Mocked Zond Request Account Account Selection</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/PermissionRequiredContent/DAppRequestWebsite/DAppRequestFeature/ZondRequestAccount/ZondRequestAccountContent/ZondRequestAccountBlockchainSelection/ZondRequestAccountBlockchainSelection",
-  () => () => <div>Mocked Zond Request Account Blockchain Selection</div>,
+  () => ({ default: () => <div>Mocked Zond Request Account Blockchain Selection</div> }),
 );
 
 describe("ZondRequestAccountContent", () => {

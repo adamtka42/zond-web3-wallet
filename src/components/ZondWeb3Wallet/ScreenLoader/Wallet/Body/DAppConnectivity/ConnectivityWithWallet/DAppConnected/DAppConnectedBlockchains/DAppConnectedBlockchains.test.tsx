@@ -1,14 +1,14 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import { StoreProvider } from "@/stores/store";
-import { describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import DAppConnectedBlockchains from "./DAppConnectedBlockchains";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/ChainIcon/ChainIcon",
-  () => () => <div>Mocked Chain Icon</div>,
+  () => ({ default: () => <div>Mocked Chain Icon</div> }),
 );
 
 describe("DAppConnectedBlockchains", () => {

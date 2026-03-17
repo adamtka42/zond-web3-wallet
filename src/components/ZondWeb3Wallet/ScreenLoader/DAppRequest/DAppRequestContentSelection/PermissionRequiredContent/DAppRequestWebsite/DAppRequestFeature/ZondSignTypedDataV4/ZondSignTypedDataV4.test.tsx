@@ -1,17 +1,17 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ZondSignTypedDataV4 from "./ZondSignTypedDataV4";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/PermissionRequiredContent/DAppRequestWebsite/DAppRequestFeature/ZondSignTypedDataV4/ZondSignTypedDataV4Content/ZondSignTypedDataV4Content",
-  () => () => <div>Mocked Zond Sign Typed Data V4 Content</div>,
+  () => ({ default: () => <div>Mocked Zond Sign Typed Data V4 Content</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/PermissionRequiredContent/DAppRequestWebsite/DAppRequestFeature/ZondSignTypedDataV4/PersonalSign/PersonalSign",
-  () => () => <div>Mocked Personal Sign</div>,
+  () => ({ default: () => <div>Mocked Personal Sign</div> }),
 );
 
 describe("ZondSignTypedDataV4", () => {

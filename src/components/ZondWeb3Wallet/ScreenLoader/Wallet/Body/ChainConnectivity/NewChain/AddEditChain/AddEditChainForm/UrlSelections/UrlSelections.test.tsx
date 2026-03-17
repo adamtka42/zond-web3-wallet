@@ -1,16 +1,16 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import UrlSelections from "./UrlSelections";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ChainConnectivity/NewChain/AddEditChain/AddEditChainForm/UrlSelections/AddUrlItem/AddUrlItem",
-  () => () => <div>Mocked Add Url Item</div>,
+  () => ({ default: () => <div>Mocked Add Url Item</div> }),
 );
 
 describe("UrlSelections", () => {
@@ -58,7 +58,7 @@ describe("UrlSelections", () => {
   });
 
   it("should call setDefaultUrl on clicking the default url button", async () => {
-    const mockedSetDefaultUrl = jest.fn(() => {});
+    const mockedSetDefaultUrl = vi.fn(() => {});
     renderComponent(mockedStore(), {
       ...mockedPropsData,
       setDefaultUrl: mockedSetDefaultUrl,
@@ -74,7 +74,7 @@ describe("UrlSelections", () => {
   });
 
   it("should call setUrls with updated list on clicking the delete url button", async () => {
-    const mockedSetUrls = jest.fn(() => {});
+    const mockedSetUrls = vi.fn(() => {});
     renderComponent(mockedStore(), {
       ...mockedPropsData,
       urls: ["http://testUrl1", "http://testUrl2", "http://testUrl3"],

@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ComponentProps } from "react";
@@ -9,8 +9,8 @@ import { TooltipProvider } from "@/components/UI/Tooltip";
 import ZondSendTransactionForContent from "./ZondSendTransactionForContent";
 import { SEND_TRANSACTION_TYPES } from "../ZondSendTransaction";
 
-jest.mock("@/functions/getHexSeedFromMnemonic", () => ({
-  getHexSeedFromMnemonic: jest.fn(() => "0xhexseed"),
+vi.mock("@/functions/getHexSeedFromMnemonic", () => ({
+  getHexSeedFromMnemonic: vi.fn(() => "0xhexseed"),
 }));
 
 describe("ZondSendTransactionForContent", () => {
@@ -73,7 +73,7 @@ describe("ZondSendTransactionForContent", () => {
               rawTransaction: "0xsignedraw",
             }),
           },
-          sendSignedTransaction: jest.fn<any>().mockResolvedValue({
+          sendSignedTransaction: vi.fn<any>().mockResolvedValue({
             transactionHash: "0xtxhash",
           }),
         } as any,
@@ -91,7 +91,7 @@ describe("ZondSendTransactionForContent", () => {
         setOnPermissionCallBack: (cb: any) => {
           capturedPermissionCallback = cb;
         },
-        addToResponseData: overrides.addToResponseData || jest.fn(),
+        addToResponseData: overrides.addToResponseData || vi.fn(),
         ...overrides.dAppRequestStore,
       },
       lockStore: {
@@ -220,10 +220,10 @@ describe("ZondSendTransactionForContent", () => {
 
   describe("sendZndTransfer", () => {
     it("should send QRL transfer via regular account (mnemonic)", async () => {
-      const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
+      const mockSendSignedTransaction = vi.fn<any>().mockResolvedValue({
         transactionHash: "0xtxhash",
       });
-      const mockAddToResponseData = jest.fn();
+      const mockAddToResponseData = vi.fn();
 
       renderComponent(
         createStoreWithCallback({
@@ -257,11 +257,11 @@ describe("ZondSendTransactionForContent", () => {
     });
 
     it("should send QRL transfer via Ledger account", async () => {
-      const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
+      const mockSendSignedTransaction = vi.fn<any>().mockResolvedValue({
         transactionHash: "0xledgertxhash",
       });
-      const mockAddToResponseData = jest.fn();
-      const mockSignAndSerialize = jest.fn<any>().mockResolvedValue("0xledgersigned");
+      const mockAddToResponseData = vi.fn();
+      const mockSignAndSerialize = vi.fn<any>().mockResolvedValue("0xledgersigned");
 
       renderComponent(
         createStoreWithCallback({
@@ -294,7 +294,7 @@ describe("ZondSendTransactionForContent", () => {
     });
 
     it("should send QRL transfer with legacy gas pricing (non-0x2)", async () => {
-      const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
+      const mockSendSignedTransaction = vi.fn<any>().mockResolvedValue({
         transactionHash: "0xtxhash",
       });
       const legacyRequest = { ...zndTransferRequest, type: "0x0" };
@@ -326,7 +326,7 @@ describe("ZondSendTransactionForContent", () => {
     });
 
     it("should handle error when from is missing", async () => {
-      const mockAddToResponseData = jest.fn();
+      const mockAddToResponseData = vi.fn();
       const missingFromRequest = { ...zndTransferRequest, from: "" };
 
       renderComponent(
@@ -349,7 +349,7 @@ describe("ZondSendTransactionForContent", () => {
     });
 
     it("should handle error when Ledger signing fails", async () => {
-      const mockAddToResponseData = jest.fn();
+      const mockAddToResponseData = vi.fn();
 
       renderComponent(
         createStoreWithCallback({
@@ -385,10 +385,10 @@ describe("ZondSendTransactionForContent", () => {
 
   describe("deployContractOrInteract", () => {
     it("should deploy contract via regular account (mnemonic)", async () => {
-      const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
+      const mockSendSignedTransaction = vi.fn<any>().mockResolvedValue({
         transactionHash: "0xdeploytxhash",
       });
-      const mockAddToResponseData = jest.fn();
+      const mockAddToResponseData = vi.fn();
 
       renderComponent(
         createStoreWithCallback({
@@ -422,11 +422,11 @@ describe("ZondSendTransactionForContent", () => {
     });
 
     it("should deploy contract via Ledger account", async () => {
-      const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
+      const mockSendSignedTransaction = vi.fn<any>().mockResolvedValue({
         transactionHash: "0xledgerdeployhash",
       });
-      const mockAddToResponseData = jest.fn();
-      const mockSignAndSerialize = jest.fn<any>().mockResolvedValue("0xledgerdeploy");
+      const mockAddToResponseData = vi.fn();
+      const mockSignAndSerialize = vi.fn<any>().mockResolvedValue("0xledgerdeploy");
 
       renderComponent(
         createStoreWithCallback({
@@ -460,11 +460,11 @@ describe("ZondSendTransactionForContent", () => {
     });
 
     it("should interact with contract via Ledger account (with to address)", async () => {
-      const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
+      const mockSendSignedTransaction = vi.fn<any>().mockResolvedValue({
         transactionHash: "0xledgerinteracthash",
       });
-      const mockAddToResponseData = jest.fn();
-      const mockSignAndSerialize = jest.fn<any>().mockResolvedValue("0xledgerinteract");
+      const mockAddToResponseData = vi.fn();
+      const mockSignAndSerialize = vi.fn<any>().mockResolvedValue("0xledgerinteract");
 
       renderComponent(
         createStoreWithCallback({
@@ -497,10 +497,10 @@ describe("ZondSendTransactionForContent", () => {
     });
 
     it("should use legacy gasPrice for non-0x2 contract deployment via Ledger", async () => {
-      const mockSendSignedTransaction = jest.fn<any>().mockResolvedValue({
+      const mockSendSignedTransaction = vi.fn<any>().mockResolvedValue({
         transactionHash: "0xhash",
       });
-      const mockSignAndSerialize = jest.fn<any>().mockResolvedValue("0xsigned");
+      const mockSignAndSerialize = vi.fn<any>().mockResolvedValue("0xsigned");
       const legacyDeployRequest = { ...contractDeploymentRequest, type: "0x0" };
 
       renderComponent(
@@ -533,7 +533,7 @@ describe("ZondSendTransactionForContent", () => {
     });
 
     it("should handle error when signing returns no rawTransaction", async () => {
-      const mockAddToResponseData = jest.fn();
+      const mockAddToResponseData = vi.fn();
 
       renderComponent(
         createStoreWithCallback({
@@ -568,7 +568,7 @@ describe("ZondSendTransactionForContent", () => {
 
   describe("onPermissionCallBack", () => {
     it("should not execute transaction when hasApproved is false", async () => {
-      const mockSendSignedTransaction = jest.fn<any>();
+      const mockSendSignedTransaction = vi.fn<any>();
 
       renderComponent(
         createStoreWithCallback({
@@ -593,7 +593,7 @@ describe("ZondSendTransactionForContent", () => {
 
   describe("copyData", () => {
     it("should copy data to clipboard when copy button is clicked", async () => {
-      const mockWriteText = jest.fn<any>();
+      const mockWriteText = vi.fn<any>();
       Object.assign(navigator, {
         clipboard: { writeText: mockWriteText },
       });

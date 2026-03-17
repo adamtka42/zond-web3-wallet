@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ComponentProps } from "react";
@@ -43,7 +43,7 @@ describe("StartAccountCreation", () => {
   });
 
   it("should invoke the onAccountCreated method on clicking add account button", async () => {
-    const mockedOnAccountCreated = jest.fn();
+    const mockedOnAccountCreated = vi.fn();
     renderComponent(mockedStore({}), {
       onAccountCreated: mockedOnAccountCreated,
     });

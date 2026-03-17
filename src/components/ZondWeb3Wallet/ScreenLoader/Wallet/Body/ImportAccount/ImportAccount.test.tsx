@@ -1,15 +1,15 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Transaction } from "@theqrl/web3";
 import { MemoryRouter } from "react-router-dom";
 import ImportAccount from "./ImportAccount";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/ImportAccount/AccountImportSuccess/AccountImportSuccess",
-  () => () => <div>Mocked Account Import Success</div>,
+  () => ({ default: () => <div>Mocked Account Import Success</div> }),
 );
 
 describe("ImportAccount", () => {
@@ -66,7 +66,7 @@ describe("ImportAccount", () => {
   it("should call the submit callback on clicking the import account button", async () => {
     renderComponent();
 
-    const handleOnSubmitMock = jest.fn();
+    const handleOnSubmitMock = vi.fn();
     await userEvent.type(
       screen.getByRole("textbox", { name: "mnemonicPhrases" }),
       "knight paddy india glow play chew lame mature sock ill deadly olive blink marble breach hey mile mature tacit mean polo crawl khaya stud number speed viking windy jump subtle mildew sewage",
@@ -112,7 +112,7 @@ describe("ImportAccount", () => {
       }),
     );
 
-    const handleOnSubmitMock = jest.fn();
+    const handleOnSubmitMock = vi.fn();
     await userEvent.type(
       screen.getByRole("textbox", { name: "mnemonicPhrases" }),
       "knight paddy india glow play chew lame mature sock ill deadly olive blink marble breach hey mile mature tacit mean polo crawl khaya stud number speed viking windy jump subtle mildew sewage",

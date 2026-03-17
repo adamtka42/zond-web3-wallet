@@ -1,17 +1,17 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it, vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import ZondWeb3Wallet from "./ZondWeb3Wallet";
 
-jest.mock("@/utilities/storageUtil", () => {
-  const originalModule = jest.requireActual<
+vi.mock("@/utilities/storageUtil", async () => {
+  const originalModule = await vi.importActual<
     typeof import("@/utilities/storageUtil")
   >("@/utilities/storageUtil");
   return {
     ...originalModule,
-    getDAppRequestData: jest.fn(async () => ({
+    getDAppRequestData: vi.fn(async () => ({
       method: "qrl_requestAccounts",
       requestData: {
         senderData: {
@@ -24,12 +24,12 @@ jest.mock("@/utilities/storageUtil", () => {
     })),
   };
 });
-jest.mock("@/components/ZondWeb3Wallet/RouteMonitor/RouteMonitor", () => () => (
-  <div>Mocked Route Monitor</div>
-));
-jest.mock("@/components/ZondWeb3Wallet/ScreenLoader/ScreenLoader", () => () => (
-  <div>Mocked Screen Loader</div>
-));
+vi.mock("@/components/ZondWeb3Wallet/RouteMonitor/RouteMonitor", () => ({
+  default: () => <div>Mocked Route Monitor</div>,
+}));
+vi.mock("@/components/ZondWeb3Wallet/ScreenLoader/ScreenLoader", () => ({
+  default: () => <div>Mocked Screen Loader</div>,
+}));
 
 describe("ZondWeb3Wallet", () => {
   const renderComponent = (mockedStoreValues = mockedStore()) =>

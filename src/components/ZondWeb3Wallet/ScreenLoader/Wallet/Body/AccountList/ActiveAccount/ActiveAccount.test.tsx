@@ -1,15 +1,15 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import ActiveAccount from "./ActiveAccount";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/AccountList/AccountId/AccountId",
-  () => () => <div>Mocked Account Id</div>,
+  () => ({ default: () => <div>Mocked Account Id</div> }),
 );
 
 describe("ActiveAccount", () => {
@@ -68,7 +68,7 @@ describe("ActiveAccount", () => {
       }),
     );
 
-    const mockedWriteText = jest.fn();
+    const mockedWriteText = vi.fn();
     Object.defineProperty(navigator, "clipboard", {
       value: {
         writeText: mockedWriteText,
@@ -120,7 +120,7 @@ describe("ActiveAccount", () => {
   });
 
   it("should call setLabel on save", async () => {
-    const setLabel = jest.fn<any>(() => Promise.resolve());
+    const setLabel = vi.fn<any>(() => Promise.resolve());
     const labels: Record<string, string> = {
       Q20fB08fF1f1376A14C055E9F56df80563E16722b: "Old Name",
     };
@@ -187,7 +187,7 @@ describe("ActiveAccount", () => {
   });
 
   it("should save on Enter key", async () => {
-    const setLabel = jest.fn<any>(() => Promise.resolve());
+    const setLabel = vi.fn<any>(() => Promise.resolve());
     const labels: Record<string, string> = {
       Q20fB08fF1f1376A14C055E9F56df80563E16722b: "Old Name",
     };
@@ -304,8 +304,8 @@ describe("ActiveAccount", () => {
   });
 
   it("should call hideAccount and setActiveAccount when Hide is clicked", async () => {
-    const hideAccount = jest.fn<any>(() => Promise.resolve());
-    const setActiveAccount = jest.fn<any>(() => Promise.resolve());
+    const hideAccount = vi.fn<any>(() => Promise.resolve());
+    const setActiveAccount = vi.fn<any>(() => Promise.resolve());
     renderComponent(
       mockedStore({
         zondStore: {

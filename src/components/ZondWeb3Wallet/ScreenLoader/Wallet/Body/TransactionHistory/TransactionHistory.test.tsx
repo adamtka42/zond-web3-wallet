@@ -1,7 +1,7 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -125,7 +125,7 @@ describe("TransactionHistory", () => {
   });
 
   it("should call setFilter when tab is clicked", async () => {
-    const mockSetFilter = jest.fn<any>();
+    const mockSetFilter = vi.fn<any>();
     renderComponent(
       mockedStore({
         transactionHistoryStore: {

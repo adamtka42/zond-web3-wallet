@@ -1,18 +1,18 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { RESTRICTED_METHODS } from "@/scripts/constants/requestConstants";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import DAppRequestFeature from "./DAppRequestFeature";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/PermissionRequiredContent/DAppRequestWebsite/DAppRequestFeature/ZondRequestAccount/ZondRequestAccount",
-  () => () => <div>Mocked Zond Request Account</div>,
+  () => ({ default: () => <div>Mocked Zond Request Account</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/DAppRequest/DAppRequestContentSelection/PermissionRequiredContent/DAppRequestWebsite/DAppRequestFeature/ZondSendTransaction/ZondSendTransaction",
-  () => () => <div>Mocked Zond Send Transaction</div>,
+  () => ({ default: () => <div>Mocked Zond Send Transaction</div> }),
 );
 
 describe("DAppRequestFeature", () => {

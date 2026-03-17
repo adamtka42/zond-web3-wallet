@@ -1,21 +1,21 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Home from "./Home";
 
-jest.mock("lucide-react", () => {
+vi.mock("lucide-react", async () => {
   const originalModule =
-    jest.requireActual<typeof import("lucide-react")>("lucide-react");
+    await vi.importActual<typeof import("lucide-react")>("lucide-react");
   return {
     ...originalModule,
     Loader: () => <div>Mocked Loader</div>,
   };
 });
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/Home/AccountCreateImport/AccountCreateImport",
-  () => () => <div>Mocked Account Create Import</div>,
+  () => ({ default: () => <div>Mocked Account Create Import</div> }),
 );
 
 describe("Home", () => {

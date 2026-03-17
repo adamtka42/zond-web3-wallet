@@ -1,15 +1,15 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import ZondRequestAccountAccountSelection from "./ZondRequestAccountAccountSelection";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/AccountList/AccountId/AccountId",
-  () => () => <div>Mocked Account ID</div>,
+  () => ({ default: () => <div>Mocked Account ID</div> }),
 );
 
 describe("ZondRequestAccountAccountSelection", () => {
@@ -78,7 +78,7 @@ describe("ZondRequestAccountAccountSelection", () => {
   });
 
   it("should call the account selection callback on clicking checkbox", async () => {
-    const mockedOnAccountSelection = jest.fn(() => {});
+    const mockedOnAccountSelection = vi.fn(() => {});
     renderComponent(
       mockedStore({
         zondStore: {

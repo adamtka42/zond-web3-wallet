@@ -1,6 +1,6 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
@@ -61,7 +61,7 @@ describe("GasFeeNotice", () => {
     renderComponent(
       mockedStore({
         zondStore: {
-          getNativeTokenGas: jest.fn(async () => {
+          getNativeTokenGas: vi.fn(async () => {
             return "2.64";
           }),
         },
@@ -86,11 +86,11 @@ describe("GasFeeNotice", () => {
   });
 
   it("should call onGasFeeCalculated with raw gas fee", async () => {
-    const onGasFeeCalculated = jest.fn<any>();
+    const onGasFeeCalculated = vi.fn<any>();
     renderComponent(
       mockedStore({
         zondStore: {
-          getNativeTokenGas: jest.fn(async () => {
+          getNativeTokenGas: vi.fn(async () => {
             return "2.64";
           }),
         },
@@ -117,7 +117,7 @@ describe("GasFeeNotice", () => {
     renderComponent(
       mockedStore({
         zondStore: {
-          getZrc20TokenGas: jest.fn(
+          getZrc20TokenGas: vi.fn(
             async (
               _from: string,
               _to: string,

@@ -1,26 +1,26 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import Header from "./Header";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Header/ZondWeb3WalletLogo/ZondWeb3WalletLogo",
-  () => () => <div>Mocked Zond Web3 Wallet Logo</div>,
+  () => ({ default: () => <div>Mocked Zond Web3 Wallet Logo</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Header/AccountBadge/AccountBadge",
-  () => () => <div>Mocked Account Badge</div>,
+  () => ({ default: () => <div>Mocked Account Badge</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Header/ChainBadge/ChainBadge",
-  () => () => <div>Mocked Chain Badge</div>,
+  () => ({ default: () => <div>Mocked Chain Badge</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Header/DAppBadge/DAppBadgeIcon/DAppBadgeIcon",
-  () => () => <div>Mocked DApp Badge</div>,
+  () => ({ default: () => <div>Mocked DApp Badge</div> }),
 );
 
 describe("Header", () => {

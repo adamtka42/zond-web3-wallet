@@ -1,11 +1,11 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import NFTGallery from "./NFTGallery";
 
-jest.mock("./NFTGalleryItem", () => {
+vi.mock("./NFTGalleryItem", () => {
   const MockNFTGalleryItem = ({ tokenId }: { tokenId: string }) => (
     <div data-testid={`gallery-item-${tokenId}`}>Token #{tokenId}</div>
   );
@@ -38,7 +38,7 @@ describe("NFTGallery", () => {
   it("should render collection name as title", async () => {
     renderComponent({
       zondStore: {
-        getOwnedNftTokenIds: jest.fn<any>().mockResolvedValue([]),
+        getOwnedNftTokenIds: vi.fn<any>().mockResolvedValue([]),
       },
     });
 
@@ -48,7 +48,7 @@ describe("NFTGallery", () => {
   it("should show empty state when no tokens owned", async () => {
     renderComponent({
       zondStore: {
-        getOwnedNftTokenIds: jest.fn<any>().mockResolvedValue([]),
+        getOwnedNftTokenIds: vi.fn<any>().mockResolvedValue([]),
       },
     });
 
@@ -60,7 +60,7 @@ describe("NFTGallery", () => {
   it("should render gallery items for owned tokens", async () => {
     renderComponent({
       zondStore: {
-        getOwnedNftTokenIds: jest
+        getOwnedNftTokenIds: vi
           .fn<any>()
           .mockResolvedValue(["1", "2", "3"]),
       },
@@ -76,7 +76,7 @@ describe("NFTGallery", () => {
   it("should have a back button", async () => {
     renderComponent({
       zondStore: {
-        getOwnedNftTokenIds: jest.fn<any>().mockResolvedValue([]),
+        getOwnedNftTokenIds: vi.fn<any>().mockResolvedValue([]),
       },
     });
 

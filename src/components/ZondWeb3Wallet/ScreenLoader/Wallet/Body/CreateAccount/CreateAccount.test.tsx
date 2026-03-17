@@ -1,10 +1,50 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import CreateAccount from "./CreateAccount";
+
+const { mockedUseState } = vi.hoisted(() => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useState } = require("react") as typeof import("react");
+  return { mockedUseState: useState };
+});
+vi.mock(
+  "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/CreateAccount/MnemonicDisplay/MnemonicDisplay",
+  () => {
+    return {
+      default: ({ onMnemonicNoted }: { onMnemonicNoted: () => void }) => {
+        const [showConfirm, setShowConfirm] = mockedUseState(false);
+        if (showConfirm) {
+          return (
+            <div>
+              <h2>Important!</h2>
+              <p>
+                It is highly recommended that you continue after downloading the
+                recovery mnemonic phrases. If you already have, please continue.
+              </p>
+              <button onClick={onMnemonicNoted}>Continue</button>
+            </div>
+          );
+        }
+        return (
+          <div>
+            <h3>Keep this safe</h3>
+            <p>
+              {"Don't"} lose this mnemonic phrases. Download it right now. You may
+              need this someday to import or recover your new account Q20504 ...
+              C80A1
+            </p>
+            <button onClick={() => {}}>Download</button>
+            <button onClick={() => setShowConfirm(true)}>Continue</button>
+          </div>
+        );
+      },
+    };
+  },
+);
 
 describe("CreateAccount", () => {
   afterEach(cleanup);

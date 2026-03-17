@@ -6,8 +6,8 @@ import {
   describe,
   expect,
   it,
-  jest,
-} from "@jest/globals";
+  vi,
+} from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ComponentProps } from "react";
@@ -16,7 +16,7 @@ import AccountCreationSuccess from "./AccountCreationSuccess";
 
 describe("AccountCreationSuccess", () => {
   beforeAll(() => {
-    jest.useFakeTimers({ advanceTimers: true });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
   afterEach(cleanup);
 
@@ -74,8 +74,8 @@ describe("AccountCreationSuccess", () => {
 
   it("should copy the account address to clipboard", async () => {
     renderComponent();
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-    const clipboardMock = jest.fn().mockResolvedValue(void 0 as never);
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const clipboardMock = vi.fn().mockResolvedValue(void 0 as never);
     Object.defineProperty(navigator, "clipboard", {
       value: {
         writeText: clipboardMock,
@@ -86,7 +86,7 @@ describe("AccountCreationSuccess", () => {
     expect(screen.getByText("Copy")).toBeInTheDocument();
     await user.click(copyButton);
     expect(screen.getByText("Copied")).toBeInTheDocument();
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     expect(clipboardMock).toHaveBeenCalledTimes(1);
     expect(clipboardMock).toHaveBeenCalledWith(
       "Q205046e6A6E159eD6ACedE46A36CAD6D449C80A1",

@@ -1,42 +1,45 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { TooltipProvider } from "@/components/UI/Tooltip";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import OtherChainItem from "./OtherChainItem";
 
-jest.mock("@/utilities/storageUtil", () => {
-  const originalModule = jest.requireActual<
+vi.mock("@/utilities/storageUtil", async () => {
+  const originalModule = await vi.importActual<
     typeof import("@/utilities/storageUtil")
   >("@/utilities/storageUtil");
   return {
     ...originalModule,
-    getAllBlockChains: jest.fn(async () => []),
-    setAllBlockChains: jest.fn(async () => {}),
-    getActiveBlockChain: jest.fn(async () => ({
-      chainId: "0x5",
-      chainName: "Test chain name",
-      rpcUrls: [],
-      blockExplorerUrls: [],
-      iconUrls: [],
-      nativeCurrency: {
-        name: "Test native currency",
-        symbol: "Test symbol",
-        decimals: 18,
-      },
-      defaultRpcUrl: "http://testDefaultRpcUrl",
-      defaultBlockExplorerUrl: "http://testDefaultExplorerUrl",
-      defaultIconUrl: "http://testDefaultIconUrl",
-      isTestnet: false,
-      defaultWsRpcUrl: "http://testDefaultRpcUrl",
-      isCustomChain: true,
-    })),
-    setActiveBlockChain: jest.fn(async () => {}),
-    getDAppsConnectedAccountsData: jest.fn(async () => {}),
-    setDAppsConnectedAccountsData: jest.fn(async () => {}),
+    default: {
+      ...originalModule.default,
+      getAllBlockChains: vi.fn(async () => []),
+      setAllBlockChains: vi.fn(async () => {}),
+      getActiveBlockChain: vi.fn(async () => ({
+        chainId: "0x5",
+        chainName: "Test chain name",
+        rpcUrls: [],
+        blockExplorerUrls: [],
+        iconUrls: [],
+        nativeCurrency: {
+          name: "Test native currency",
+          symbol: "Test symbol",
+          decimals: 18,
+        },
+        defaultRpcUrl: "http://testDefaultRpcUrl",
+        defaultBlockExplorerUrl: "http://testDefaultExplorerUrl",
+        defaultIconUrl: "http://testDefaultIconUrl",
+        isTestnet: false,
+        defaultWsRpcUrl: "http://testDefaultRpcUrl",
+        isCustomChain: true,
+      })),
+      setActiveBlockChain: vi.fn(async () => {}),
+      getDAppsConnectedAccountsData: vi.fn(async () => {}),
+      setDAppsConnectedAccountsData: vi.fn(async () => {}),
+    },
   };
 });
 
@@ -64,7 +67,7 @@ describe("OtherChains", () => {
         defaultWsRpcUrl: "http://testDefaultRpcUrl",
         isCustomChain: true,
       },
-      triggerReRender: jest.fn(),
+      triggerReRender: vi.fn(),
     },
   ) =>
     render(
@@ -97,7 +100,7 @@ describe("OtherChains", () => {
   });
 
   it("should call the select chain method on clicking the connect button", async () => {
-    const mockedSelectBlockchain = jest.fn(async () => {});
+    const mockedSelectBlockchain = vi.fn(async () => {});
     renderComponent(
       mockedStore({
         zondStore: { selectBlockchain: mockedSelectBlockchain },
@@ -140,7 +143,7 @@ describe("OtherChains", () => {
   });
 
   it("should disable the delete button is the chain is not custom", async () => {
-    const mockedTriggerReRender = jest.fn();
+    const mockedTriggerReRender = vi.fn();
     renderComponent(
       mockedStore({
         dAppRequestStore: {
@@ -182,7 +185,7 @@ describe("OtherChains", () => {
   });
 
   it("should call the setAllBlockChains method on clicking delete button", async () => {
-    const mockedTriggerReRender = jest.fn();
+    const mockedTriggerReRender = vi.fn();
     renderComponent(
       mockedStore({
         dAppRequestStore: {

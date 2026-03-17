@@ -1,18 +1,19 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 
-const mockGetTransactionHistory = jest.fn<any>().mockResolvedValue([]);
-const mockSetTransactionHistoryEntry = jest
-  .fn<any>()
-  .mockResolvedValue(undefined);
-const mockClearTransactionHistory = jest
-  .fn<any>()
-  .mockResolvedValue(undefined);
-const mockUpdateTransactionHistoryEntry = jest
-  .fn<any>()
-  .mockResolvedValue(undefined);
+const {
+  mockGetTransactionHistory,
+  mockSetTransactionHistoryEntry,
+  mockClearTransactionHistory,
+  mockUpdateTransactionHistoryEntry,
+} = vi.hoisted(() => ({
+  mockGetTransactionHistory: vi.fn<any>().mockResolvedValue([]),
+  mockSetTransactionHistoryEntry: vi.fn<any>().mockResolvedValue(undefined),
+  mockClearTransactionHistory: vi.fn<any>().mockResolvedValue(undefined),
+  mockUpdateTransactionHistoryEntry: vi.fn<any>().mockResolvedValue(undefined),
+}));
 
-jest.mock("@/utilities/storageUtil", () => ({
+vi.mock("@/utilities/storageUtil", () => ({
   __esModule: true,
   default: {
     getTransactionHistory: (...args: any[]) =>
@@ -53,15 +54,15 @@ describe("TransactionHistoryStore", () => {
   let TransactionHistoryStore: typeof import("@/stores/transactionHistoryStore").default;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    vi.clearAllMocks();
+    vi.useFakeTimers();
     mockGetTransactionHistory.mockResolvedValue([]);
     const module = await import("@/stores/transactionHistoryStore");
     TransactionHistoryStore = module.default;
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it("should initialize with empty state", () => {
@@ -154,7 +155,7 @@ describe("TransactionHistoryStore", () => {
 
   it("should handle storage errors gracefully in loadHistory", async () => {
     mockGetTransactionHistory.mockRejectedValue(new Error("Storage error"));
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const store = new TransactionHistoryStore();
     await store.loadHistory("Q20B714091cF2a62DADda2847803e3f1B9D2D3779");
@@ -211,7 +212,7 @@ describe("TransactionHistoryStore", () => {
     });
 
     const mockQrlInstance = {
-      getTransactionReceipt: jest.fn<any>().mockResolvedValue({
+      getTransactionReceipt: vi.fn<any>().mockResolvedValue({
         status: BigInt(1),
         blockNumber: BigInt(200),
         gasUsed: BigInt(21000),
@@ -230,10 +231,10 @@ describe("TransactionHistoryStore", () => {
     store.startPolling("Q20B714091cF2a62DADda2847803e3f1B9D2D3779", mockQrlInstance);
 
     // Advance timer to trigger polling
-    jest.advanceTimersByTime(10000);
+    vi.advanceTimersByTime(10000);
 
     // Wait for async operations
-    await jest.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(mockQrlInstance.getTransactionReceipt).toHaveBeenCalledWith("0xpending1");
     expect(mockUpdateTransactionHistoryEntry).toHaveBeenCalledWith(
@@ -255,7 +256,7 @@ describe("TransactionHistoryStore", () => {
     });
 
     const mockQrlInstance = {
-      getTransactionReceipt: jest.fn<any>().mockResolvedValue({
+      getTransactionReceipt: vi.fn<any>().mockResolvedValue({
         status: BigInt(0),
         blockNumber: BigInt(200),
         gasUsed: BigInt(21000),
@@ -272,8 +273,8 @@ describe("TransactionHistoryStore", () => {
 
     store.startPolling("Q20B714091cF2a62DADda2847803e3f1B9D2D3779", mockQrlInstance);
 
-    jest.advanceTimersByTime(10000);
-    await jest.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(10000);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(mockUpdateTransactionHistoryEntry).toHaveBeenCalledWith(
       "Q20B714091cF2a62DADda2847803e3f1B9D2D3779",
@@ -294,7 +295,7 @@ describe("TransactionHistoryStore", () => {
     });
 
     const mockQrlInstance = {
-      getTransactionReceipt: jest.fn<any>().mockResolvedValue(undefined),
+      getTransactionReceipt: vi.fn<any>().mockResolvedValue(undefined),
     };
 
     const store = new TransactionHistoryStore();
@@ -302,8 +303,8 @@ describe("TransactionHistoryStore", () => {
 
     store.startPolling("Q20B714091cF2a62DADda2847803e3f1B9D2D3779", mockQrlInstance);
 
-    jest.advanceTimersByTime(10000);
-    await jest.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(10000);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(mockQrlInstance.getTransactionReceipt).toHaveBeenCalledWith("0xstillpending");
     expect(mockUpdateTransactionHistoryEntry).not.toHaveBeenCalled();
@@ -315,7 +316,7 @@ describe("TransactionHistoryStore", () => {
     const confirmedEntry = makeSampleEntry({ pendingStatus: "confirmed" });
 
     const mockQrlInstance = {
-      getTransactionReceipt: jest.fn<any>(),
+      getTransactionReceipt: vi.fn<any>(),
     };
 
     const store = new TransactionHistoryStore();
@@ -323,8 +324,8 @@ describe("TransactionHistoryStore", () => {
 
     store.startPolling("Q20B714091cF2a62DADda2847803e3f1B9D2D3779", mockQrlInstance);
 
-    jest.advanceTimersByTime(10000);
-    await jest.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(10000);
+    await vi.advanceTimersByTimeAsync(0);
 
     // Should not have called getTransactionReceipt since no pending txs
     expect(mockQrlInstance.getTransactionReceipt).not.toHaveBeenCalled();
@@ -337,18 +338,18 @@ describe("TransactionHistoryStore", () => {
     });
 
     const mockQrlInstance = {
-      getTransactionReceipt: jest.fn<any>().mockRejectedValue(new Error("Network error")),
+      getTransactionReceipt: vi.fn<any>().mockRejectedValue(new Error("Network error")),
     };
 
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const store = new TransactionHistoryStore();
     store.transactions = [pendingEntry];
 
     store.startPolling("Q20B714091cF2a62DADda2847803e3f1B9D2D3779", mockQrlInstance);
 
-    jest.advanceTimersByTime(10000);
-    await jest.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(10000);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(consoleSpy).toHaveBeenCalledWith(
       "Polling error for 0xerror:",
@@ -361,7 +362,7 @@ describe("TransactionHistoryStore", () => {
 
   it("should stop previous polling when startPolling is called again", () => {
     const mockQrlInstance = {
-      getTransactionReceipt: jest.fn<any>(),
+      getTransactionReceipt: vi.fn<any>(),
     };
 
     const store = new TransactionHistoryStore();
@@ -385,15 +386,15 @@ describe("TransactionHistoryStore", () => {
     mockGetTransactionHistory.mockResolvedValue([pendingEntry]);
 
     const mockQrlInstance = {
-      getTransactionReceipt: jest.fn<any>().mockResolvedValue(undefined),
+      getTransactionReceipt: vi.fn<any>().mockResolvedValue(undefined),
     };
 
     const store = new TransactionHistoryStore();
     await store.loadHistory("Q20B714091cF2a62DADda2847803e3f1B9D2D3779", mockQrlInstance);
 
     // Advance timer to verify polling was started
-    jest.advanceTimersByTime(10000);
-    await jest.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(10000);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(mockQrlInstance.getTransactionReceipt).toHaveBeenCalled();
 
@@ -405,14 +406,14 @@ describe("TransactionHistoryStore", () => {
     mockGetTransactionHistory.mockResolvedValue([confirmedEntry]);
 
     const mockQrlInstance = {
-      getTransactionReceipt: jest.fn<any>(),
+      getTransactionReceipt: vi.fn<any>(),
     };
 
     const store = new TransactionHistoryStore();
     await store.loadHistory("Q20B714091cF2a62DADda2847803e3f1B9D2D3779", mockQrlInstance);
 
-    jest.advanceTimersByTime(10000);
-    await jest.advanceTimersByTimeAsync(0);
+    vi.advanceTimersByTime(10000);
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(mockQrlInstance.getTransactionReceipt).not.toHaveBeenCalled();
   });

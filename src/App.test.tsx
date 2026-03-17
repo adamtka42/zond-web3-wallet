@@ -1,5 +1,5 @@
 import App from "@/App";
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 
 describe("App", () => {

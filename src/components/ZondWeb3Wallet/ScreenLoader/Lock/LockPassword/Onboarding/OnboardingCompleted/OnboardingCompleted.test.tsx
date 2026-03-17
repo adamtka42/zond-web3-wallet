@@ -6,8 +6,8 @@ import {
   describe,
   expect,
   it,
-  jest,
-} from "@jest/globals";
+  vi,
+} from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
@@ -16,7 +16,7 @@ import OnboardingCompleted from "./OnboardingCompleted";
 describe("OnboardingCompleted", () => {
   beforeEach(() => {
     Object.defineProperty(window, "close", {
-      value: jest.fn(),
+      value: vi.fn(),
       writable: true,
     });
   });

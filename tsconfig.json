@@ -26,6 +26,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "public", "jest.setup.ts"],
+  "include": ["src", "public", "vitest.setup.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

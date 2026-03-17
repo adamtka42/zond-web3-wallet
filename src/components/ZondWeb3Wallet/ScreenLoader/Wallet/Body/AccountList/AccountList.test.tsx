@@ -1,28 +1,30 @@
 import { mockedStore } from "@/__mocks__/mockedStore";
 import { StoreProvider } from "@/stores/store";
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import AccountList from "./AccountList";
 
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/AccountList/NewAccount/NewAccount",
-  () => () => <div>Mocked New Account</div>,
+  () => ({ default: () => <div>Mocked New Account</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/AccountList/ActiveAccount/ActiveAccount",
-  () => () => <div>Mocked Active Account</div>,
+  () => ({ default: () => <div>Mocked Active Account</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/AccountList/OtherAccounts/OtherAccounts",
-  () => () => <div>Mocked Other Account</div>,
+  () => ({ default: () => <div>Mocked Other Account</div> }),
 );
-jest.mock(
+vi.mock(
   "@/components/ZondWeb3Wallet/ScreenLoader/Wallet/Body/AccountList/AccountId/AccountId",
-  () => ({ account }: { account: string }) => (
-    <div>Mocked AccountId {account}</div>
-  ),
+  () => ({
+    default: ({ account }: { account: string }) => (
+      <div>Mocked AccountId {account}</div>
+    ),
+  }),
 );
 
 describe("AccountList", () => {
@@ -128,7 +130,7 @@ describe("AccountList", () => {
   });
 
   it("should call unhideAccount when unhide button is clicked", async () => {
-    const unhideAccount = jest.fn<any>(() => Promise.resolve());
+    const unhideAccount = vi.fn<any>(() => Promise.resolve());
     const hidden: Record<string, boolean> = {
       Q20fB08fF1f1376A14C055E9F56df80563E16722b: true,
     };

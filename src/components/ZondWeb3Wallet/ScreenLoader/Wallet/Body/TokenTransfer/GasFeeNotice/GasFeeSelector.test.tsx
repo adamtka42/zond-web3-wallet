@@ -6,8 +6,8 @@ import {
   describe,
   expect,
   it,
-  jest,
-} from "@jest/globals";
+  vi,
+} from "vitest";
 import {
   act,
   cleanup,
@@ -21,9 +21,9 @@ import { MemoryRouter } from "react-router-dom";
 import { GasFeeSelector } from "./GasFeeSelector";
 
 beforeAll(() => {
-  Element.prototype.hasPointerCapture = jest.fn(() => false);
-  Element.prototype.setPointerCapture = jest.fn();
-  Element.prototype.releasePointerCapture = jest.fn();
+  Element.prototype.hasPointerCapture = vi.fn(() => false);
+  Element.prototype.setPointerCapture = vi.fn();
+  Element.prototype.releasePointerCapture = vi.fn();
 });
 
 describe("GasFeeSelector", () => {
@@ -37,8 +37,8 @@ describe("GasFeeSelector", () => {
     to: "0x20fB08fF1f1376A14C055E9F56df80563E16722b",
     value: 1.5,
     disabled: false,
-    onOverridesChange: jest.fn<any>(),
-    onGasFeeCalculated: jest.fn<any>(),
+    onOverridesChange: vi.fn<any>(),
+    onGasFeeCalculated: vi.fn<any>(),
   };
 
   const renderComponent = (
@@ -73,7 +73,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should render estimated costs for each tier", async () => {
-    const getNativeTokenGas = jest.fn<any>(async () => "0.042");
+    const getNativeTokenGas = vi.fn<any>(async () => "0.042");
     renderComponent(
       mockedStore({ zondStore: { getNativeTokenGas } }),
     );
@@ -84,7 +84,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should call onOverridesChange when selecting a tier", async () => {
-    const onOverridesChange = jest.fn<any>();
+    const onOverridesChange = vi.fn<any>();
     renderComponent(undefined, { onOverridesChange });
 
     await act(async () => {
@@ -95,7 +95,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should call onOverridesChange with aggressive tier", async () => {
-    const onOverridesChange = jest.fn<any>();
+    const onOverridesChange = vi.fn<any>();
     renderComponent(undefined, { onOverridesChange });
 
     await act(async () => {
@@ -124,7 +124,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should pre-fill advanced inputs with market values", async () => {
-    const getGasFeeData = jest.fn<any>(async () => ({
+    const getGasFeeData = vi.fn<any>(async () => ({
       baseFeePerGas: BigInt(1000),
       maxPriorityFeePerGas: BigInt(300),
       maxFeePerGas: BigInt(1300),
@@ -144,7 +144,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should collapse advanced and revert to selected tier", async () => {
-    const onOverridesChange = jest.fn<any>();
+    const onOverridesChange = vi.fn<any>();
     renderComponent(undefined, { onOverridesChange });
 
     // First select Low
@@ -177,7 +177,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should emit advanced overrides when typing in inputs", async () => {
-    const onOverridesChange = jest.fn<any>();
+    const onOverridesChange = vi.fn<any>();
     renderComponent(undefined, { onOverridesChange });
 
     await act(async () => {
@@ -215,7 +215,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should use defaultGasTier from settings as initial selection", async () => {
-    const onOverridesChange = jest.fn<any>();
+    const onOverridesChange = vi.fn<any>();
     renderComponent(
       mockedStore({
         settingsStore: { defaultGasTier: "aggressive" as const },
@@ -241,8 +241,8 @@ describe("GasFeeSelector", () => {
   });
 
   it("should call onGasFeeCalculated when tier is selected and costs are loaded", async () => {
-    const onGasFeeCalculated = jest.fn<any>();
-    const getNativeTokenGas = jest.fn<any>(async () => "0.042");
+    const onGasFeeCalculated = vi.fn<any>();
+    const getNativeTokenGas = vi.fn<any>(async () => "0.042");
     renderComponent(
       mockedStore({ zondStore: { getNativeTokenGas } }),
       { onGasFeeCalculated },
@@ -260,7 +260,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should handle gas calculation errors gracefully", async () => {
-    const getNativeTokenGas = jest.fn<any>(async () => {
+    const getNativeTokenGas = vi.fn<any>(async () => {
       throw new Error("RPC error");
     });
     renderComponent(
@@ -277,8 +277,8 @@ describe("GasFeeSelector", () => {
   });
 
   it("should open advanced with fallback when getGasFeeData throws", async () => {
-    const onOverridesChange = jest.fn<any>();
-    const getGasFeeData = jest.fn<any>(async () => {
+    const onOverridesChange = vi.fn<any>();
+    const getGasFeeData = vi.fn<any>(async () => {
       throw new Error("RPC error");
     });
     renderComponent(
@@ -303,7 +303,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should handle typing in maxFeePerGas and gasLimit advanced inputs", async () => {
-    const onOverridesChange = jest.fn<any>();
+    const onOverridesChange = vi.fn<any>();
     renderComponent(undefined, { onOverridesChange });
 
     await act(async () => {
@@ -335,7 +335,7 @@ describe("GasFeeSelector", () => {
   });
 
   it("should calculate gas for ZRC-20 tokens", async () => {
-    const getZrc20TokenGas = jest.fn<any>(async () => "1.5");
+    const getZrc20TokenGas = vi.fn<any>(async () => "1.5");
     renderComponent(
       mockedStore({ zondStore: { getZrc20TokenGas } }),
       {
