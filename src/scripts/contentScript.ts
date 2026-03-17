@@ -58,7 +58,7 @@ const setupPageStreams = () => {
   pageMux.setMaxListeners(25);
 
   pipeline(pageMux, pageStream, pageMux, (err: Error | null) => {
-    console.warn("ZondWeb3Wallet: Inpage Multiplex", err);
+    console.warn("QrlWeb3Wallet: Inpage Multiplex", err);
   });
 
   pageChannel = pageMux.createStream(QRL_WALLET_PROVIDER_NAME);
@@ -167,7 +167,7 @@ const setupExtensionStreams = () => {
   extensionMux.setMaxListeners(25);
 
   pipeline(extensionMux, extensionStream, extensionMux, (err: Error | null) => {
-    console.warn("ZondWeb3Wallet: Background Multiplex", err);
+    console.warn("QrlWeb3Wallet: Background Multiplex", err);
     notifyInpageOfStreamFailure();
   });
 
@@ -175,7 +175,7 @@ const setupExtensionStreams = () => {
   extensionChannel = extensionMux.createStream(QRL_WALLET_PROVIDER_NAME);
   pipeline(pageChannel, extensionChannel, pageChannel, (error: Error | null) =>
     console.warn(
-      `ZondWeb3Wallet: Muxed traffic for channel "${QRL_WALLET_PROVIDER_NAME}" failed.`,
+      `QrlWeb3Wallet: Muxed traffic for channel "${QRL_WALLET_PROVIDER_NAME}" failed.`,
       error,
     ),
   );
@@ -190,7 +190,7 @@ const prepareListeners = () => {
       if (!extensionStream) {
         setupExtensionStreams();
       }
-      return "ZondWeb3Wallet: handled service worker ready message";
+      return "QrlWeb3Wallet: handled service worker ready message";
     } else if (message.name === EXTENSION_MESSAGES.UNRESTRICTED_METHOD_CALLS) {
       const { provider, qrl, defaultWsRpcUrl } = await getQrlProperties();
       const method = message.data.method;
@@ -429,7 +429,7 @@ const initializeContentScript = () => {
     keepServiceWorkerActive();
   } catch (error) {
     console.warn(
-      "ZondWeb3Wallet: Failed to initialize the content script\n",
+      "QrlWeb3Wallet: Failed to initialize the content script\n",
       error,
     );
   }

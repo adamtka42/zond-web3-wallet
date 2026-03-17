@@ -88,7 +88,7 @@ export {
   splitIntoChunks,
   combineSignatureChunks,
   // Response parsing
-  parseZondAddress,
+  parseQrlAddress,
   parseAppVersion,
   parseAppName,
   checkStatusWord,

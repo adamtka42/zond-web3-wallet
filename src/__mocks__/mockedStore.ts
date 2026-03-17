@@ -1,11 +1,11 @@
 import {
   BlockchainDataType,
   DEFAULT_BLOCKCHAIN,
-} from "@/configuration/zondBlockchainConfig";
+} from "@/configuration/qrlBlockchainConfig";
 import LockStore from "@/stores/lockStore";
 import SettingsStore from "@/stores/settingsStore";
 import { StoreType } from "@/stores/store";
-import ZondStore from "@/stores/zondStore";
+import QrlStore from "@/stores/qrlStore";
 import { Web3BaseWalletAccount } from "@theqrl/web3";
 import deepmerge from "deepmerge";
 import { createContext, useContext } from "react";
@@ -32,22 +32,22 @@ const mockedStoreValues: StoreType = {
     setShowBalanceAndPrice: async () => {},
     setSidePanelPreferred: async () => {},
   } as unknown as SettingsStore,
-  zondStore: {
+  qrlStore: {
     activeAccount: {
       accountAddress: "Q20B714091cF2a62DADda2847803e3f1B9D2D3779",
     },
-    zondAccounts: {
+    qrlAccounts: {
       isLoading: false,
       accounts: [],
     },
-    zondConnection: {
+    qrlConnection: {
       isConnected: true,
       isLoading: false,
       blockchain: DEFAULT_BLOCKCHAIN,
     },
     qrlInstance: undefined,
     fetchAccounts: async () => {},
-    fetchZondConnection: async () => {},
+    fetchQrlConnection: async () => {},
     getAccountBalance: (_accountAddress: string) => {
       return "0.0 QRL";
     },
@@ -122,7 +122,7 @@ const mockedStoreValues: StoreType = {
     editChain: async (_chainData: BlockchainDataType) => {
       return { updatedChainList: [] };
     },
-  } as unknown as ZondStore,
+  } as unknown as QrlStore,
   dAppRequestStore: {
     dAppRequestData: {
       method: "qrl_requestAccounts",

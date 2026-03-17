@@ -20,7 +20,7 @@
  * └─────────────────────────────────────────────────────────────────┘
  *
  * IMPLEMENTATION BASED ON SPECIFICATION:
- * ~/zond-testnetv1/ledger-app-zond/APP_SPECIFICATION.md
+ * ~/zond-testnetv1/ledger-app-qrl/APP_SPECIFICATION.md
  *
  * AVAILABLE OPERATIONS IN LEDGER ZOND APP:
  * - GET_VERSION (0x03) - get app version
@@ -28,7 +28,7 @@
  * - GET_PUBLIC_KEY (0x05) - get address for BIP-44 path
  * - SIGN_TX (0x06) - sign transaction
  *
- * NOTE: Ledger Zond app does NOT support personal_sign (message signing).
+ * NOTE: Ledger QRL app does NOT support personal_sign (message signing).
  */
 
 import { ledgerTransport } from "./ledgerTransport";
@@ -37,7 +37,7 @@ import {
   getDerivationPath,
   splitIntoChunks,
   combineSignatureChunks,
-  parseZondAddress,
+  parseQrlAddress,
   parsePublicKeyResponse,
   parseAppVersion,
   parseAppName,
@@ -315,7 +315,7 @@ class LedgerService {
     );
 
     // Parse address from response
-    const address = parseZondAddress(response);
+    const address = parseQrlAddress(response);
 
     return {
       address,

@@ -26,11 +26,11 @@ const initializeInPageScript = () => {
     });
   } catch (error) {
     console.warn(
-      "ZondWeb3Wallet: Failed to initialize the in-page script\n",
+      "QrlWeb3Wallet: Failed to initialize the in-page script\n",
       error,
     );
   }
 };
 
-// This function accounces the zond web3 wallet provider(based on EIP-6963), to be detected by the dApps.
+// This function accounces the qrl web3 wallet provider(based on EIP-6963), to be detected by the dApps.
 initializeInPageScript();

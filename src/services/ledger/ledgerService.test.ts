@@ -19,7 +19,7 @@ jest.mock("./ledgerApdu", () => ({
   getDerivationPath: jest.fn<any>((index: number) => `m/44'/238'/0'/0/${index}`),
   splitIntoChunks: jest.fn<any>((data: Buffer) => [data]),
   combineSignatureChunks: jest.fn<any>((chunks: Buffer[]) => Buffer.concat(chunks)),
-  parseZondAddress: jest.fn<any>(() => "Q" + "ab".repeat(24)),
+  parseQrlAddress: jest.fn<any>(() => "Q" + "ab".repeat(24)),
   parsePublicKeyResponse: jest.fn<any>(() => ({
     address: "Q" + "ab".repeat(24),
     publicKey: "0x" + "cc".repeat(100),
@@ -70,7 +70,7 @@ describe("LedgerService", () => {
       combineSignatureChunks: jest.fn<any>((chunks: Buffer[]) =>
         Buffer.concat(chunks)
       ),
-      parseZondAddress: jest.fn<any>(() => "Q" + "ab".repeat(24)),
+      parseQrlAddress: jest.fn<any>(() => "Q" + "ab".repeat(24)),
       parsePublicKeyResponse: jest.fn<any>(() => ({
         address: "Q" + "ab".repeat(24),
         publicKey: "0x" + "cc".repeat(100),

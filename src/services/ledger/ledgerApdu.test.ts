@@ -11,7 +11,7 @@ import {
   isRetryableError,
   isUserRejection,
   isWrongApp,
-  parseZondAddress,
+  parseQrlAddress,
   parsePublicKeyResponse,
   parseAppVersion,
   parseAppName,
@@ -318,8 +318,8 @@ describe("ledgerApdu", () => {
     });
   });
 
-  describe("parseZondAddress", () => {
-    it("should parse valid Zond address from response", () => {
+  describe("parseQrlAddress", () => {
+    it("should parse valid QRL address from response", () => {
       // 'Q' prefix (0x51) + 20 bytes address + success status
       const addressBytes = Buffer.alloc(20, 0xab);
       const response = Buffer.concat([
@@ -328,7 +328,7 @@ describe("ledgerApdu", () => {
         Buffer.from([0x90, 0x00]), // Success
       ]);
 
-      const address = parseZondAddress(response);
+      const address = parseQrlAddress(response);
 
       expect(address.startsWith("Q")).toBe(true);
       expect(address.length).toBe(41); // Q + 40 hex chars
@@ -341,7 +341,7 @@ describe("ledgerApdu", () => {
         Buffer.from([0x90, 0x00]),
       ]);
 
-      expect(() => parseZondAddress(response)).toThrow(
+      expect(() => parseQrlAddress(response)).toThrow(
         "Invalid address prefix"
       );
     });
@@ -349,7 +349,7 @@ describe("ledgerApdu", () => {
     it("should throw for response too short", () => {
       const response = Buffer.from([0x51, 0x01, 0x02, 0x90, 0x00]);
 
-      expect(() => parseZondAddress(response)).toThrow(
+      expect(() => parseQrlAddress(response)).toThrow(
         "Invalid response length"
       );
     });
@@ -361,7 +361,7 @@ describe("ledgerApdu", () => {
         Buffer.from([0x69, 0x85]), // User rejection
       ]);
 
-      expect(() => parseZondAddress(response)).toThrow();
+      expect(() => parseQrlAddress(response)).toThrow();
     });
   });
 

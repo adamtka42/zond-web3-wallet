@@ -33,7 +33,7 @@ async function fetchRemoteConfig(): Promise<PhishingConfig | null> {
     if (!response.ok) return null;
     return await response.json();
   } catch (error) {
-    console.warn("ZondWeb3Wallet: Failed to fetch phishing blocklist", error);
+    console.warn("QrlWeb3Wallet: Failed to fetch phishing blocklist", error);
     return null;
   }
 }

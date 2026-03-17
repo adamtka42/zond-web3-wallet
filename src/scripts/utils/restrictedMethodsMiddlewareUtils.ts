@@ -6,7 +6,7 @@ import {
 import { RESTRICTED_METHODS } from "../constants/requestConstants";
 import StorageUtil from "@/utilities/storageUtil";
 import { MAX_SAFE_CHAIN_ID } from "@/constants/blockchain";
-import { BlockchainDataType } from "@/configuration/zondBlockchainConfig";
+import { BlockchainDataType } from "@/configuration/qrlBlockchainConfig";
 import {
   CAVEAT_TYPES,
   PARENT_CAPABILITIES,
@@ -68,7 +68,7 @@ const isAcceptableUrl = (urlString: string) => {
   }
 };
 
-export const checkWalletAddZondChainParams = async (
+export const checkWalletAddQrlChainParams = async (
   chainData: BlockchainDataType,
   hasInternalKeys: boolean = false,
 ) => {
@@ -230,12 +230,12 @@ export const checkUrlOriginHasBeenConnected = async (url: string) => {
   return {
     canProceed: hasConnectedAccounts,
     proceedError: providerErrors.unauthorized({
-      message: "The dApp is not connected to the Zond Web3 Wallet.",
+      message: "The dApp is not connected to the QRL Web3 Wallet.",
     }),
   };
 };
 
-export const checkWalletSwitchZondChainParams = async (paramObject: {
+export const checkWalletSwitchQrlChainParams = async (paramObject: {
   chainId: string;
 }) => {
   if (!paramObject || typeof paramObject !== "object") {

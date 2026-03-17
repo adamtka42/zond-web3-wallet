@@ -1,4 +1,4 @@
-import { BlockchainDataType } from "@/configuration/zondBlockchainConfig";
+import { BlockchainDataType } from "@/configuration/qrlBlockchainConfig";
 import { AdditionalJsonRpcRequestKeys } from "@theqrl/zond-wallet-provider/utils";
 
 export type PhishingCheckResult = {

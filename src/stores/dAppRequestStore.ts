@@ -1,4 +1,4 @@
-import { BlockchainDataType } from "@/configuration/zondBlockchainConfig";
+import { BlockchainDataType } from "@/configuration/qrlBlockchainConfig";
 import { EXTENSION_MESSAGES } from "@/scripts/constants/streamConstants";
 import {
   DAppRequestType,
@@ -126,7 +126,7 @@ class DAppRequestStore {
       await browser.runtime.sendMessage(response);
     } catch (error) {
       console.warn(
-        "ZondWeb3Wallet: Error while resolving the permission request\n",
+        "QrlWeb3Wallet: Error while resolving the permission request\n",
         error,
       );
     } finally {

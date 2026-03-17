@@ -86,8 +86,8 @@ describe("getOptimalTokenBalance", () => {
     expect(getOptimalTokenBalance(balance, "ZOND")).toBe(tokenBalance);
   });
 
-  it("should return the balance 0.0 if the balance is a text `Zond`", () => {
-    const balance = "Zond";
+  it("should return the balance 0.0 if the balance is a text `QRL`", () => {
+    const balance = "QRL";
     const tokenBalance = "0.0 QRL";
 
     expect(getOptimalTokenBalance(balance)).toBe(tokenBalance);
