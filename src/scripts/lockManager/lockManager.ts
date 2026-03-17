@@ -255,7 +255,7 @@ class LockManager {
   static getDecryptedKeys() {
     if (!this.decryptedKeys) {
       this.clearDecryptedKeys();
-      throw new Error("Zond Web3 Wallet is locked");
+      throw new Error("QRL Web3 Wallet is locked");
     }
     return this.decryptedKeys;
   }

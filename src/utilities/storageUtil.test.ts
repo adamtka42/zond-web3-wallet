@@ -36,7 +36,7 @@ vi.mock("webextension-polyfill", () => ({
   },
 }));
 
-vi.mock("@/configuration/zondBlockchainConfig", () => ({
+vi.mock("@/configuration/qrlBlockchainConfig", () => ({
   DEFAULT_BLOCKCHAIN: {
     chainId: "0x1",
     chainName: "Test Chain",
@@ -45,7 +45,7 @@ vi.mock("@/configuration/zondBlockchainConfig", () => ({
     nativeCurrency: { name: "Quanta", symbol: "QRL", decimals: 18 },
     iconUrls: [],
   },
-  ZOND_BLOCKCHAINS: [
+  QRL_BLOCKCHAINS: [
     {
       chainId: "0x1",
       chainName: "Test Chain",
@@ -76,7 +76,7 @@ const makeTxEntry = (
   to: ACCOUNT_2,
   amount: 2.5,
   tokenSymbol: "QRL",
-  tokenName: "Zond",
+  tokenName: "QRL",
   isZrc20Token: false,
   tokenContractAddress: "",
   tokenDecimals: 18,
@@ -262,7 +262,7 @@ describe("StorageUtil", () => {
 
     it("should return default blockchains when none stored", async () => {
       const result = await StorageUtil.getAllBlockChains();
-      // Returns ZOND_BLOCKCHAINS from the mock
+      // Returns QRL_BLOCKCHAINS from the mock
       expect(result).toHaveLength(1);
       expect(result[0].chainId).toBe("0x1");
     });

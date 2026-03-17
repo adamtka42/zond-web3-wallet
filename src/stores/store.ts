@@ -8,13 +8,13 @@ import LockStore from "./lockStore";
 import PriceStore from "./priceStore";
 import SettingsStore from "./settingsStore";
 import TransactionHistoryStore from "./transactionHistoryStore";
-import ZondStore from "./zondStore";
+import QrlStore from "./qrlStore";
 
 class Store {
   lockStore;
   settingsStore;
   dAppRequestStore;
-  zondStore;
+  qrlStore;
   ledgerStore;
   transactionHistoryStore;
   contactsStore;
@@ -26,7 +26,7 @@ class Store {
     this.lockStore = new LockStore();
     this.settingsStore = new SettingsStore();
     this.dAppRequestStore = new DAppRequestStore();
-    this.zondStore = new ZondStore();
+    this.qrlStore = new QrlStore();
     this.ledgerStore = new LedgerStore();
     this.transactionHistoryStore = new TransactionHistoryStore();
     this.contactsStore = new ContactsStore();

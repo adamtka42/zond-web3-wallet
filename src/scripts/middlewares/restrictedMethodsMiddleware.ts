@@ -12,10 +12,10 @@ import { checkDomain } from "../phishing/phishingDetector";
 import {
   checkAccountHasBeenAuthorized,
   checkUrlOriginHasBeenConnected,
-  checkWalletAddZondChainParams,
+  checkWalletAddQrlChainParams,
   checkWalletRequestPermissionParams,
   checkWalletSendCallsParams,
-  checkWalletSwitchZondChainParams,
+  checkWalletSwitchQrlChainParams,
   checkWalletWatchAssetParams,
   updateAccountsAndBlockchainsForUrlOrigin,
 } from "../utils/restrictedMethodsMiddlewareUtils";
@@ -128,10 +128,10 @@ const checkRequestCanProceed = async (req: JsonRpcRequest<JsonRpcRequest>) => {
   switch (req.method) {
     case RESTRICTED_METHODS.WALLET_ADD_QRL_CHAIN:
       // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
-      return await checkWalletAddZondChainParams(req?.params?.[0]);
+      return await checkWalletAddQrlChainParams(req?.params?.[0]);
     case RESTRICTED_METHODS.WALLET_SWITCH_QRL_CHAIN:
       // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
-      return await checkWalletSwitchZondChainParams(req?.params?.[0]);
+      return await checkWalletSwitchQrlChainParams(req?.params?.[0]);
     case RESTRICTED_METHODS.WALLET_WATCH_ASSET:
       // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
       return await checkWalletWatchAssetParams(req?.params?.[0]);
@@ -174,7 +174,7 @@ const getRestrictedMethodResult = async (
   try {
     await browser.action.openPopup();
   } catch {
-    console.warn("ZondWeb3Wallet: Could not open the wallet");
+    console.warn("QrlWeb3Wallet: Could not open the wallet");
   }
 
   return new Promise((resolve) => {

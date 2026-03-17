@@ -1,8 +1,8 @@
 import {
   BlockchainDataType,
   DEFAULT_BLOCKCHAIN,
-  ZOND_BLOCKCHAINS,
-} from "@/configuration/zondBlockchainConfig";
+  QRL_BLOCKCHAINS,
+} from "@/configuration/qrlBlockchainConfig";
 import {
   ConnectedAccountsDataType,
   DAppRequestType,
@@ -176,7 +176,7 @@ class StorageUtil {
   }
 
   /**
-   * A function for storing the accounts created and imported within the zond web3 wallet extension.
+   * A function for storing the accounts created and imported within the qrl web3 wallet extension.
    * Call the getAllAccounts function to retrieve the stored value.
    */
   static async setAllAccounts(accountList: string[]) {
@@ -257,7 +257,7 @@ class StorageUtil {
       await browser.storage.local.get(BLOCKCHAINS_IDENTIFIER)
     )?.[BLOCKCHAINS_IDENTIFIER];
     return (storedBlockchains?.[ALL_BLOCKCHAINS_IDENTIFIER] ??
-      ZOND_BLOCKCHAINS) as BlockchainDataType[];
+      QRL_BLOCKCHAINS) as BlockchainDataType[];
   }
 
   /**
@@ -472,7 +472,7 @@ class StorageUtil {
   }
 
   /**
-   * A function for storing the request info temporarily by the dApp, which will be read by the zond web3 wallet.
+   * A function for storing the request info temporarily by the dApp, which will be read by the qrl web3 wallet.
    * Call the getDAppsRequestData function to retrieve the stored value, and clearDAppsRequestData for clearing the stored value.
    */
   static async setDAppsRequestData(dAppsRequestData: DAppRequestType) {

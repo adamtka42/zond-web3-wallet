@@ -31,14 +31,14 @@ const registerScripts = async () => {
   ).map((script) => script.id);
   const contentScripts: ContentScriptType[] = [
     {
-      id: "zondInPageScript",
+      id: "qrlInPageScript",
       matches: ["<all_urls>"],
       js: ["src/scripts/inPageScript.js"],
       runAt: "document_start",
       allFrames: true,
       // @ts-expect-error - webextension-polyfill types do not include the "world" property for content scripts
       // This is important. The script must run in the "MAIN" world,
-      // so that the zond provider will be available browser wide, not just isolated to the extension.
+      // so that the qrl provider will be available browser wide, not just isolated to the extension.
       world: "MAIN",
     },
   ];
@@ -93,7 +93,7 @@ const prepareListeners = () => {
           message: body,
         });
       } catch (error) {
-        console.error("ZondWeb3Wallet: Failed to create notification:", error);
+        console.error("QrlWeb3Wallet: Failed to create notification:", error);
       }
     })();
   });
@@ -136,7 +136,7 @@ const announceServiceWorkerReady = async () => {
 };
 
 /**
- * A method for creating a zond provider.
+ * A method for creating a qrl provider.
  * Middlewares are pushed to the engine here.
  */
 const setupProviderEngineEip1193 = ({
@@ -159,7 +159,7 @@ const setupProviderEngineEip1193 = ({
 };
 
 /**
- * A method for serving zond provider over a given stream.
+ * A method for serving qrl provider over a given stream.
  */
 const setupProviderConnectionEip1193 = async (port: browser.Runtime.Port) => {
   const portStream = new PortStream(port);
@@ -176,7 +176,7 @@ const setupProviderConnectionEip1193 = async (port: browser.Runtime.Port) => {
   const providerStream = createEngineStream({ engine });
 
   pipeline(outStream, providerStream, outStream, (err) => {
-    console.warn("ZondWeb3Wallet: Error in stream pipeline\n", err);
+    console.warn("QrlWeb3Wallet: Error in stream pipeline\n", err);
     // handle any middleware cleanup
     // @ts-expect-error - _middleware is a private property on JsonRpcEngine not exposed in type definitions
     engine?._middleware?.forEach((mid: { destroy?: () => void }) => {
@@ -231,7 +231,7 @@ const initializeServiceWorker = async () => {
     await registerScripts();
   } catch (error) {
     console.warn(
-      "ZondWeb3Wallet: Failed to register content scripts\n",
+      "QrlWeb3Wallet: Failed to register content scripts\n",
       error,
     );
   }
@@ -243,6 +243,6 @@ const initializeServiceWorker = async () => {
   await setupPhishingRefreshAlarm();
 };
 
-// This is the starting point of service worker of zond web3 wallet.
+// This is the starting point of service worker of qrl web3 wallet.
 // This file is set as an entry in the "background" section of the manifest file.
 initializeServiceWorker();

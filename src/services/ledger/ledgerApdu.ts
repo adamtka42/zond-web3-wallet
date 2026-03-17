@@ -283,7 +283,7 @@ export function isWrongApp(statusCode: number): boolean {
 }
 
 /**
- * Parses Zond address from GET_PUBLIC_KEY response.
+ * Parses QRL address from GET_PUBLIC_KEY response.
  *
  * RESPONSE FORMAT (address only):
  * ┌────────┬───────────────────┬────────┐
@@ -299,7 +299,7 @@ export function isWrongApp(statusCode: number): boolean {
  * @param response - APDU response from GET_PUBLIC_KEY
  * @returns Address in QRL format (Q + 40 hex characters)
  */
-export function parseZondAddress(response: Buffer): string {
+export function parseQrlAddress(response: Buffer): string {
   // Check status
   checkStatusWord(response);
 

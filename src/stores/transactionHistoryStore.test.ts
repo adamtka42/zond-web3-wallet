@@ -35,7 +35,7 @@ const makeSampleEntry = (
   to: "Q20fB08fF1f1376A14C055E9F56df80563E16722b",
   amount: 2.5,
   tokenSymbol: "QRL",
-  tokenName: "Zond",
+  tokenName: "QRL",
   isZrc20Token: false,
   tokenContractAddress: "",
   tokenDecimals: 18,

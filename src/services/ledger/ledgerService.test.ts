@@ -19,7 +19,7 @@ vi.mock("./ledgerApdu", () => ({
   getDerivationPath: vi.fn<any>((index: number) => `m/44'/238'/0'/0/${index}`),
   splitIntoChunks: vi.fn<any>((data: Buffer) => [data]),
   combineSignatureChunks: vi.fn<any>((chunks: Buffer[]) => Buffer.concat(chunks)),
-  parseZondAddress: vi.fn<any>(() => "Q" + "ab".repeat(24)),
+  parseQrlAddress: vi.fn<any>(() => "Q" + "ab".repeat(24)),
   parsePublicKeyResponse: vi.fn<any>(() => ({
     address: "Q" + "ab".repeat(24),
     publicKey: "0x" + "cc".repeat(100),
@@ -70,7 +70,7 @@ describe("LedgerService", () => {
       combineSignatureChunks: vi.fn<any>((chunks: Buffer[]) =>
         Buffer.concat(chunks)
       ),
-      parseZondAddress: vi.fn<any>(() => "Q" + "ab".repeat(24)),
+      parseQrlAddress: vi.fn<any>(() => "Q" + "ab".repeat(24)),
       parsePublicKeyResponse: vi.fn<any>(() => ({
         address: "Q" + "ab".repeat(24),
         publicKey: "0x" + "cc".repeat(100),
