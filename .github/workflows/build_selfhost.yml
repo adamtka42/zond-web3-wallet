@@ -1,4 +1,4 @@
-name: Build & Test zond-web3-wallet.
+name: Build & Test qrl-web3-wallet.
 
 on:
   push:
@@ -68,6 +68,7 @@ jobs:
               fs.writeFileSync(f, JSON.stringify(p, null, "\t") + "\n");
             }
           '
+          npx nx reset 2>/dev/null || true
           yarn run build --concurrency=2
           cd -
 
@@ -88,14 +89,14 @@ jobs:
         run: |
           sudo apt-get install -y -qq zip >/dev/null 2>&1 || true
           VERSION=$(jq -r .version package.json)
-          mkdir -p zond-web3-wallet-chrome-v${VERSION}
-          cp -r Extension/* zond-web3-wallet-chrome-v${VERSION}/
-          zip -r zond-web3-wallet-chrome-v${VERSION}.zip zond-web3-wallet-chrome-v${VERSION}
-          echo "ARTIFACT=zond-web3-wallet-chrome-v${VERSION}.zip" >> $GITHUB_ENV
+          mkdir -p qrl-web3-wallet-chrome-v${VERSION}
+          cp -r Extension/* qrl-web3-wallet-chrome-v${VERSION}/
+          zip -r qrl-web3-wallet-chrome-v${VERSION}.zip qrl-web3-wallet-chrome-v${VERSION}
+          echo "ARTIFACT=qrl-web3-wallet-chrome-v${VERSION}.zip" >> $GITHUB_ENV
 
       - name: Upload artifact
         #if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
-          name: zond-web3-wallet-chrome
+          name: qrl-web3-wallet-chrome
           path: ${{ env.ARTIFACT }}
