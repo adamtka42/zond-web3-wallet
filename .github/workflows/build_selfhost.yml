@@ -29,6 +29,10 @@ jobs:
           # cache causes "Trace/breakpoint trap" crashes in Node.js/yarn.
           rm -rf ../web3.js ../wallet.js ../qrypto.js ../js-qrl-cryptography ../qrl-contracts
           rm -rf ~/.cache/yarn ~/.yarn/cache /usr/local/share/.cache/yarn 2>/dev/null || true
+          rm -rf ~/.cache/nx ~/.nx /tmp/nx-* 2>/dev/null || true
+          # Clear V8 compile cache — stale bytecode causes Trace/breakpoint trap
+          find /home/github-runner -name 'v8-compile-cache*' -exec rm -rf {} + 2>/dev/null || true
+          find /home/github-runner -name '.cache' -path '*/node_modules/.cache' -exec rm -rf {} + 2>/dev/null || true
 
       - name: Clone and build sibling dependencies
         run: |
@@ -54,8 +58,8 @@ jobs:
           fi
           cd ../web3.js
           yarn install --ignore-engines --ignore-scripts
-          # Node.js on this runner segfaults when running rimraf via NX/yarn.
-          # Fresh clone has no dist/lib to clean — make clean scripts no-op.
+          # Patch out clean/prebuild to prevent rimraf segfaults.
+          # Also disable prebuild so "yarn run build" doesn't trigger clean.
           node -e '
             const fs = require("fs");
             const path = require("path");
@@ -69,7 +73,10 @@ jobs:
             }
           '
           npx nx reset 2>/dev/null || true
-          yarn run build --concurrency=2
+          # Build sequentially to respect dependency order.
+          # --ignore-scripts skips workspace linking, but lerna resolves
+          # workspace:* deps via node_modules symlinks created by yarn.
+          yarn run build --concurrency=1
           cd -
 
       - name: Install dependencies
