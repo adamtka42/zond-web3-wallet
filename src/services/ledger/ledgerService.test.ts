@@ -1,41 +1,41 @@
-import { describe, expect, it, jest, beforeEach } from "@jest/globals";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { LEDGER_CONFIG, LEDGER_ERROR_MESSAGES } from "@/constants/ledger";
 
 // Mock ledgerTransport
-jest.mock("./ledgerTransport", () => ({
+vi.mock("./ledgerTransport", () => ({
   ledgerTransport: {
-    isSupported: jest.fn<any>(),
-    isConnected: jest.fn<any>(),
-    connect: jest.fn<any>(),
-    disconnect: jest.fn<any>(),
-    send: jest.fn<any>(),
-    onDisconnect: jest.fn<any>(),
+    isSupported: vi.fn<any>(),
+    isConnected: vi.fn<any>(),
+    connect: vi.fn<any>(),
+    disconnect: vi.fn<any>(),
+    send: vi.fn<any>(),
+    onDisconnect: vi.fn<any>(),
   },
 }));
 
 // Mock ledgerApdu functions
-jest.mock("./ledgerApdu", () => ({
-  packDerivationPath: jest.fn<any>(() => Buffer.alloc(21)),
-  getDerivationPath: jest.fn<any>((index: number) => `m/44'/238'/0'/0/${index}`),
-  splitIntoChunks: jest.fn<any>((data: Buffer) => [data]),
-  combineSignatureChunks: jest.fn<any>((chunks: Buffer[]) => Buffer.concat(chunks)),
-  parseZondAddress: jest.fn<any>(() => "Z" + "ab".repeat(24)),
-  parsePublicKeyResponse: jest.fn<any>(() => ({
-    address: "Z" + "ab".repeat(24),
+vi.mock("./ledgerApdu", () => ({
+  packDerivationPath: vi.fn<any>(() => Buffer.alloc(21)),
+  getDerivationPath: vi.fn<any>((index: number) => `m/44'/238'/0'/0/${index}`),
+  splitIntoChunks: vi.fn<any>((data: Buffer) => [data]),
+  combineSignatureChunks: vi.fn<any>((chunks: Buffer[]) => Buffer.concat(chunks)),
+  parseQrlAddress: vi.fn<any>(() => "Q" + "ab".repeat(24)),
+  parsePublicKeyResponse: vi.fn<any>(() => ({
+    address: "Q" + "ab".repeat(24),
     publicKey: "0x" + "cc".repeat(100),
   })),
-  parseAppVersion: jest.fn<any>(() => "1.2.3"),
-  parseAppName: jest.fn<any>(() => "QRL Zond"),
-  checkStatusWord: jest.fn<any>(),
-  extractResponseData: jest.fn<any>((response: Buffer) =>
+  parseAppVersion: vi.fn<any>(() => "1.2.3"),
+  parseAppName: vi.fn<any>(() => "QRL Zond"),
+  checkStatusWord: vi.fn<any>(),
+  extractResponseData: vi.fn<any>((response: Buffer) =>
     response.subarray(0, response.length - 2)
   ),
-  isUserRejection: jest.fn<any>((code: number) => code === 0x6985),
-  isWrongApp: jest.fn<any>((code: number) => code === 0x6e00),
-  hexToBuffer: jest.fn<any>((hex: string) =>
+  isUserRejection: vi.fn<any>((code: number) => code === 0x6985),
+  isWrongApp: vi.fn<any>((code: number) => code === 0x6e00),
+  hexToBuffer: vi.fn<any>((hex: string) =>
     Buffer.from(hex.replace(/^0x/, ""), "hex")
   ),
-  bufferToHex: jest.fn<any>((buffer: Buffer) => "0x" + buffer.toString("hex")),
+  bufferToHex: vi.fn<any>((buffer: Buffer) => "0x" + buffer.toString("hex")),
 }));
 
 // Note: We import modules dynamically in tests after applying mocks
@@ -46,47 +46,47 @@ describe("LedgerService", () => {
 
   beforeEach(async () => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Reset module to get fresh instance
-    jest.resetModules();
+    vi.resetModules();
 
     // Re-apply mocks after reset
-    jest.doMock("./ledgerTransport", () => ({
+    vi.doMock("./ledgerTransport", () => ({
       ledgerTransport: {
-        isSupported: jest.fn<any>(),
-        isConnected: jest.fn<any>(),
-        connect: jest.fn<any>(),
-        disconnect: jest.fn<any>(),
-        send: jest.fn<any>(),
-        onDisconnect: jest.fn<any>(),
+        isSupported: vi.fn<any>(),
+        isConnected: vi.fn<any>(),
+        connect: vi.fn<any>(),
+        disconnect: vi.fn<any>(),
+        send: vi.fn<any>(),
+        onDisconnect: vi.fn<any>(),
       },
     }));
 
-    jest.doMock("./ledgerApdu", () => ({
-      packDerivationPath: jest.fn<any>(() => Buffer.alloc(21)),
-      getDerivationPath: jest.fn<any>((index: number) => `m/44'/238'/0'/0/${index}`),
-      splitIntoChunks: jest.fn<any>((data: Buffer) => [data]),
-      combineSignatureChunks: jest.fn<any>((chunks: Buffer[]) =>
+    vi.doMock("./ledgerApdu", () => ({
+      packDerivationPath: vi.fn<any>(() => Buffer.alloc(21)),
+      getDerivationPath: vi.fn<any>((index: number) => `m/44'/238'/0'/0/${index}`),
+      splitIntoChunks: vi.fn<any>((data: Buffer) => [data]),
+      combineSignatureChunks: vi.fn<any>((chunks: Buffer[]) =>
         Buffer.concat(chunks)
       ),
-      parseZondAddress: jest.fn<any>(() => "Z" + "ab".repeat(24)),
-      parsePublicKeyResponse: jest.fn<any>(() => ({
-        address: "Z" + "ab".repeat(24),
+      parseQrlAddress: vi.fn<any>(() => "Q" + "ab".repeat(24)),
+      parsePublicKeyResponse: vi.fn<any>(() => ({
+        address: "Q" + "ab".repeat(24),
         publicKey: "0x" + "cc".repeat(100),
       })),
-      parseAppVersion: jest.fn<any>(() => "1.2.3"),
-      parseAppName: jest.fn<any>(() => "QRL Zond"),
-      checkStatusWord: jest.fn<any>(),
-      extractResponseData: jest.fn<any>((response: Buffer) =>
+      parseAppVersion: vi.fn<any>(() => "1.2.3"),
+      parseAppName: vi.fn<any>(() => "QRL Zond"),
+      checkStatusWord: vi.fn<any>(),
+      extractResponseData: vi.fn<any>((response: Buffer) =>
         response.subarray(0, response.length - 2)
       ),
-      isUserRejection: jest.fn<any>((code: number) => code === 0x6985),
-      isWrongApp: jest.fn<any>((code: number) => code === 0x6e00),
-      hexToBuffer: jest.fn<any>((hex: string) =>
+      isUserRejection: vi.fn<any>((code: number) => code === 0x6985),
+      isWrongApp: vi.fn<any>((code: number) => code === 0x6e00),
+      hexToBuffer: vi.fn<any>((hex: string) =>
         Buffer.from(hex.replace(/^0x/, ""), "hex")
       ),
-      bufferToHex: jest.fn<any>((buffer: Buffer) => "0x" + buffer.toString("hex")),
+      bufferToHex: vi.fn<any>((buffer: Buffer) => "0x" + buffer.toString("hex")),
     }));
 
     // Import fresh instance
@@ -212,7 +212,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]), // 'Z' prefix
+          Buffer.from([0x51]), // 'Q' prefix
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -234,7 +234,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -254,7 +254,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -269,7 +269,7 @@ describe("LedgerService", () => {
         LEDGER_CONFIG.P2.LAST,
         expect.any(Buffer)
       );
-      expect(result.address).toMatch(/^Z/);
+      expect(result.address).toMatch(/^Q/);
       expect(result.derivationPath).toBe("m/44'/238'/0'/0/0");
       expect(result.publicKey).toBe(""); // getAddress does not return public key
     });
@@ -278,7 +278,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -301,7 +301,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.alloc(100, 0xcc), // Public key
           Buffer.from([0x90, 0x00]),
@@ -320,7 +320,7 @@ describe("LedgerService", () => {
         LEDGER_CONFIG.P2.LAST,
         expect.any(Buffer)
       );
-      expect(result.address).toMatch(/^Z/);
+      expect(result.address).toMatch(/^Q/);
       expect(result.derivationPath).toBe("m/44'/238'/0'/0/0");
       expect(result.publicKey).toMatch(/^0x/); // getPublicKey returns public key
       expect(result.publicKey.length).toBeGreaterThan(2); // More than just "0x"
@@ -330,7 +330,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.alloc(100, 0xcc),
           Buffer.from([0x90, 0x00]),
@@ -354,7 +354,7 @@ describe("LedgerService", () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
       (transport.send as any).mockResolvedValue(
         Buffer.concat([
-          Buffer.from([0x5a]),
+          Buffer.from([0x51]),
           Buffer.alloc(24, 0xab),
           Buffer.from([0x90, 0x00]),
         ])
@@ -369,7 +369,7 @@ describe("LedgerService", () => {
         LEDGER_CONFIG.P2.LAST,
         expect.any(Buffer)
       );
-      expect(address).toMatch(/^Z/);
+      expect(address).toMatch(/^Q/);
     });
   });
 
@@ -495,7 +495,7 @@ describe("LedgerService", () => {
 
     it("should call signing status callbacks on success", async () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
-      const onSigningStatusChange = jest.fn<any>();
+      const onSigningStatusChange = vi.fn<any>();
       ledgerService.setCallbacks({ onSigningStatusChange });
 
       const signatureChunk = Buffer.concat([
@@ -554,7 +554,7 @@ describe("LedgerService", () => {
 
     it("should call rejected callback on user rejection", async () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
-      const onSigningStatusChange = jest.fn<any>();
+      const onSigningStatusChange = vi.fn<any>();
       ledgerService.setCallbacks({ onSigningStatusChange });
 
       (transport.send as any)
@@ -571,7 +571,7 @@ describe("LedgerService", () => {
 
     it("should call error callback on non-rejection error with callbacks", async () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
-      const onSigningStatusChange = jest.fn<any>();
+      const onSigningStatusChange = vi.fn<any>();
       ledgerService.setCallbacks({ onSigningStatusChange });
 
       (transport.send as any).mockRejectedValue(new Error("Signing failed"));
@@ -597,7 +597,7 @@ describe("LedgerService", () => {
 
   describe("setCallbacks", () => {
     it("should register callbacks", async () => {
-      const onConnect = jest.fn<any>();
+      const onConnect = vi.fn<any>();
 
       ledgerService.setCallbacks({ onConnect });
 
@@ -617,7 +617,7 @@ describe("LedgerService", () => {
   describe("disconnect callback", () => {
     it("should call onDisconnect callback when device disconnects", async () => {
       const { ledgerTransport: transport } = await import("./ledgerTransport");
-      const onDisconnect = jest.fn<any>();
+      const onDisconnect = vi.fn<any>();
 
       ledgerService.setCallbacks({ onDisconnect });
 

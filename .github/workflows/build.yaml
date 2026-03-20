@@ -1,4 +1,4 @@
-name: Publish Zond Web3 Wallet Chrome Extension
+name: Publish QRL Web3 Wallet Chrome Extension
 
 on:
   release:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  publish-zond-web3-wallet-chrome-extension:
+  publish-qrl-web3-wallet-chrome-extension:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -45,11 +45,11 @@ jobs:
 
       - name: Zip the build directory
         run: |
-          mkdir -p zond-web3-wallet-chrome-v${{ env.package_version }}
-          cp -r Extension/* zond-web3-wallet-chrome-v${{ env.package_version }}/
-          zip -r zond-web3-wallet-chrome-v${{ env.package_version }}.zip zond-web3-wallet-chrome-v${{ env.package_version }}
+          mkdir -p qrl-web3-wallet-chrome-v${{ env.package_version }}
+          cp -r Extension/* qrl-web3-wallet-chrome-v${{ env.package_version }}/
+          zip -r qrl-web3-wallet-chrome-v${{ env.package_version }}.zip qrl-web3-wallet-chrome-v${{ env.package_version }}
 
       - name: Upload Zip to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: zond-web3-wallet-chrome-v${{ env.package_version }}.zip
+          files: qrl-web3-wallet-chrome-v${{ env.package_version }}.zip

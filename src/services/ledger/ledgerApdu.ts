@@ -283,30 +283,30 @@ export function isWrongApp(statusCode: number): boolean {
 }
 
 /**
- * Parses Zond address from GET_PUBLIC_KEY response.
+ * Parses QRL address from GET_PUBLIC_KEY response.
  *
  * RESPONSE FORMAT (address only):
  * ┌────────┬───────────────────┬────────┐
  * │ PREFIX │     ADDRESS       │   SW   │
- * │  'Z'   │     20 bytes      │   2B   │
+ * │  'Q'   │     20 bytes      │   2B   │
  * │  1B    │      (hex)        │        │
  * └────────┴───────────────────┴────────┘
  *
- * WHY 'Z' PREFIX:
- * Zond addresses start with 'Z' to distinguish them from Ethereum addresses.
- * This is part of QRL Zond specification.
+ * WHY 'Q' PREFIX:
+ * QRL addresses start with 'Q' to distinguish them from Ethereum addresses.
+ * This is part of QRL specification.
  *
  * @param response - APDU response from GET_PUBLIC_KEY
- * @returns Address in Zond format (Z + 40 hex characters)
+ * @returns Address in QRL format (Q + 40 hex characters)
  */
-export function parseZondAddress(response: Buffer): string {
+export function parseQrlAddress(response: Buffer): string {
   // Check status
   checkStatusWord(response);
 
   // Extract data
   const data = extractResponseData(response);
 
-  // Standard Zond address: 1 byte prefix ('Z') + 20 bytes address = 21 bytes
+  // Standard QRL address: 1 byte prefix ('Q') + 20 bytes address = 21 bytes
   if (data.length < 21) {
     throw createLedgerError(
       0,
@@ -314,12 +314,12 @@ export function parseZondAddress(response: Buffer): string {
     );
   }
 
-  // First byte is 'Z' prefix
+  // First byte is 'Q' prefix (0x51)
   const prefix = String.fromCharCode(data[0]);
-  if (prefix !== "Z") {
+  if (prefix !== "Q") {
     throw createLedgerError(
       0,
-      `Invalid address prefix: expected 'Z', got '${prefix}'`
+      `Invalid address prefix: expected 'Q', got '${prefix}'`
     );
   }
 
@@ -334,7 +334,7 @@ export function parseZondAddress(response: Buffer): string {
  * Result of parsing GET_PUBLIC_KEY response with public key.
  */
 export interface PublicKeyResponse {
-  /** Address in Zond format (Z + 40 hex characters) */
+  /** Address in QRL format (Q + 40 hex characters) */
   address: string;
   /** Dilithium public key (hex with 0x prefix), empty if not included in response */
   publicKey: string;
@@ -351,7 +351,7 @@ export const DILITHIUM_PUBLIC_KEY_SIZE = 2528;
  * RESPONSE FORMAT (with public key):
  * ┌────────┬───────────────────┬────────────────────┬────────┐
  * │ PREFIX │     ADDRESS       │    PUBLIC_KEY      │   SW   │
- * │  'Z'   │     20 bytes      │    2528 bytes      │   2B   │
+ * │  'Q'   │     20 bytes      │    2528 bytes      │   2B   │
  * │  1B    │      (hex)        │                    │        │
  * └────────┴───────────────────┴────────────────────┴────────┘
  *
@@ -365,7 +365,7 @@ export function parsePublicKeyResponse(response: Buffer): PublicKeyResponse {
   // Extract data
   const data = extractResponseData(response);
 
-  // Standard Zond address: 1 byte prefix ('Z') + 20 bytes address = 21 bytes
+  // Standard QRL address: 1 byte prefix ('Q') + 20 bytes address = 21 bytes
   if (data.length < 21) {
     throw createLedgerError(
       0,
@@ -373,12 +373,12 @@ export function parsePublicKeyResponse(response: Buffer): PublicKeyResponse {
     );
   }
 
-  // First byte is 'Z' prefix
+  // First byte is 'Q' prefix (0x51)
   const prefix = String.fromCharCode(data[0]);
-  if (prefix !== "Z") {
+  if (prefix !== "Q") {
     throw createLedgerError(
       0,
-      `Invalid address prefix: expected 'Z', got '${prefix}'`
+      `Invalid address prefix: expected 'Q', got '${prefix}'`
     );
   }
 

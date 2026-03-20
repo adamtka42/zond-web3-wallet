@@ -34,13 +34,18 @@ export default defineConfig({
     outDir: "Extension",
     emptyOutDir: true,
     rollupOptions: {
-      plugins: [commonjs(), nodePolyfills() as Plugin],
+      plugins: [
+        commonjs({
+          requireReturnsDefault: "auto",
+        }),
+        nodePolyfills() as Plugin,
+      ],
     },
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
-      events: "rollup-plugin-node-polyfills/polyfills/events",
+      events: path.resolve(__dirname, "node_modules/rollup-plugin-node-polyfills/polyfills/events.js"),
       buffer: "buffer",
     },
   },

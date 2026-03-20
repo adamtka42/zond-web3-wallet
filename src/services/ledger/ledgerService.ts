@@ -28,7 +28,7 @@
  * - GET_PUBLIC_KEY (0x05) - get address for BIP-44 path
  * - SIGN_TX (0x06) - sign transaction
  *
- * NOTE: Ledger Zond app does NOT support personal_sign (message signing).
+ * NOTE: Ledger QRL app does NOT support personal_sign (message signing).
  */
 
 import { ledgerTransport } from "./ledgerTransport";
@@ -37,7 +37,7 @@ import {
   getDerivationPath,
   splitIntoChunks,
   combineSignatureChunks,
-  parseZondAddress,
+  parseQrlAddress,
   parsePublicKeyResponse,
   parseAppVersion,
   parseAppName,
@@ -291,7 +291,7 @@ class LedgerService {
    * RESPONSE:
    * ┌────────┬───────────────────┬────────┐
    * │ PREFIX │     ADDRESS       │   SW   │
-   * │  'Z'   │    20 bytes       │ 0x9000 │
+   * │  'Q'   │    20 bytes       │ 0x9000 │
    * └────────┴───────────────────┴────────┘
    *
    * @param derivationPath - BIP-44 path, e.g., "m/44'/238'/0'/0/0"
@@ -315,7 +315,7 @@ class LedgerService {
     );
 
     // Parse address from response
-    const address = parseZondAddress(response);
+    const address = parseQrlAddress(response);
 
     return {
       address,
@@ -335,7 +335,7 @@ class LedgerService {
    * RESPONSE FORMAT (with public key):
    * ┌────────┬───────────────────┬─────────────────────┬────────┐
    * │ PREFIX │     ADDRESS       │     PUBLIC_KEY      │   SW   │
-   * │  'Z'   │    20 bytes       │     2528 bytes      │   2B   │
+   * │  'Q'   │    20 bytes       │     2528 bytes      │   2B   │
    * │  1B    │    (hex)          │                     │        │
    * └────────┴───────────────────┴─────────────────────┴────────┘
    *
@@ -493,7 +493,7 @@ class LedgerService {
 
       // Send last chunk - this triggers TX display on Ledger
       // and requires user approval
-      let signatureResponse = await ledgerTransport.send(
+      const signatureResponse = await ledgerTransport.send(
         LEDGER_CONFIG.CLA,
         LEDGER_CONFIG.INS.SIGN_TX,
         0x02, // P1: last transaction data packet

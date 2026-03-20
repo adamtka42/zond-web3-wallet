@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 import { LEDGER_CONFIG } from "@/constants/ledger";
 import {
   packDerivationPath,
@@ -11,7 +11,7 @@ import {
   isRetryableError,
   isUserRejection,
   isWrongApp,
-  parseZondAddress,
+  parseQrlAddress,
   parsePublicKeyResponse,
   parseAppVersion,
   parseAppName,
@@ -318,76 +318,76 @@ describe("ledgerApdu", () => {
     });
   });
 
-  describe("parseZondAddress", () => {
-    it("should parse valid Zond address from response", () => {
-      // 'Z' prefix (0x5A) + 20 bytes address + success status
+  describe("parseQrlAddress", () => {
+    it("should parse valid QRL address from response", () => {
+      // 'Q' prefix (0x51) + 20 bytes address + success status
       const addressBytes = Buffer.alloc(20, 0xab);
       const response = Buffer.concat([
-        Buffer.from([0x5a]), // 'Z'
+        Buffer.from([0x51]), // 'Q'
         addressBytes,
         Buffer.from([0x90, 0x00]), // Success
       ]);
 
-      const address = parseZondAddress(response);
+      const address = parseQrlAddress(response);
 
-      expect(address.startsWith("Z")).toBe(true);
-      expect(address.length).toBe(41); // Z + 40 hex chars
+      expect(address.startsWith("Q")).toBe(true);
+      expect(address.length).toBe(41); // Q + 40 hex chars
     });
 
     it("should throw for invalid prefix", () => {
       const response = Buffer.concat([
-        Buffer.from([0x58]), // 'X' instead of 'Z'
+        Buffer.from([0x58]), // 'X' instead of 'Q'
         Buffer.alloc(20, 0xab),
         Buffer.from([0x90, 0x00]),
       ]);
 
-      expect(() => parseZondAddress(response)).toThrow(
+      expect(() => parseQrlAddress(response)).toThrow(
         "Invalid address prefix"
       );
     });
 
     it("should throw for response too short", () => {
-      const response = Buffer.from([0x5a, 0x01, 0x02, 0x90, 0x00]);
+      const response = Buffer.from([0x51, 0x01, 0x02, 0x90, 0x00]);
 
-      expect(() => parseZondAddress(response)).toThrow(
+      expect(() => parseQrlAddress(response)).toThrow(
         "Invalid response length"
       );
     });
 
     it("should throw for error status", () => {
       const response = Buffer.concat([
-        Buffer.from([0x5a]),
+        Buffer.from([0x51]),
         Buffer.alloc(20, 0xab),
         Buffer.from([0x69, 0x85]), // User rejection
       ]);
 
-      expect(() => parseZondAddress(response)).toThrow();
+      expect(() => parseQrlAddress(response)).toThrow();
     });
   });
 
   describe("parsePublicKeyResponse", () => {
     it("should parse address without public key", () => {
-      // 'Z' prefix + 20 bytes address + success status (no public key)
+      // 'Q' prefix + 20 bytes address + success status (no public key)
       const addressBytes = Buffer.alloc(20, 0xab);
       const response = Buffer.concat([
-        Buffer.from([0x5a]), // 'Z'
+        Buffer.from([0x51]), // 'Q'
         addressBytes,
         Buffer.from([0x90, 0x00]), // Success
       ]);
 
       const result = parsePublicKeyResponse(response);
 
-      expect(result.address.startsWith("Z")).toBe(true);
-      expect(result.address.length).toBe(41); // Z + 40 hex chars
+      expect(result.address.startsWith("Q")).toBe(true);
+      expect(result.address.length).toBe(41); // Q + 40 hex chars
       expect(result.publicKey).toBe(""); // No public key in response
     });
 
     it("should parse address with public key", () => {
-      // 'Z' prefix + 20 bytes address + public key + success status
+      // 'Q' prefix + 20 bytes address + public key + success status
       const addressBytes = Buffer.alloc(20, 0xab);
       const publicKeyBytes = Buffer.alloc(100, 0xcc); // Simplified public key
       const response = Buffer.concat([
-        Buffer.from([0x5a]), // 'Z'
+        Buffer.from([0x51]), // 'Q'
         addressBytes,
         publicKeyBytes,
         Buffer.from([0x90, 0x00]), // Success
@@ -395,18 +395,18 @@ describe("ledgerApdu", () => {
 
       const result = parsePublicKeyResponse(response);
 
-      expect(result.address.startsWith("Z")).toBe(true);
+      expect(result.address.startsWith("Q")).toBe(true);
       expect(result.address.length).toBe(41);
       expect(result.publicKey).toMatch(/^0x/);
       expect(result.publicKey.length).toBe(2 + 100 * 2); // 0x + 100 bytes as hex
     });
 
     it("should parse full Dilithium public key", () => {
-      // 'Z' prefix + 20 bytes address + 2528 bytes Dilithium key + success status
+      // 'Q' prefix + 20 bytes address + 2528 bytes Dilithium key + success status
       const addressBytes = Buffer.alloc(20, 0xab);
       const publicKeyBytes = Buffer.alloc(DILITHIUM_PUBLIC_KEY_SIZE, 0xdd);
       const response = Buffer.concat([
-        Buffer.from([0x5a]), // 'Z'
+        Buffer.from([0x51]), // 'Q'
         addressBytes,
         publicKeyBytes,
         Buffer.from([0x90, 0x00]), // Success
@@ -414,7 +414,7 @@ describe("ledgerApdu", () => {
 
       const result = parsePublicKeyResponse(response);
 
-      expect(result.address.startsWith("Z")).toBe(true);
+      expect(result.address.startsWith("Q")).toBe(true);
       expect(result.publicKey).toMatch(/^0x/);
       // 0x prefix + 2528 bytes as hex (2 chars per byte)
       expect(result.publicKey.length).toBe(2 + DILITHIUM_PUBLIC_KEY_SIZE * 2);
@@ -422,7 +422,7 @@ describe("ledgerApdu", () => {
 
     it("should throw for invalid prefix", () => {
       const response = Buffer.concat([
-        Buffer.from([0x58]), // 'X' instead of 'Z'
+        Buffer.from([0x58]), // 'X' instead of 'Q'
         Buffer.alloc(20, 0xab),
         Buffer.from([0x90, 0x00]),
       ]);
@@ -433,7 +433,7 @@ describe("ledgerApdu", () => {
     });
 
     it("should throw for response too short", () => {
-      const response = Buffer.from([0x5a, 0x01, 0x02, 0x90, 0x00]);
+      const response = Buffer.from([0x51, 0x01, 0x02, 0x90, 0x00]);
 
       expect(() => parsePublicKeyResponse(response)).toThrow(
         "Invalid response length"
@@ -442,7 +442,7 @@ describe("ledgerApdu", () => {
 
     it("should throw for error status", () => {
       const response = Buffer.concat([
-        Buffer.from([0x5a]),
+        Buffer.from([0x51]),
         Buffer.alloc(20, 0xab),
         Buffer.from([0x69, 0x85]), // User rejection
       ]);

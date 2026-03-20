@@ -36,7 +36,7 @@ export const getOptimalGasFee = (gas: string, tokenSymbol?: string) => {
     postDecimalString = postDecimalString.substring(0, i + 1);
 
     return `${precisionFloat.substring(0, precisionFloat.indexOf(".") + 1).concat(postDecimalString)} ${symbol}`;
-  } catch (error) {
+  } catch {
     return `${gas} ${symbol}`;
   }
 };

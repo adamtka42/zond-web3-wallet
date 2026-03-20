@@ -1,34 +1,34 @@
-import { describe, expect, it, jest, beforeEach } from "@jest/globals";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { LEDGER_ERROR_MESSAGES } from "@/constants/ledger";
 import type { LedgerAccount, LedgerDeviceInfo } from "@/services/ledger/ledgerTypes";
 
 describe("LedgerStore", () => {
   // Mock functions - using 'any' to avoid complex generic typing issues with Jest mocks
   // Transport mocks
-  const mockConnect = jest.fn<any>();  // Used for both transport and service connect
-  const mockDisconnect = jest.fn<any>();
-  const mockIsConnected = jest.fn<any>();
-  const mockOnDisconnect = jest.fn<any>();
+  const mockConnect = vi.fn<any>();  // Used for both transport and service connect
+  const mockDisconnect = vi.fn<any>();
+  const mockIsConnected = vi.fn<any>();
+  const mockOnDisconnect = vi.fn<any>();
 
   // Service mocks
-  const mockGetAccounts = jest.fn<any>();
-  const mockGetAddress = jest.fn<any>();
-  const mockGetPublicKey = jest.fn<any>();
-  const mockVerifyAddress = jest.fn<any>();
-  const mockSignTransaction = jest.fn<any>();
+  const mockGetAccounts = vi.fn<any>();
+  const mockGetAddress = vi.fn<any>();
+  const mockGetPublicKey = vi.fn<any>();
+  const mockVerifyAddress = vi.fn<any>();
+  const mockSignTransaction = vi.fn<any>();
 
   // Storage mocks
-  const mockGetLedgerAccounts = jest.fn<any>();
-  const mockSetLedgerAccounts = jest.fn<any>();
-  const mockAddLedgerAccountToAllAccounts = jest.fn<any>();
-  const mockRemoveLedgerAccountFromAllAccounts = jest.fn<any>();
+  const mockGetLedgerAccounts = vi.fn<any>();
+  const mockSetLedgerAccounts = vi.fn<any>();
+  const mockAddLedgerAccountToAllAccounts = vi.fn<any>();
+  const mockRemoveLedgerAccountFromAllAccounts = vi.fn<any>();
 
   // FeeMarketEIP1559Transaction mocks
-  const mockSerialize = jest.fn<any>();
-  const mockRaw = jest.fn<any>();
-  const mockGetMessageToSign = jest.fn<any>();
-  const mockFromTxData = jest.fn<any>();
-  const mockFromValuesArray = jest.fn<any>();
+  const mockSerialize = vi.fn<any>();
+  const mockRaw = vi.fn<any>();
+  const mockGetMessageToSign = vi.fn<any>();
+  const mockFromTxData = vi.fn<any>();
+  const mockFromValuesArray = vi.fn<any>();
 
   // Store instance will be dynamically imported
   let LedgerStore: typeof import("./ledgerStore").default;
@@ -42,13 +42,13 @@ describe("LedgerStore", () => {
 
   const mockAccounts: LedgerAccount[] = [
     {
-      address: "Z1234567890123456789012345678901234567890",
+      address: "Q1234567890123456789012345678901234567890",
       derivationPath: "m/44'/238'/0'/0'/0'",
       publicKey: "0xpublickey1",
       index: 0,
     },
     {
-      address: "Z0987654321098765432109876543210987654321",
+      address: "Q0987654321098765432109876543210987654321",
       derivationPath: "m/44'/238'/0'/0'/1'",
       publicKey: "0xpublickey2",
       index: 1,
@@ -57,8 +57,8 @@ describe("LedgerStore", () => {
 
   beforeEach(async () => {
     // Reset all mocks
-    jest.clearAllMocks();
-    jest.resetModules();
+    vi.clearAllMocks();
+    vi.resetModules();
 
     // Default mock implementations
     mockGetLedgerAccounts.mockResolvedValue([]);
@@ -68,7 +68,7 @@ describe("LedgerStore", () => {
     mockIsConnected.mockReturnValue(false);
 
     // Set up mocks using doMock (not hoisted)
-    jest.doMock("@/services/ledger/ledgerTransport", () => ({
+    vi.doMock("@/services/ledger/ledgerTransport", () => ({
       ledgerTransport: {
         connect: mockConnect,
         disconnect: mockDisconnect,
@@ -77,7 +77,7 @@ describe("LedgerStore", () => {
       },
     }));
 
-    jest.doMock("@/services/ledger/ledgerService", () => ({
+    vi.doMock("@/services/ledger/ledgerService", () => ({
       ledgerService: {
         connect: mockConnect,  // ledgerService.connect() returns LedgerDeviceInfo
         getAccounts: mockGetAccounts,
@@ -113,21 +113,14 @@ describe("LedgerStore", () => {
       serialize: mockSerialize,
     });
 
-    jest.doMock("@theqrl/web3", () => ({
-      zond: {
-        accounts: {
-          FeeMarketEIP1559Transaction: {
-            fromTxData: mockFromTxData,
-            fromValuesArray: mockFromValuesArray,
-          },
-          Common: {
-            custom: jest.fn().mockReturnValue({ chainId: 1 }),
-          },
-        },
+    vi.doMock("@theqrl/web3-qrl-accounts", () => ({
+      FeeMarketEIP1559Transaction: {
+        fromTxData: mockFromTxData,
+        fromValuesArray: mockFromValuesArray,
       },
     }));
 
-    jest.doMock("@/utilities/storageUtil", () => ({
+    vi.doMock("@/utilities/storageUtil", () => ({
       __esModule: true,
       default: {
         getLedgerAccounts: mockGetLedgerAccounts,
@@ -586,7 +579,7 @@ describe("LedgerStore", () => {
     });
 
     it("should return false if account not found", async () => {
-      const result = await store.verifyAddress("Z0000000000000000000000000000000000000000");
+      const result = await store.verifyAddress("Q0000000000000000000000000000000000000000");
 
       expect(result).toBe(false);
       expect(mockVerifyAddress).not.toHaveBeenCalled();
@@ -627,7 +620,7 @@ describe("LedgerStore", () => {
     });
 
     it("should return undefined if not found", () => {
-      const account = store.getAccountByAddress("Z0000000000000000000000000000000000000000");
+      const account = store.getAccountByAddress("Q0000000000000000000000000000000000000000");
       expect(account).toBeUndefined();
     });
   });
@@ -642,7 +635,7 @@ describe("LedgerStore", () => {
     });
 
     it("should return false for non-ledger account", () => {
-      expect(store.isLedgerAccount("Z0000000000000000000000000000000000000000")).toBe(false);
+      expect(store.isLedgerAccount("Q0000000000000000000000000000000000000000")).toBe(false);
     });
   });
 
@@ -676,7 +669,7 @@ describe("LedgerStore", () => {
 
     it("should return error for non-ledger account", async () => {
       const result = await store.signTransaction(
-        "Z0000000000000000000000000000000000000000",
+        "Q0000000000000000000000000000000000000000",
         mockRlpEncodedTx
       );
 
@@ -769,36 +762,36 @@ describe("LedgerStore", () => {
     });
 
     it("should restore nextAccountIndex from stored accounts", async () => {
-      jest.clearAllMocks();
-      jest.resetModules();
+      vi.clearAllMocks();
+      vi.resetModules();
 
       const storedAccounts = [
-        { address: "Z111", derivationPath: "m/44'/238'/0'/0'/0'", publicKey: "", index: 0 },
-        { address: "Z222", derivationPath: "m/44'/238'/0'/0'/3'", publicKey: "", index: 3 },
+        { address: "Q111", derivationPath: "m/44'/238'/0'/0'/0'", publicKey: "", index: 0 },
+        { address: "Q222", derivationPath: "m/44'/238'/0'/0'/3'", publicKey: "", index: 3 },
       ];
       mockGetLedgerAccounts.mockResolvedValue(storedAccounts);
       mockIsConnected.mockReturnValue(false);
 
-      jest.doMock("@/services/ledger/ledgerTransport", () => ({
+      vi.doMock("@/services/ledger/ledgerTransport", () => ({
         ledgerTransport: {
           connect: mockConnect, disconnect: mockDisconnect,
           isConnected: mockIsConnected, onDisconnect: mockOnDisconnect,
         },
       }));
-      jest.doMock("@/services/ledger/ledgerService", () => ({
+      vi.doMock("@/services/ledger/ledgerService", () => ({
         ledgerService: {
           connect: mockConnect, getAccounts: mockGetAccounts,
           getAddress: mockGetAddress, getPublicKey: mockGetPublicKey,
           verifyAddress: mockVerifyAddress, signTransaction: mockSignTransaction,
         },
       }));
-      jest.doMock("@theqrl/web3", () => ({
-        zond: { accounts: {
+      vi.doMock("@theqrl/web3", () => ({
+        qrl: { accounts: {
           FeeMarketEIP1559Transaction: { fromTxData: mockFromTxData, fromValuesArray: mockFromValuesArray },
-          Common: { custom: jest.fn().mockReturnValue({ chainId: 1 }) },
+          Common: { custom: vi.fn().mockReturnValue({ chainId: 1 }) },
         }},
       }));
-      jest.doMock("@/utilities/storageUtil", () => ({
+      vi.doMock("@/utilities/storageUtil", () => ({
         __esModule: true,
         default: {
           getLedgerAccounts: mockGetLedgerAccounts, setLedgerAccounts: mockSetLedgerAccounts,
@@ -819,32 +812,32 @@ describe("LedgerStore", () => {
     });
 
     it("should handle storage error gracefully", async () => {
-      jest.clearAllMocks();
-      jest.resetModules();
+      vi.clearAllMocks();
+      vi.resetModules();
 
       mockGetLedgerAccounts.mockRejectedValue(new Error("Storage corrupted"));
       mockIsConnected.mockReturnValue(false);
 
-      jest.doMock("@/services/ledger/ledgerTransport", () => ({
+      vi.doMock("@/services/ledger/ledgerTransport", () => ({
         ledgerTransport: {
           connect: mockConnect, disconnect: mockDisconnect,
           isConnected: mockIsConnected, onDisconnect: mockOnDisconnect,
         },
       }));
-      jest.doMock("@/services/ledger/ledgerService", () => ({
+      vi.doMock("@/services/ledger/ledgerService", () => ({
         ledgerService: {
           connect: mockConnect, getAccounts: mockGetAccounts,
           getAddress: mockGetAddress, getPublicKey: mockGetPublicKey,
           verifyAddress: mockVerifyAddress, signTransaction: mockSignTransaction,
         },
       }));
-      jest.doMock("@theqrl/web3", () => ({
-        zond: { accounts: {
+      vi.doMock("@theqrl/web3", () => ({
+        qrl: { accounts: {
           FeeMarketEIP1559Transaction: { fromTxData: mockFromTxData, fromValuesArray: mockFromValuesArray },
-          Common: { custom: jest.fn().mockReturnValue({ chainId: 1 }) },
+          Common: { custom: vi.fn().mockReturnValue({ chainId: 1 }) },
         }},
       }));
-      jest.doMock("@/utilities/storageUtil", () => ({
+      vi.doMock("@/utilities/storageUtil", () => ({
         __esModule: true,
         default: {
           getLedgerAccounts: mockGetLedgerAccounts, setLedgerAccounts: mockSetLedgerAccounts,
@@ -869,7 +862,7 @@ describe("LedgerStore", () => {
       store.connectionState = "connected";
       store.accounts = [
         {
-          address: "Z1234567890123456789012345678901234567890",
+          address: "Q1234567890123456789012345678901234567890",
           derivationPath: "m/44'/238'/0'/0'/0'",
           publicKey: "",
           index: 0,
@@ -880,12 +873,12 @@ describe("LedgerStore", () => {
     it("should fetch public key and update account", async () => {
       const expectedPublicKey = "0xabc123publickey";
       mockGetPublicKey.mockResolvedValue({
-        address: "Z1234567890123456789012345678901234567890",
+        address: "Q1234567890123456789012345678901234567890",
         derivationPath: "m/44'/238'/0'/0'/0'",
         publicKey: expectedPublicKey,
       });
 
-      const result = await store.fetchPublicKey("Z1234567890123456789012345678901234567890");
+      const result = await store.fetchPublicKey("Q1234567890123456789012345678901234567890");
 
       expect(result.publicKey).toBe(expectedPublicKey);
       expect(mockGetPublicKey).toHaveBeenCalledWith("m/44'/238'/0'/0'/0'");
@@ -895,32 +888,32 @@ describe("LedgerStore", () => {
 
     it("should throw if account not found", async () => {
       await expect(
-        store.fetchPublicKey("Z0000000000000000000000000000000000000000")
-      ).rejects.toThrow("Account Z0000000000000000000000000000000000000000 not found");
+        store.fetchPublicKey("Q0000000000000000000000000000000000000000")
+      ).rejects.toThrow("Account Q0000000000000000000000000000000000000000 not found");
     });
 
     it("should auto-connect if not connected", async () => {
       store.connectionState = "disconnected";
       mockConnect.mockResolvedValue(mockDeviceInfo);
       mockGetPublicKey.mockResolvedValue({
-        address: "Z1234567890123456789012345678901234567890",
+        address: "Q1234567890123456789012345678901234567890",
         derivationPath: "m/44'/238'/0'/0'/0'",
         publicKey: "0xpk",
       });
 
-      await store.fetchPublicKey("Z1234567890123456789012345678901234567890");
+      await store.fetchPublicKey("Q1234567890123456789012345678901234567890");
 
       expect(mockConnect).toHaveBeenCalled();
     });
 
     it("should handle case-insensitive address matching", async () => {
       mockGetPublicKey.mockResolvedValue({
-        address: "Z1234567890123456789012345678901234567890",
+        address: "Q1234567890123456789012345678901234567890",
         derivationPath: "m/44'/238'/0'/0'/0'",
         publicKey: "0xpk",
       });
 
-      const result = await store.fetchPublicKey("z1234567890123456789012345678901234567890");
+      const result = await store.fetchPublicKey("q1234567890123456789012345678901234567890");
 
       expect(result.publicKey).toBe("0xpk");
       expect(store.accounts[0].publicKey).toBe("0xpk");
@@ -933,7 +926,7 @@ describe("LedgerStore", () => {
       maxPriorityFeePerGas: "0x1",
       maxFeePerGas: "0x2",
       gasLimit: "0x5208",
-      to: "0xrecipient",
+      to: "Q1234567890123456789012345678901234567890",
       value: "0x1000",
       data: "0x",
     };
@@ -958,7 +951,7 @@ describe("LedgerStore", () => {
       );
 
       expect(mockFromTxData).toHaveBeenCalledWith(mockTxData, { common: mockCommon });
-      expect(mockGetMessageToSign).toHaveBeenCalledWith(false);
+      expect(mockGetMessageToSign).toHaveBeenCalledWith(expect.any(Uint8Array), expect.any(Uint8Array), false);
       expect(mockRaw).toHaveBeenCalled();
       expect(mockFromValuesArray).toHaveBeenCalled();
       expect(mockSerialize).toHaveBeenCalled();
@@ -979,20 +972,20 @@ describe("LedgerStore", () => {
     it("should fetch public key if not present on account", async () => {
       // Account without public key
       store.accounts = [{
-        address: "Z1234567890123456789012345678901234567890",
+        address: "Q1234567890123456789012345678901234567890",
         derivationPath: "m/44'/238'/0'/0'/0'",
         publicKey: "",
         index: 0,
       }];
 
       mockGetPublicKey.mockResolvedValue({
-        address: "Z1234567890123456789012345678901234567890",
+        address: "Q1234567890123456789012345678901234567890",
         derivationPath: "m/44'/238'/0'/0'/0'",
         publicKey: "0xfetchedpublickey",
       });
 
       await store.signAndSerializeTransaction(
-        "Z1234567890123456789012345678901234567890",
+        "Q1234567890123456789012345678901234567890",
         mockTxData,
         mockCommon,
       );
@@ -1031,21 +1024,21 @@ describe("LedgerStore", () => {
 
     it("should throw if fetchPublicKey returns empty public key", async () => {
       store.accounts = [{
-        address: "Z1234567890123456789012345678901234567890",
+        address: "Q1234567890123456789012345678901234567890",
         derivationPath: "m/44'/238'/0'/0'/0'",
         publicKey: "",
         index: 0,
       }];
 
       mockGetPublicKey.mockResolvedValue({
-        address: "Z1234567890123456789012345678901234567890",
+        address: "Q1234567890123456789012345678901234567890",
         derivationPath: "m/44'/238'/0'/0'/0'",
         publicKey: "",
       });
 
       await expect(
         store.signAndSerializeTransaction(
-          "Z1234567890123456789012345678901234567890",
+          "Q1234567890123456789012345678901234567890",
           mockTxData,
           mockCommon,
         )
@@ -1062,11 +1055,14 @@ describe("LedgerStore", () => {
       const callArgs = mockFromValuesArray.mock.calls[0];
       const valuesArray = callArgs[0] as any[];
 
-      // Should have 11 elements: 9 tx fields + publicKey + signature
-      expect(valuesArray).toHaveLength(11);
-      // Last two should be Buffer instances (publicKey at index 9, signature at index 10)
+      // Should have 12 elements: 9 tx fields + publicKey + signature + descriptor
+      expect(valuesArray).toHaveLength(12);
+      // publicKey and signature should be Buffer instances
       expect(Buffer.isBuffer(valuesArray[9])).toBe(true);  // publicKey
       expect(Buffer.isBuffer(valuesArray[10])).toBe(true);  // signature
+      // descriptor should be Uint8Array (3 bytes: [1, 0, 0] for ML-DSA-87)
+      expect(valuesArray[11]).toBeInstanceOf(Uint8Array);
+      expect(valuesArray[11]).toHaveLength(3);
     });
   });
 });

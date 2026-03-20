@@ -3,34 +3,34 @@ import { initializeProvider } from "@theqrl/zond-wallet-provider/providers";
 import log from "loglevel";
 import { v4 as uuid } from "uuid";
 import {
-  ZOND_POST_MESSAGE_STREAM,
-  ZOND_WEB3_WALLET_PROVIDER_INFO,
+  QRL_POST_MESSAGE_STREAM,
+  QRL_WEB3_WALLET_PROVIDER_INFO,
 } from "./constants/streamConstants";
 
 const initializeInPageScript = () => {
   try {
-    const zondStream = new WindowPostMessageStream({
-      name: ZOND_POST_MESSAGE_STREAM.INPAGE,
-      target: ZOND_POST_MESSAGE_STREAM.CONTENT_SCRIPT,
+    const qrlStream = new WindowPostMessageStream({
+      name: QRL_POST_MESSAGE_STREAM.INPAGE,
+      target: QRL_POST_MESSAGE_STREAM.CONTENT_SCRIPT,
     });
 
     initializeProvider({
-      connectionStream: zondStream,
+      connectionStream: qrlStream,
       logger: log,
       providerInfo: {
         uuid: uuid(),
-        name: ZOND_WEB3_WALLET_PROVIDER_INFO.NAME,
-        icon: ZOND_WEB3_WALLET_PROVIDER_INFO.ICON,
-        rdns: ZOND_WEB3_WALLET_PROVIDER_INFO.RDNS,
+        name: QRL_WEB3_WALLET_PROVIDER_INFO.NAME,
+        icon: QRL_WEB3_WALLET_PROVIDER_INFO.ICON,
+        rdns: QRL_WEB3_WALLET_PROVIDER_INFO.RDNS,
       },
     });
   } catch (error) {
     console.warn(
-      "ZondWeb3Wallet: Failed to initialize the in-page script\n",
+      "QrlWeb3Wallet: Failed to initialize the in-page script\n",
       error,
     );
   }
 };
 
-// This function accounces the zond web3 wallet provider(based on EIP-6963), to be detected by the dApps.
+// This function accounces the qrl web3 wallet provider(based on EIP-6963), to be detected by the dApps.
 initializeInPageScript();

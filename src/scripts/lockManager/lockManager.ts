@@ -1,10 +1,12 @@
-import StorageUtil from "@/utilities/storageUtil";
+import StorageUtil, { LockState } from "@/utilities/storageUtil";
 import { Bytes } from "@theqrl/web3";
-import { decrypt, encrypt } from "./tempWeb3js";
+import { decrypt, encrypt } from "@theqrl/web3-qrl-accounts";
 import { getMnemonicFromHexSeed } from "@/functions/getMnemonicFromHexSeed";
+import browser from "webextension-polyfill";
 
 type MessageType = {
   name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
 };
 
@@ -29,32 +31,135 @@ export const LOCK_MANAGER_MESSAGES = {
   LOCK_MANAGER_KEEP_LIVE: "LOCK_MANAGER_KEEP_LIVE",
   GET_DECRYPTED_KEYS: "GET_DECRYPTED_KEYS",
   GET_WALLET_PASSWORD: "GET_WALLET_PASSWORD",
+  SET_DECRYPTED_KEYS: "SET_DECRYPTED_KEYS",
+  UPDATE_AUTO_LOCK: "LOCK_MANAGER_UPDATE_AUTO_LOCK",
+  SEND_TX_NOTIFICATION: "SEND_TX_NOTIFICATION",
 } as const;
 
 /**
  * The lock manager, which is part of the extension service worker handles lock related data and functions.
+ *
+ * IMPORTANT: CPU-heavy cryptographic operations (decrypt / encrypt via scrypt)
+ * are performed in the popup, NOT in the service worker.  The popup sends the
+ * resulting keys to the SW via the SET_DECRYPTED_KEYS message so that the SW
+ * only stores them in memory.  This avoids Chrome killing the SW mid-decrypt.
  */
 class LockManager {
   private static decryptedKeys?: DecryptedKeyType[];
+  static readonly AUTO_LOCK_ALARM = "QRL_AUTO_LOCK";
+  static readonly KEEP_ALIVE_ALARM = "QRL_KEEP_ALIVE";
+  private static readonly SESSION_KEYS_KEY = "_LM_CACHED_KEYS";
 
-  static lock() {
+  static async lock() {
     this.clearDecryptedKeys();
+    await this.clearSessionKeys();
+    await this.stopKeepAlive();
+    await this.clearAutoLockAlarm();
   }
 
-  static async unlock(password: string) {
+  static async startKeepAlive() {
+    await browser.alarms.create(this.KEEP_ALIVE_ALARM, {
+      periodInMinutes: 0.4, // ~24 seconds — under Chrome's 30s kill threshold
+    });
+  }
+
+  static async stopKeepAlive() {
+    await browser.alarms.clear(this.KEEP_ALIVE_ALARM);
+  }
+
+  /**
+   * Called when the keep-alive alarm fires.
+   * Writes to session storage to reset Chrome's inactivity timer.
+   * Also restores keys from session backup if SW was restarted.
+   */
+  static async handleKeepAliveAlarm() {
+    // Restore keys from session backup if SW restarted (lost in-memory keys)
+    if (this.decryptedKeys === undefined) {
+      await this.restoreKeysFromSession();
+    }
+    // Write to session storage to keep the SW alive
+    await browser.storage.session.set({ keepAlive: Date.now() });
+  }
+
+  static async setupAutoLockAlarm() {
+    const settings = await StorageUtil.getSettings();
+    const minutes = settings.autoLockMinutes ?? 15;
+    if (minutes > 0) {
+      await browser.alarms.create(this.AUTO_LOCK_ALARM, {
+        delayInMinutes: minutes,
+      });
+    } else {
+      await this.clearAutoLockAlarm();
+    }
+  }
+
+  static async clearAutoLockAlarm() {
+    await browser.alarms.clear(this.AUTO_LOCK_ALARM);
+  }
+
+  static async handleAutoLockAlarm() {
+    await this.lock();
+    await StorageUtil.updateLockStateTimeStamp(LockState.LOCKED);
+  }
+
+  /**
+   * Backup decrypted keys to session storage.
+   * Session storage survives SW restarts but clears on browser close.
+   */
+  private static async backupKeysToSession() {
+    if (this.decryptedKeys) {
+      await browser.storage.session.set({
+        [this.SESSION_KEYS_KEY]: this.decryptedKeys,
+      });
+    }
+  }
+
+  private static async clearSessionKeys() {
+    await browser.storage.session.remove(this.SESSION_KEYS_KEY);
+  }
+
+  /**
+   * Restore keys from session storage after SW restart.
+   * Returns true if keys were restored.
+   */
+  static async restoreKeysFromSession(): Promise<boolean> {
+    try {
+      const data = await browser.storage.session.get(this.SESSION_KEYS_KEY);
+      const keys = data?.[this.SESSION_KEYS_KEY] as
+        | DecryptedKeyType[]
+        | undefined;
+      if (keys?.length) {
+        this.decryptedKeys = keys;
+        return true;
+      }
+    } catch {
+      // Session storage read failed — accept locked state
+    }
+    return false;
+  }
+
+  /**
+   * Decrypt all keystores with the given password.
+   * Called via a dedicated port connection so there is no message-channel
+   * timeout — the port stays open as long as needed.
+   * Returns true on success, false on wrong password or empty keystores.
+   */
+  static async unlock(password: string): Promise<boolean> {
     try {
       const keyStores = await StorageUtil.getKeystores();
-      if (!keyStores.length) return;
+      if (!keyStores.length) return false;
       const decryptedKeys: DecryptedKeyType[] = [];
-      keyStores.forEach((keyStore) => {
-        // TODO: Replace with web3.js decrypt
-        const { address, seed } = decrypt(keyStore, password);
+      for (const keyStore of keyStores) {
+        // Yield the event loop between decryptions so Chrome
+        // doesn't consider the service worker unresponsive.
+        await new Promise((r) => setTimeout(r, 0));
+        const { address, seed } = await decrypt(keyStore, password);
         decryptedKeys.push({
           password,
           address,
           mnemonicPhrases: getMnemonicFromHexSeed(seed),
         });
-      });
+      }
       this.setDecryptedKeys(
         Array.from(
           new Map(
@@ -62,8 +167,10 @@ class LockManager {
           ).values(),
         ),
       );
-    } catch (err: any) {
+      return true;
+    } catch {
       this.clearDecryptedKeys();
+      return false;
     }
   }
 
@@ -78,17 +185,34 @@ class LockManager {
       this.clearDecryptedKeys();
       hasPasswordSet = false;
     }
+    // If SW restarted (lost in-memory keys), try restoring from session backup.
+    if (this.decryptedKeys === undefined && hasPasswordSet) {
+      await this.restoreKeysFromSession();
+    }
     return {
-      isLocked: !!(this.decryptedKeys === undefined),
+      isLocked: this.decryptedKeys === undefined,
       hasPasswordSet,
     };
+  }
+
+  /**
+   * Accept pre-decrypted keys from the popup.
+   * The popup performs the CPU-heavy decrypt, then sends the results here.
+   */
+  static setDecryptedKeysFromPopup(keys: DecryptedKeyType[]) {
+    this.setDecryptedKeys(
+      Array.from(
+        new Map(
+          keys.map((item) => [item.address.toLowerCase(), item]),
+        ).values(),
+      ),
+    );
   }
 
   static async encryptAccount(accountData: EncryptAccountType) {
     const { password, seed } = accountData;
     const keystores = await StorageUtil.getKeystores();
-    // TODO: Replace with web3.js encrypt
-    const encryptedKeyStore = encrypt(seed, password);
+    const encryptedKeyStore = await encrypt(seed, password);
     const updatedKeyStores = [...keystores, encryptedKeyStore];
     await StorageUtil.setKeystores(
       Array.from(
@@ -97,11 +221,29 @@ class LockManager {
         ).values(),
       ),
     );
-    await this.unlock(this.getWalletPassword());
+    // Add the new account key directly to in-memory keys
+    // instead of re-decrypting everything (which would block the SW).
+    const newKey: DecryptedKeyType = {
+      password,
+      address: encryptedKeyStore.address,
+      mnemonicPhrases: getMnemonicFromHexSeed(seed as string),
+    };
+    const existingKeys = this.decryptedKeys ?? [];
+    this.setDecryptedKeys(
+      Array.from(
+        new Map(
+          [...existingKeys, newKey].map((item) => [
+            item.address.toLowerCase(),
+            item,
+          ]),
+        ).values(),
+      ),
+    );
   }
 
   private static setDecryptedKeys(decryptedKeys: DecryptedKeyType[]) {
     this.decryptedKeys = decryptedKeys;
+    this.backupKeysToSession();
   }
 
   static getWalletPassword() {
@@ -112,8 +254,8 @@ class LockManager {
 
   static getDecryptedKeys() {
     if (!this.decryptedKeys) {
-      this.lock();
-      throw new Error("Zond Web3 Wallet is locked");
+      this.clearDecryptedKeys();
+      throw new Error("QRL Web3 Wallet is locked");
     }
     return this.decryptedKeys;
   }
@@ -123,19 +265,34 @@ class LockManager {
   }
 
   static async lockManagerListener(message: MessageType) {
+    let result;
     if (message.name === LOCK_MANAGER_MESSAGES.IS_LOCKED) {
-      return await LockManager.isLocked();
-    } else if (message.name === LOCK_MANAGER_MESSAGES.UNLOCK) {
-      return await LockManager.unlock(message?.data?.password);
+      result = await LockManager.isLocked();
+    } else if (message.name === LOCK_MANAGER_MESSAGES.SET_DECRYPTED_KEYS) {
+      // The popup decrypted the keystores locally and is sending us the results.
+      LockManager.setDecryptedKeysFromPopup(message?.data ?? []);
+      await LockManager.startKeepAlive();
+      await LockManager.setupAutoLockAlarm();
+      result = { success: true };
     } else if (message.name === LOCK_MANAGER_MESSAGES.LOCK) {
-      return LockManager.lock();
+      result = await LockManager.lock();
+    } else if (message.name === LOCK_MANAGER_MESSAGES.UPDATE_AUTO_LOCK) {
+      await LockManager.setupAutoLockAlarm();
+      result = { success: true };
     } else if (message.name === LOCK_MANAGER_MESSAGES.GET_DECRYPTED_KEYS) {
-      return LockManager.getDecryptedKeys();
+      result = LockManager.getDecryptedKeys();
     } else if (message.name === LOCK_MANAGER_MESSAGES.GET_WALLET_PASSWORD) {
-      return LockManager.getWalletPassword();
+      result = LockManager.getWalletPassword();
     } else if (message.name === LOCK_MANAGER_MESSAGES.ENCRYPT_ACCOUNT) {
-      return await LockManager.encryptAccount(message?.data ?? {});
+      result = await LockManager.encryptAccount(message?.data ?? {});
     }
+
+    // Any message while wallet is unlocked resets the auto-lock timer.
+    if (LockManager.decryptedKeys !== undefined) {
+      await LockManager.setupAutoLockAlarm();
+    }
+
+    return result;
   }
 }
 

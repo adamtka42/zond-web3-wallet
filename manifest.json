@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Zond Web3 Wallet",
-  "description": "A web3 wallet that run on the zond blockchain.",
+  "name": "QRL Web3 Wallet",
+  "description": "A web3 wallet that run on the QRL blockchain.",
   "icons": {
     "16": "icons/qrl/16.png",
     "24": "icons/qrl/24.png",
@@ -11,7 +11,7 @@
   },
   "action": {
     "default_popup": "index.html",
-    "default_title": "Zond Web3 Wallet",
+    "default_title": "QRL Web3 Wallet",
     "default_icon": {
       "16": "icons/qrl/16.png",
       "128": "icons/qrl/128.png"
@@ -29,11 +29,17 @@
     }
   ],
   "permissions": [
+    "alarms",
     "scripting",
     "tabs",
     "activeTab",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "sidePanel",
+    "notifications"
   ],
+  "side_panel": {
+    "default_path": "index.html"
+  },
   "host_permissions": ["<all_urls>"]
 }

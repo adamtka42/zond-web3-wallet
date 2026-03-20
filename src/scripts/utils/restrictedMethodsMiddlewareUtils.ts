@@ -6,7 +6,7 @@ import {
 import { RESTRICTED_METHODS } from "../constants/requestConstants";
 import StorageUtil from "@/utilities/storageUtil";
 import { MAX_SAFE_CHAIN_ID } from "@/constants/blockchain";
-import { BlockchainDataType } from "@/configuration/zondBlockchainConfig";
+import { BlockchainDataType } from "@/configuration/qrlBlockchainConfig";
 import {
   CAVEAT_TYPES,
   PARENT_CAPABILITIES,
@@ -15,15 +15,15 @@ import {
 
 const getFromAddress = (req: JsonRpcRequest<JsonRpcRequest>) => {
   switch (req.method) {
-    case RESTRICTED_METHODS.ZOND_SEND_TRANSACTION:
-      // @ts-ignore
+    case RESTRICTED_METHODS.QRL_SEND_TRANSACTION:
+      // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
       return req.params?.[0]?.from ?? "";
     case RESTRICTED_METHODS.WALLET_GET_CAPABILITIES:
-    case RESTRICTED_METHODS.ZOND_SIGN_TYPED_DATA_V4:
-      // @ts-ignore
+    case RESTRICTED_METHODS.QRL_SIGN_TYPED_DATA_V4:
+      // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
       return req.params?.[0];
     case RESTRICTED_METHODS.PERSONAL_SIGN:
-      // @ts-ignore
+      // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
       return req.params?.[1];
   }
 };
@@ -63,12 +63,12 @@ const isAcceptableUrl = (urlString: string) => {
       url.hostname === "127.0.0.1" ||
       url.protocol === "https:"
     );
-  } catch (error) {
+  } catch {
     return false;
   }
 };
 
-export const checkWalletAddZondChainParams = async (
+export const checkWalletAddQrlChainParams = async (
   chainData: BlockchainDataType,
   hasInternalKeys: boolean = false,
 ) => {
@@ -90,6 +90,7 @@ export const checkWalletAddZondChainParams = async (
     "isTestnet",
     "defaultWsRpcUrl",
     "isCustomChain",
+    "qrnsRegistryAddress",
   ];
   const allowedKeys = [
     "chainName",
@@ -229,12 +230,12 @@ export const checkUrlOriginHasBeenConnected = async (url: string) => {
   return {
     canProceed: hasConnectedAccounts,
     proceedError: providerErrors.unauthorized({
-      message: "The dApp is not connected to the Zond Web3 Wallet.",
+      message: "The dApp is not connected to the QRL Web3 Wallet.",
     }),
   };
 };
 
-export const checkWalletSwitchZondChainParams = async (paramObject: {
+export const checkWalletSwitchQrlChainParams = async (paramObject: {
   chainId: string;
 }) => {
   if (!paramObject || typeof paramObject !== "object") {
@@ -296,7 +297,7 @@ export const checkWalletSwitchZondChainParams = async (paramObject: {
       canProceed: false,
       proceedError: providerErrors.custom({
         code: 4902,
-        message: `Unrecognized chain ID "${chainId}". Try adding the chain using ${RESTRICTED_METHODS.WALLET_ADD_ZOND_CHAIN} first.`,
+        message: `Unrecognized chain ID "${chainId}". Try adding the chain using ${RESTRICTED_METHODS.WALLET_ADD_QRL_CHAIN} first.`,
       }),
     };
   }
@@ -386,7 +387,7 @@ export const checkWalletWatchAssetParams = async (paramObject: {
 };
 
 export const checkWalletRequestPermissionParams = async (paramObject: {
-  [k: string]: any;
+  [k: string]: unknown;
 }) => {
   const isAnObject =
     Boolean(paramObject) &&
@@ -416,7 +417,7 @@ export const checkWalletRequestPermissionParams = async (paramObject: {
 };
 
 export const checkWalletSendCallsParams = async (paramObject: {
-  [k: string]: any;
+  [k: string]: unknown;
 }) => {
   const isAnObject =
     Boolean(paramObject) &&
@@ -488,7 +489,7 @@ export const updateAccountsAndBlockchainsForUrlOrigin = async ({
   const permissions: Permission[] = [
     {
       invoker: origin,
-      parentCapability: PARENT_CAPABILITIES.ZOND_ACCOUNTS,
+      parentCapability: PARENT_CAPABILITIES.QRL_ACCOUNTS,
       caveats: [
         {
           type: CAVEAT_TYPES.RESTRICT_RETURNED_ACCOUNTS,
@@ -498,7 +499,7 @@ export const updateAccountsAndBlockchainsForUrlOrigin = async ({
     },
     {
       invoker: origin,
-      parentCapability: PARENT_CAPABILITIES.ZOND_CHAINS,
+      parentCapability: PARENT_CAPABILITIES.QRL_CHAINS,
       caveats: [
         {
           type: CAVEAT_TYPES.RESTRICT_NETWORK_SWITCHING,

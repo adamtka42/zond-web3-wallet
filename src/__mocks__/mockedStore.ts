@@ -1,9 +1,12 @@
 import {
-  BlockchainDataType,
+  type BlockchainDataType,
   DEFAULT_BLOCKCHAIN,
-} from "@/configuration/zondBlockchainConfig";
-import { StoreType } from "@/stores/store";
-import { Web3BaseWalletAccount } from "@theqrl/web3";
+} from "@/configuration/qrlBlockchainConfig";
+import type LockStore from "@/stores/lockStore";
+import type SettingsStore from "@/stores/settingsStore";
+import type { StoreType } from "@/stores/store";
+import type QrlStore from "@/stores/qrlStore";
+import type { Web3BaseWalletAccount } from "@theqrl/web3";
 import deepmerge from "deepmerge";
 import { createContext, useContext } from "react";
 import type { PartialDeep } from "type-fest";
@@ -13,102 +16,116 @@ const mockedStoreValues: StoreType = {
     isDarkMode: true,
     theme: "dark",
     isPopupWindow: true,
-  },
-  zondStore: {
+    isSidePanel: false,
+    themePreference: "system",
+    autoLockMinutes: 15,
+    currency: "USD",
+    language: "en",
+    defaultGasTier: "market" as const,
+    showBalanceAndPrice: true,
+    sidePanelPreferred: false,
+    setThemePreference: async () => {},
+    setAutoLockMinutes: async () => {},
+    setCurrency: async () => {},
+    setLanguage: async () => {},
+    setDefaultGasTier: async () => {},
+    setShowBalanceAndPrice: async () => {},
+    setSidePanelPreferred: async () => {},
+  } as unknown as SettingsStore,
+  qrlStore: {
     activeAccount: {
-      accountAddress: "Z20B714091cF2a62DADda2847803e3f1B9D2D3779",
+      accountAddress: "Q20B714091cF2a62DADda2847803e3f1B9D2D3779",
     },
-    zondAccounts: {
+    qrlAccounts: {
       isLoading: false,
       accounts: [],
     },
-    zondConnection: {
+    qrlConnection: {
       isConnected: true,
       isLoading: false,
       blockchain: DEFAULT_BLOCKCHAIN,
     },
-    zondInstance: undefined,
+    qrlInstance: undefined,
     fetchAccounts: async () => {},
-    fetchZondConnection: async () => {},
-    getAccountBalance: (accountAddress: string) => {
-      accountAddress;
-      return "0.0 ZND";
+    fetchQrlConnection: async () => {},
+    getAccountBalance: (_accountAddress: string) => {
+      return "0.0 QRL";
     },
     initializeBlockchain: async () => {},
-    selectBlockchain: async (chainId: string) => {
-      chainId;
-    },
+    selectBlockchain: async (_chainId: string) => {},
     setActiveAccount: async () => {},
     getNativeTokenGas: async () => {
       return "";
     },
-    signAndSendNativeToken: async (
-      from: string,
-      to: string,
-      value: number,
-      mnemonicPhrases: string,
+    signNativeToken: async (
+      _from: string,
+      _to: string,
+      _value: number,
+      _mnemonicPhrases: string,
     ) => {
-      from;
-      to;
-      value;
-      mnemonicPhrases;
-      return { transactionReceipt: undefined, error: "" };
+      return { transactionHash: undefined, rawTransaction: undefined, error: "" };
     },
     validateActiveAccount: async () => {},
     getGasFeeData: async () => {
       return {
         baseFeePerGas: BigInt(0),
         maxFeePerGas: BigInt(0),
-        maxPriorityFeePerGas: "0",
+        maxPriorityFeePerGas: BigInt(0),
       };
     },
     getZrc20TokenDetails: async () => ({
       token: undefined,
       error: "",
     }),
+    getNftCollectionDetails: async () => ({
+      collection: undefined,
+      error: "",
+    }),
+    getOwnedNftTokenIds: async () => [],
+    getNftTokenUri: async () => "",
+    getNftTransferGas: async () => "",
+    signNftTransfer: async () => ({
+      transactionHash: undefined,
+      rawTransaction: undefined,
+      error: "",
+    }),
     getZrc20TokenGas: async (
-      from: string,
-      to: string,
-      value: number,
-      contractAddress: string,
-      decimals: number,
+      _from: string,
+      _to: string,
+      _value: number,
+      _contractAddress: string,
+      _decimals: number,
     ) => {
-      from;
-      to;
-      value;
-      contractAddress;
-      decimals;
       return "";
     },
-    signAndSendZrc20Token: async (
-      from: string,
-      to: string,
-      value: number,
-      mnemonicPhrases: string,
-      contractAddress: string,
-      decimals: number,
+    signZrc20Token: async (
+      _from: string,
+      _to: string,
+      _value: number,
+      _mnemonicPhrases: string,
+      _contractAddress: string,
+      _decimals: number,
     ) => {
-      from;
-      to;
-      value;
-      mnemonicPhrases;
-      contractAddress;
-      decimals;
-      return { transactionReceipt: undefined, error: "" };
+      return { transactionHash: undefined, rawTransaction: undefined, error: "" };
     },
+    signAndSendReplacementTransaction: async () => ({
+      transactionHash: undefined,
+      rawTransaction: undefined,
+      error: "",
+    }),
+    getTransactionReceipt: async () => null,
+    sendRawTransaction: async () => undefined,
     refreshBlockchainData: async () => {},
-    addChain: async (chainData: BlockchainDataType) => {
-      chainData;
+    addChain: async (_chainData: BlockchainDataType) => {
       return { chainFound: false, updatedChainList: [] };
     },
-    editChain: async (chainData: BlockchainDataType) => {
-      chainData;
+    editChain: async (_chainData: BlockchainDataType) => {
       return { updatedChainList: [] };
     },
-  },
+  } as unknown as QrlStore,
   dAppRequestStore: {
     dAppRequestData: {
-      method: "zond_requestAccounts",
+      method: "qrl_requestAccounts",
       requestData: {
         senderData: {
           tabId: 1,
@@ -117,46 +134,36 @@ const mockedStoreValues: StoreType = {
           favIconUrl: "http://localhost/mocked-fav-icon.svg",
         },
       },
+      phishingResult: {
+        isDomainPhishing: false,
+      },
     },
     hasDAppConnected: false,
     hasDAppRequest: true,
-    responseData: undefined,
+    responseData: {},
     canProceed: false,
-    onPermissionCallBack: async (hasApproved: boolean) => {
-      hasApproved;
-    },
+    onPermissionCallBack: async (_hasApproved: boolean) => {},
     approvalProcessingStatus: {
       hasApproved: false,
       isProcessing: false,
       hasCompleted: false,
     },
     readDAppRequestData: async () => {},
-    addToResponseData: (data: any) => {
-      data;
-    },
-    setCanProceed: (decision: boolean) => {
-      decision;
-    },
+    addToResponseData: (_data: any) => {},
+    setCanProceed: (_decision: boolean) => {},
     setOnPermissionCallBack: (
-      callBack: (hasApproved: boolean) => Promise<void>,
-    ) => {
-      callBack;
-    },
-    setApprovalProcessingStatus: async (status: {
+      _callBack: (hasApproved: boolean) => Promise<void>,
+    ) => {},
+    setApprovalProcessingStatus: async (_status: {
       isProcessing?: boolean;
       hasApproved?: boolean;
       hasCompleted?: boolean;
-    }) => {
-      status;
-    },
-    onPermission: async (hasApproved: boolean) => {
-      hasApproved;
-    },
+    }) => {},
+    onPermission: async (_hasApproved: boolean) => {},
     fetchCurrentTabData: async () => {},
     disconnectFromCurrentTab: async () => {},
   },
   lockStore: {
-    isServiceWorkerReady: true,
     hasPasswordSet: false,
     isLoading: false,
     isLocked: false,
@@ -165,14 +172,10 @@ const mockedStoreValues: StoreType = {
       return !!password;
     },
     encryptAccount: async (
-      account: Web3BaseWalletAccount,
-      password: string,
-    ) => {
-      account;
-      password;
-    },
-    keepServiceWorkerActive: () => {},
-    initializePort: () => {},
+      _account: Web3BaseWalletAccount,
+      _password: string,
+    ) => {},
+    initialize: () => {},
     lock: async () => {},
     initializeStorageListener: () => {},
     getWalletPassword: async () => {
@@ -181,7 +184,10 @@ const mockedStoreValues: StoreType = {
     getMnemonicPhrases: async (accountAddress: string) => {
       return accountAddress;
     },
-  },
+    changePassword: async () => {
+      return true;
+    },
+  } as unknown as LockStore,
   ledgerStore: {
     connectionState: "disconnected",
     deviceInfo: null,
@@ -216,6 +222,64 @@ const mockedStoreValues: StoreType = {
     clearError: () => {},
     isLedgerAccount: () => false,
     getAccountByAddress: () => undefined,
+  } as any,
+  transactionHistoryStore: {
+    transactions: [],
+    isLoading: false,
+    filter: "all" as const,
+    filteredTransactions: [],
+    pendingTransactions: [],
+    loadHistory: async (_accountAddress: string, _qrlInstance?: any) => {},
+    addTransaction: async (_accountAddress: string, _entry: any) => {},
+    updateTransaction: async (
+      _accountAddress: string,
+      _transactionHash: string,
+      _updates: any,
+    ) => {},
+    setFilter: (_filter: string) => {},
+    clearHistory: async (_accountAddress: string) => {},
+    startPolling: (_accountAddress: string, _qrlInstance: any) => {},
+    stopPolling: () => {},
+  } as any,
+  contactsStore: {
+    contacts: [],
+    isLoading: false,
+    loadContacts: async () => {},
+    addContact: async () => {},
+    removeContact: async () => {},
+    updateContact: async () => {},
+    getContactByAddress: () => undefined,
+  },
+  accountLabelsStore: {
+    labels: {},
+    isLoading: false,
+    loadLabels: async () => {},
+    syncLabels: async () => {},
+    setLabel: async () => {},
+    getLabel: () => "",
+    clearLabels: async () => {},
+  },
+  hiddenAccountsStore: {
+    hiddenAccounts: {},
+    hiddenAddresses: [],
+    loadHiddenAccounts: async () => {},
+    hideAccount: async () => {},
+    unhideAccount: async () => {},
+    isHidden: () => false,
+  } as any,
+  priceStore: {
+    prices: {},
+    change24h: {},
+    lastUpdated: 0,
+    isLoading: false,
+    hasError: false,
+    getPrice: () => 0,
+    isCacheStale: false,
+    initialize: async () => {},
+    fetchPrices: async () => {},
+    startAutoRefresh: () => {},
+    stopAutoRefresh: () => {},
+    getChange24h: () => 0,
   } as any,
 };
 

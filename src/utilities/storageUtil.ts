@@ -1,14 +1,18 @@
 import {
   BlockchainDataType,
   DEFAULT_BLOCKCHAIN,
-  ZOND_BLOCKCHAINS,
-} from "@/configuration/zondBlockchainConfig";
+  QRL_BLOCKCHAINS,
+} from "@/configuration/qrlBlockchainConfig";
 import {
   ConnectedAccountsDataType,
   DAppRequestType,
   TokenContractType,
 } from "@/scripts/middlewares/middlewareTypes";
 import type { LedgerAccount } from "@/services/ledger/ledgerTypes";
+import type { Contact } from "@/types/contact";
+import type { GasTier } from "@/types/gasFee";
+import type { NFTCollectionType } from "@/types/nft";
+import type { TransactionHistoryEntry } from "@/types/transactionHistory";
 import { KeyStore } from "@theqrl/web3";
 import browser from "webextension-polyfill";
 
@@ -36,6 +40,39 @@ const ACTIVE_PAGE_IDENTIFIER = "ACTIVE_PAGE";
 
 const TRANSACTION_VALUES_IDENTIFIER = "TRANSACTION_VALUES";
 
+const TX_HISTORY_IDENTIFIER = "TX_HISTORY";
+const ALL_TX_HISTORY_IDENTIFIER = "ALL_TX_HISTORY";
+
+const CONTACTS_IDENTIFIER = "CONTACTS";
+const ALL_CONTACTS_IDENTIFIER = "ALL_CONTACTS";
+
+const ACCOUNT_LABELS_IDENTIFIER = "ACCOUNT_LABELS";
+const HIDDEN_ACCOUNTS_IDENTIFIER = "HIDDEN_ACCOUNTS";
+
+const NFT_COLLECTIONS_IDENTIFIER = "NFT_COLLECTIONS";
+const ALL_NFT_COLLECTIONS_IDENTIFIER = "ALL_NFT_COLLECTIONS";
+
+const SETTINGS_IDENTIFIER = "SETTINGS";
+const PRICE_CACHE_IDENTIFIER = "PRICE_CACHE";
+
+export type WalletSettings = {
+  themePreference?: "system" | "light" | "dark";
+  autoLockMinutes?: number;
+  currency?: string;
+  language?: string;
+  defaultGasTier?: GasTier;
+  showBalanceAndPrice?: boolean;
+  sidePanelPreferred?: boolean;
+  notificationsEnabled?: boolean;
+  phishingDetectionEnabled?: boolean;
+};
+
+export type PriceCache = {
+  prices: Record<string, number>;
+  change24h: Record<string, number>;
+  timestamp: number;
+};
+
 type TransactionValuesType = {
   receiverAddress?: string;
   amount?: number;
@@ -55,7 +92,7 @@ export const LockState = Object.freeze({
   UNLOCKED: "UNLOCKED",
 });
 
-type LockStateType = (typeof LockState)[keyof typeof LockState];
+export type LockStateType = (typeof LockState)[keyof typeof LockState];
 
 /**
  * A utility for storing and retrieving states of different components to and from the browser storage.
@@ -86,6 +123,12 @@ class StorageUtil {
     await browser.storage.local.set({
       [lockStatusIdentifier]: Date.now(),
     });
+  }
+
+  static async getLockStateTimeStamp(lockState: LockStateType): Promise<number> {
+    const key = `LOCK_MANAGER_${lockState}_TIMESTAMP`;
+    const data = await browser.storage.local.get(key);
+    return (data?.[key] ?? 0) as number;
   }
 
   /**
@@ -133,7 +176,7 @@ class StorageUtil {
   }
 
   /**
-   * A function for storing the accounts created and imported within the zond web3 wallet extension.
+   * A function for storing the accounts created and imported within the qrl web3 wallet extension.
    * Call the getAllAccounts function to retrieve the stored value.
    */
   static async setAllAccounts(accountList: string[]) {
@@ -214,7 +257,7 @@ class StorageUtil {
       await browser.storage.local.get(BLOCKCHAINS_IDENTIFIER)
     )?.[BLOCKCHAINS_IDENTIFIER];
     return (storedBlockchains?.[ALL_BLOCKCHAINS_IDENTIFIER] ??
-      ZOND_BLOCKCHAINS) as BlockchainDataType[];
+      QRL_BLOCKCHAINS) as BlockchainDataType[];
   }
 
   /**
@@ -306,9 +349,9 @@ class StorageUtil {
     storageData[TOKENS_IDENTIFIER][ALL_TOKENS_IDENTIFIER][accountAddress][
       chainId
     ].tokens = [
-      ...storedTokenContracts?.filter(
+      ...(storedTokenContracts?.filter(
         (token) => token.address !== tokenContract.address,
-      ),
+      ) ?? []),
       tokenContract,
     ];
 
@@ -345,8 +388,91 @@ class StorageUtil {
     await browser.storage.local.set({ ...storageData });
   }
 
+  static async setNFTCollectionsList(
+    accountAddress: string,
+    collection: NFTCollectionType,
+  ) {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(
+      NFT_COLLECTIONS_IDENTIFIER,
+    );
+    if (!storageData[NFT_COLLECTIONS_IDENTIFIER]) {
+      storageData[NFT_COLLECTIONS_IDENTIFIER] = {};
+    }
+    if (
+      !storageData[NFT_COLLECTIONS_IDENTIFIER][ALL_NFT_COLLECTIONS_IDENTIFIER]
+    ) {
+      storageData[NFT_COLLECTIONS_IDENTIFIER][
+        ALL_NFT_COLLECTIONS_IDENTIFIER
+      ] = {};
+    }
+    if (
+      !storageData[NFT_COLLECTIONS_IDENTIFIER][
+        ALL_NFT_COLLECTIONS_IDENTIFIER
+      ][accountAddress]
+    ) {
+      storageData[NFT_COLLECTIONS_IDENTIFIER][
+        ALL_NFT_COLLECTIONS_IDENTIFIER
+      ][accountAddress] = {};
+    }
+    if (
+      !storageData[NFT_COLLECTIONS_IDENTIFIER][
+        ALL_NFT_COLLECTIONS_IDENTIFIER
+      ][accountAddress][chainId]
+    ) {
+      storageData[NFT_COLLECTIONS_IDENTIFIER][
+        ALL_NFT_COLLECTIONS_IDENTIFIER
+      ][accountAddress][chainId] = {};
+    }
+    const storedCollections =
+      await this.getNFTCollectionsList(accountAddress);
+    storageData[NFT_COLLECTIONS_IDENTIFIER][ALL_NFT_COLLECTIONS_IDENTIFIER][
+      accountAddress
+    ][chainId].collections = [
+      ...storedCollections.filter((c) => c.address !== collection.address),
+      collection,
+    ];
+
+    await browser.storage.local.set(storageData);
+  }
+
+  static async getNFTCollectionsList(accountAddress: string) {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(
+      NFT_COLLECTIONS_IDENTIFIER,
+    );
+    const storedCollections =
+      storageData?.[NFT_COLLECTIONS_IDENTIFIER]?.[
+        ALL_NFT_COLLECTIONS_IDENTIFIER
+      ]?.[accountAddress]?.[chainId]?.collections ?? [];
+
+    return storedCollections as NFTCollectionType[];
+  }
+
+  static async clearFromNFTCollectionsList(
+    accountAddress: string,
+    contractAddress: string,
+  ) {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(
+      NFT_COLLECTIONS_IDENTIFIER,
+    );
+    const storedCollections =
+      await this.getNFTCollectionsList(accountAddress);
+    storageData[NFT_COLLECTIONS_IDENTIFIER][ALL_NFT_COLLECTIONS_IDENTIFIER][
+      accountAddress
+    ][chainId].collections = storedCollections.filter(
+      (c) => c.address !== contractAddress,
+    );
+
+    await browser.storage.local.set({ ...storageData });
+  }
+
   /**
-   * A function for storing the request info temporarily by the dApp, which will be read by the zond web3 wallet.
+   * A function for storing the request info temporarily by the dApp, which will be read by the qrl web3 wallet.
    * Call the getDAppsRequestData function to retrieve the stored value, and clearDAppsRequestData for clearing the stored value.
    */
   static async setDAppsRequestData(dAppsRequestData: DAppRequestType) {
@@ -417,6 +543,85 @@ class StorageUtil {
     const storageData = await browser.storage.local.get(DAPPS_IDENTIFIER);
     delete storageData[DAPPS_IDENTIFIER]?.[ALL_DAPPS_IDENTIFIER]?.[urlOrigin];
     await browser.storage.local.set(storageData);
+  }
+
+  static async setContacts(contacts: Contact[]) {
+    await browser.storage.local.set({
+      [CONTACTS_IDENTIFIER]: {
+        [ALL_CONTACTS_IDENTIFIER]: contacts,
+      },
+    });
+  }
+
+  static async getContacts(): Promise<Contact[]> {
+    const storageData = await browser.storage.local.get(CONTACTS_IDENTIFIER);
+    const contacts =
+      storageData?.[CONTACTS_IDENTIFIER]?.[ALL_CONTACTS_IDENTIFIER] ?? [];
+    return contacts as Contact[];
+  }
+
+  static async clearContacts() {
+    await browser.storage.local.remove(CONTACTS_IDENTIFIER);
+  }
+
+  /**
+   * Account labels — a map from account address to a user-defined label.
+   */
+  static async setAccountLabels(labels: Record<string, string>) {
+    await browser.storage.local.set({
+      [ACCOUNT_LABELS_IDENTIFIER]: labels,
+    });
+  }
+
+  static async getAccountLabels(): Promise<Record<string, string>> {
+    const storageData = await browser.storage.local.get(
+      ACCOUNT_LABELS_IDENTIFIER,
+    );
+    return (storageData?.[ACCOUNT_LABELS_IDENTIFIER] ?? {}) as Record<
+      string,
+      string
+    >;
+  }
+
+  static async setAccountLabel(address: string, label: string) {
+    const labels = await this.getAccountLabels();
+    labels[address] = label;
+    await this.setAccountLabels(labels);
+  }
+
+  static async clearAccountLabels() {
+    await browser.storage.local.remove(ACCOUNT_LABELS_IDENTIFIER);
+  }
+
+  static async setHiddenAccounts(hidden: Record<string, boolean>) {
+    await browser.storage.local.set({
+      [HIDDEN_ACCOUNTS_IDENTIFIER]: hidden,
+    });
+  }
+
+  static async getHiddenAccounts(): Promise<Record<string, boolean>> {
+    const storageData = await browser.storage.local.get(
+      HIDDEN_ACCOUNTS_IDENTIFIER,
+    );
+    return (storageData?.[HIDDEN_ACCOUNTS_IDENTIFIER] ?? {}) as Record<
+      string,
+      boolean
+    >;
+  }
+
+  static async clearHiddenAccounts() {
+    await browser.storage.local.remove(HIDDEN_ACCOUNTS_IDENTIFIER);
+  }
+
+  static async setSettings(settings: WalletSettings) {
+    await browser.storage.local.set({
+      [SETTINGS_IDENTIFIER]: settings,
+    });
+  }
+
+  static async getSettings(): Promise<WalletSettings> {
+    const storageData = await browser.storage.local.get(SETTINGS_IDENTIFIER);
+    return (storageData?.[SETTINGS_IDENTIFIER] ?? {}) as WalletSettings;
   }
 
   static async clearAllData() {
@@ -534,6 +739,121 @@ class StorageUtil {
     return ledgerAccounts.find(
       (a) => a.address.toLowerCase() === address.toLowerCase()
     );
+  }
+
+  static async setTransactionHistoryEntry(
+    accountAddress: string,
+    entry: TransactionHistoryEntry,
+  ) {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(TX_HISTORY_IDENTIFIER);
+    if (!storageData[TX_HISTORY_IDENTIFIER]) {
+      storageData[TX_HISTORY_IDENTIFIER] = {};
+    }
+    if (!storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER]) {
+      storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER] = {};
+    }
+    if (
+      !storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ]
+    ) {
+      storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ] = {};
+    }
+    if (
+      !storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ][chainId]
+    ) {
+      storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ][chainId] = {};
+    }
+
+    const existing = await this.getTransactionHistory(accountAddress);
+    storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+      accountAddress
+    ][chainId].transactions = [
+      entry,
+      ...existing.filter((tx) => tx.transactionHash !== entry.transactionHash),
+    ];
+
+    await browser.storage.local.set(storageData);
+  }
+
+  static async getTransactionHistory(
+    accountAddress: string,
+  ): Promise<TransactionHistoryEntry[]> {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(TX_HISTORY_IDENTIFIER);
+    const transactions =
+      storageData?.[TX_HISTORY_IDENTIFIER]?.[ALL_TX_HISTORY_IDENTIFIER]?.[
+        accountAddress
+      ]?.[chainId]?.transactions ?? [];
+
+    return transactions as TransactionHistoryEntry[];
+  }
+
+  static async updateTransactionHistoryEntry(
+    accountAddress: string,
+    transactionHash: string,
+    updates: Partial<TransactionHistoryEntry>,
+  ) {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(TX_HISTORY_IDENTIFIER);
+    const transactions: TransactionHistoryEntry[] =
+      storageData?.[TX_HISTORY_IDENTIFIER]?.[ALL_TX_HISTORY_IDENTIFIER]?.[
+        accountAddress
+      ]?.[chainId]?.transactions ?? [];
+
+    const updatedTransactions = transactions.map((tx) =>
+      tx.transactionHash === transactionHash ? { ...tx, ...updates } : tx,
+    );
+
+    storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+      accountAddress
+    ][chainId].transactions = updatedTransactions;
+
+    await browser.storage.local.set(storageData);
+  }
+
+  static async getPendingTransactions(
+    accountAddress: string,
+  ): Promise<TransactionHistoryEntry[]> {
+    const history = await this.getTransactionHistory(accountAddress);
+    return history.filter((tx) => tx.pendingStatus === "pending");
+  }
+
+  static async clearTransactionHistory(accountAddress: string) {
+    const { chainId } = await this.getActiveBlockChain();
+
+    const storageData = await browser.storage.local.get(TX_HISTORY_IDENTIFIER);
+    if (
+      storageData?.[TX_HISTORY_IDENTIFIER]?.[ALL_TX_HISTORY_IDENTIFIER]?.[
+        accountAddress
+      ]?.[chainId]
+    ) {
+      storageData[TX_HISTORY_IDENTIFIER][ALL_TX_HISTORY_IDENTIFIER][
+        accountAddress
+      ][chainId].transactions = [];
+      await browser.storage.local.set(storageData);
+    }
+  }
+
+  static async setPriceCache(cache: PriceCache) {
+    await browser.storage.local.set({
+      [PRICE_CACHE_IDENTIFIER]: cache,
+    });
+  }
+
+  static async getPriceCache(): Promise<PriceCache | null> {
+    const storageData = await browser.storage.local.get(PRICE_CACHE_IDENTIFIER);
+    return (storageData?.[PRICE_CACHE_IDENTIFIER] ?? null) as PriceCache | null;
   }
 }
 

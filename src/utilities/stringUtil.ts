@@ -11,7 +11,7 @@ class StringUtil {
   static getSplitAddress(
     accountAddress: string,
     splitLength: number = 5,
-    prefixLength = accountAddress?.startsWith("Z") ? 1 : 2,
+    prefixLength = accountAddress?.startsWith("Q") ? 1 : 2,
   ) {
     const prefix = accountAddress?.substring(0, prefixLength);
     const addressSplit: string[] = [];
@@ -31,12 +31,12 @@ class StringUtil {
     const mnemonicObject = {
       "Public Information": {
         Address: accountAddress,
-        Note: "This is your public account address, and can be shared with others for receiving ZND to your account.",
+        Note: "This is your public account address, and can be shared with others for receiving QRL to your account.",
       },
       "Private Information": {
         "Hex Seed": accountHexSeed,
         "Mnemonic Phrases": mnemonicPhrases,
-        Note: "This is your secret key(mnemomic phrases, a 32 words combination), and should be kept safe somewhere. This is required to recover your account and to send ZND from your account to others account. If lost, you will lose access to your account and funds.",
+        Note: "This is your secret key(mnemomic phrases, a 32 words combination), and should be kept safe somewhere. This is required to recover your account and to send QRL from your account to others account. If lost, you will lose access to your account and funds.",
       },
     };
     const blobData = JSON.stringify(mnemonicObject, null, 2);

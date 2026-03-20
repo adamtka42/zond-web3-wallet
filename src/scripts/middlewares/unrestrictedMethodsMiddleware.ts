@@ -6,13 +6,13 @@ import { UNRESTRICTED_METHODS } from "../constants/requestConstants";
 import { EXTENSION_MESSAGES } from "../constants/streamConstants";
 import { checkUrlOriginHasBeenConnected } from "../utils/restrictedMethodsMiddlewareUtils";
 
-const ZOND_WALLET_DAPP_CONNECTION_REQUIRED_METHODS: string[] = [
-  UNRESTRICTED_METHODS.ZOND_ACCOUNTS,
+const QRL_WALLET_DAPP_CONNECTION_REQUIRED_METHODS: string[] = [
+  UNRESTRICTED_METHODS.QRL_ACCOUNTS,
 ];
 
 // a precheck to determine if the request can proceed
 const checkRequestCanProceed = async (req: JsonRpcRequest<JsonRpcRequest>) => {
-  if (ZOND_WALLET_DAPP_CONNECTION_REQUIRED_METHODS.includes(req.method)) {
+  if (QRL_WALLET_DAPP_CONNECTION_REQUIRED_METHODS.includes(req.method)) {
     const originConnectResult = await checkUrlOriginHasBeenConnected(
       req?.senderData?.url ?? "",
     );
@@ -52,16 +52,16 @@ export const unrestrictedMethodsMiddleware: JsonRpcMiddleware<
     // check if the request can proceed
     const { canProceed, proceedError } = await checkRequestCanProceed(req);
     if (!canProceed) {
-      // @ts-ignore
+      // @ts-expect-error - proceedError type from provider library is not assignable to res.error's narrow type
       res.error = proceedError;
       return end();
     }
 
     try {
       res.result = await getUnrestrictedMethodResult(req);
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.error = providerErrors.unsupportedMethod({
-        message: error?.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
     return end();

@@ -1,7 +1,7 @@
 import StorageUtil from "@/utilities/storageUtil";
 import Web3, { FMT_BYTES, FMT_NUMBER } from "@theqrl/web3";
 import { Web3RequestManager } from "@theqrl/web3-core";
-import { zondRpcMethods } from "@theqrl/web3-rpc-methods";
+import { qrlRpcMethods } from "@theqrl/web3-rpc-methods";
 import {
   ObjectMultiplex,
   Substream,
@@ -16,8 +16,8 @@ import browser from "webextension-polyfill";
 import { UNRESTRICTED_METHODS } from "./constants/requestConstants";
 import {
   EXTENSION_MESSAGES,
-  ZOND_POST_MESSAGE_STREAM,
-  ZOND_WALLET_PROVIDER_NAME,
+  QRL_POST_MESSAGE_STREAM,
+  QRL_WALLET_PROVIDER_NAME,
 } from "./constants/streamConstants";
 import { checkForLastError, getSerializableObject } from "./utils/scriptUtils";
 
@@ -37,19 +37,19 @@ let extensionChannel: Substream;
 // The field below is used to ensure that replay is done only once for each restart.
 let hasExtensionConnectSent = false;
 
-const getZondProperties = async () => {
+const getQrlProperties = async () => {
   const { defaultRpcUrl, defaultWsRpcUrl } =
     await StorageUtil.getActiveBlockChain();
-  const zondHttpProvider = new Web3.providers.HttpProvider(defaultRpcUrl);
-  const { provider, zond } = new Web3({ provider: zondHttpProvider });
-  return { provider, zond, defaultWsRpcUrl };
+  const qrlHttpProvider = new Web3.providers.HttpProvider(defaultRpcUrl);
+  const { provider, qrl } = new Web3({ provider: qrlHttpProvider });
+  return { provider, qrl, defaultWsRpcUrl };
 };
 
 const setupPageStreams = () => {
   // the transport-specific streams for communication between inpage and background
   const pageStream = new WindowPostMessageStream({
-    name: ZOND_POST_MESSAGE_STREAM.CONTENT_SCRIPT,
-    target: ZOND_POST_MESSAGE_STREAM.INPAGE,
+    name: QRL_POST_MESSAGE_STREAM.CONTENT_SCRIPT,
+    target: QRL_POST_MESSAGE_STREAM.INPAGE,
   });
 
   // create and connect channel muxers
@@ -58,33 +58,33 @@ const setupPageStreams = () => {
   pageMux.setMaxListeners(25);
 
   pipeline(pageMux, pageStream, pageMux, (err: Error | null) => {
-    console.warn("ZondWeb3Wallet: Inpage Multiplex", err);
+    console.warn("QrlWeb3Wallet: Inpage Multiplex", err);
   });
 
-  pageChannel = pageMux.createStream(ZOND_WALLET_PROVIDER_NAME);
+  pageChannel = pageMux.createStream(QRL_WALLET_PROVIDER_NAME);
 };
 
 /**
  * The function notifies inpage when the extension stream connection is ready. When the
- * 'zondWeb3Wallet_chainChanged' method is received from the extension, it implies that the
+ * 'qrlWeb3Wallet_chainChanged' method is received from the extension, it implies that the
  * background state is completely initialized and it is ready to process method calls.
  * This is used as a notification to replay any pending messages in MV3.
  */
 async function onDataExtensionStream(message: MessageType) {
   if (
     hasExtensionConnectSent &&
-    message.data.method === "zondWeb3Wallet_chainChanged"
+    message.data.method === "qrlWeb3Wallet_chainChanged"
   ) {
     hasExtensionConnectSent = false;
     window.postMessage(
       {
-        target: ZOND_POST_MESSAGE_STREAM.INPAGE, // the post-message-stream "target"
+        target: QRL_POST_MESSAGE_STREAM.INPAGE, // the post-message-stream "target"
         data: {
           // this object gets passed to `object-multiplex`
-          name: ZOND_WALLET_PROVIDER_NAME, // the `object-multiplex` channel name
+          name: QRL_WALLET_PROVIDER_NAME, // the `object-multiplex` channel name
           data: {
             jsonrpc: "2.0",
-            method: "ZOND_WALLET_EXTENSION_CONNECT_CAN_RETRY",
+            method: "QRL_WALLET_EXTENSION_CONNECT_CAN_RETRY",
           },
         },
       },
@@ -139,13 +139,13 @@ export const onDisconnectExtensionStream = (err: unknown) => {
 function notifyInpageOfStreamFailure() {
   window.postMessage(
     {
-      target: ZOND_POST_MESSAGE_STREAM.INPAGE, // the post-message-stream "target"
+      target: QRL_POST_MESSAGE_STREAM.INPAGE, // the post-message-stream "target"
       data: {
         // this object gets passed to `object-multiplex`
-        name: ZOND_WALLET_PROVIDER_NAME, // the `object-multiplex` channel name
+        name: QRL_WALLET_PROVIDER_NAME, // the `object-multiplex` channel name
         data: {
           jsonrpc: "2.0",
-          method: "ZOND_WALLET_STREAM_FAILURE",
+          method: "QRL_WALLET_STREAM_FAILURE",
         },
       },
     },
@@ -156,7 +156,7 @@ function notifyInpageOfStreamFailure() {
 const setupExtensionStreams = () => {
   hasExtensionConnectSent = true;
   extensionPort = browser.runtime.connect({
-    name: ZOND_POST_MESSAGE_STREAM.CONTENT_SCRIPT,
+    name: QRL_POST_MESSAGE_STREAM.CONTENT_SCRIPT,
   });
   extensionStream = new PortStream(extensionPort);
   extensionStream.on("data", onDataExtensionStream);
@@ -167,15 +167,15 @@ const setupExtensionStreams = () => {
   extensionMux.setMaxListeners(25);
 
   pipeline(extensionMux, extensionStream, extensionMux, (err: Error | null) => {
-    console.warn("ZondWeb3Wallet: Background Multiplex", err);
+    console.warn("QrlWeb3Wallet: Background Multiplex", err);
     notifyInpageOfStreamFailure();
   });
 
   // forward communication across inpage-background for these channels only
-  extensionChannel = extensionMux.createStream(ZOND_WALLET_PROVIDER_NAME);
+  extensionChannel = extensionMux.createStream(QRL_WALLET_PROVIDER_NAME);
   pipeline(pageChannel, extensionChannel, pageChannel, (error: Error | null) =>
     console.warn(
-      `ZondWeb3Wallet: Muxed traffic for channel "${ZOND_WALLET_PROVIDER_NAME}" failed.`,
+      `QrlWeb3Wallet: Muxed traffic for channel "${QRL_WALLET_PROVIDER_NAME}" failed.`,
       error,
     ),
   );
@@ -190,58 +190,59 @@ const prepareListeners = () => {
       if (!extensionStream) {
         setupExtensionStreams();
       }
-      return "ZondWeb3Wallet: handled service worker ready message";
+      return "QrlWeb3Wallet: handled service worker ready message";
     } else if (message.name === EXTENSION_MESSAGES.UNRESTRICTED_METHOD_CALLS) {
-      const { provider, zond, defaultWsRpcUrl } = await getZondProperties();
+      const { provider, qrl, defaultWsRpcUrl } = await getQrlProperties();
       const method = message.data.method;
-      if (method === UNRESTRICTED_METHODS.ZOND_GET_BLOCK_BY_NUMBER) {
-        // @ts-ignore
-        const [block, hydrated] = message?.data?.params;
-        const blockInformation = await zond.getBlock(block, hydrated);
+      if (method === UNRESTRICTED_METHODS.QRL_GET_BLOCK_BY_NUMBER) {
+        // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime for this RPC method
+        const [block, hydrated] = message?.data?.params ?? [];
+        const blockInformation = await qrl.getBlock(block, hydrated);
         return getSerializableObject(blockInformation);
       } else if (
         method ===
-          UNRESTRICTED_METHODS.ZOND_GET_BLOCK_TRANSACTION_COUNT_BY_HASH ||
+          UNRESTRICTED_METHODS.QRL_GET_BLOCK_TRANSACTION_COUNT_BY_HASH ||
         method ===
-          UNRESTRICTED_METHODS.ZOND_GET_BLOCK_TRANSACTION_COUNT_BY_NUMBER
+          UNRESTRICTED_METHODS.QRL_GET_BLOCK_TRANSACTION_COUNT_BY_NUMBER
       ) {
+        // @ts-expect-error - params is typed as JsonRpcParams but is an array at runtime
         const [blockHashOrNumber] = message.data.params;
         const transactionCount =
-          await zond.getBlockTransactionCount(blockHashOrNumber);
+          await qrl.getBlockTransactionCount(blockHashOrNumber);
         return "0x".concat(transactionCount.toString(16));
       } else if (
-        method === UNRESTRICTED_METHODS.ZOND_WEB3_WALLET_GET_PROVIDER_STATE
+        method === UNRESTRICTED_METHODS.QRL_WEB3_WALLET_GET_PROVIDER_STATE
       ) {
-        const chainId = (await zond?.getChainId())?.toString() ?? "";
-        const networkVersion = (await zond?.net.getId())?.toString() ?? "";
+        const chainId = (await qrl?.getChainId())?.toString() ?? "";
+        const networkVersion = (await qrl?.net.getId())?.toString() ?? "";
         return {
           chainId: `0x${chainId}`,
           networkVersion,
           isUnlocked: false,
           accounts: [],
         } as Parameters<BaseProvider["_initializeState"]>[0];
-      } else if (method === UNRESTRICTED_METHODS.ZOND_SYNCING) {
-        const isSyncing = await zond.isSyncing();
+      } else if (method === UNRESTRICTED_METHODS.QRL_SYNCING) {
+        const isSyncing = await qrl.isSyncing();
         return isSyncing;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_UNINSTALL_FILTER) {
-        const [filterIdentifier] = message?.data?.params;
-        const isSuccess = await zondRpcMethods.uninstallFilter(
+      } else if (method === UNRESTRICTED_METHODS.QRL_UNINSTALL_FILTER) {
+        const [filterIdentifier] = message?.data?.params ?? [];
+        const isSuccess = await qrlRpcMethods.uninstallFilter(
           new Web3RequestManager(provider),
           filterIdentifier,
         );
         return isSuccess;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_UNSUBSCRIBE) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_UNSUBSCRIBE) {
         const params = message?.data?.params;
         const response = await axios.post(
-          `${defaultWsRpcUrl}/zond_unsubscribe`,
+          `${defaultWsRpcUrl}/qrl_unsubscribe`,
           { params },
         );
         const unsubscribed = response?.data?.unsubscribed as boolean;
         return unsubscribed;
       } else if (method === UNRESTRICTED_METHODS.NET_VERSION) {
-        const networkId = await zond.net.getId();
+        const networkId = await qrl.net.getId();
         return "0x".concat(networkId.toString(16));
-      } else if (method === UNRESTRICTED_METHODS.ZOND_ACCOUNTS) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_ACCOUNTS) {
         const connectedAccountsData =
           await StorageUtil.getDAppsConnectedAccountsData(
             new URL(message?.data?.senderData?.url ?? "").origin,
@@ -265,109 +266,109 @@ const prepareListeners = () => {
         );
         return null;
       } else if (method === UNRESTRICTED_METHODS.WEB_3_CLIENT_VERSION) {
-        const currentVersion = await zond?.getNodeInfo();
+        const currentVersion = await qrl?.getNodeInfo();
         return currentVersion;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_BALANCE) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_BALANCE) {
         const [accountAddress, accountBlockNumber] = message.data.params;
-        const balance = await zond?.getBalance(
+        const balance = await qrl?.getBalance(
           accountAddress,
           accountBlockNumber,
         );
         return "0x".concat(balance.toString(16));
-      } else if (method === UNRESTRICTED_METHODS.ZOND_ESTIMATE_GAS) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_ESTIMATE_GAS) {
         const [estimateGasParam] = message.data.params;
-        const estimatedGas = await zond.estimateGas(estimateGasParam);
+        const estimatedGas = await qrl.estimateGas(estimateGasParam);
         return "0x".concat(estimatedGas.toString(16));
-      } else if (method === UNRESTRICTED_METHODS.ZOND_FEE_HISTORY) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_FEE_HISTORY) {
         const [blockCount, newestBlock, rewardPercentiles] =
           message.data.params;
-        const feeHistory = await zond.getFeeHistory(
+        const feeHistory = await qrl.getFeeHistory(
           blockCount,
           newestBlock,
           rewardPercentiles,
         );
         return getSerializableObject(feeHistory);
-      } else if (method === UNRESTRICTED_METHODS.ZOND_BLOCK_NUMBER) {
-        const zondBlockNumber = await zond.getBlockNumber();
-        return "0x".concat(zondBlockNumber.toString(16));
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_TRANSACTION_RECEIPT) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_BLOCK_NUMBER) {
+        const qrlBlockNumber = await qrl.getBlockNumber();
+        return "0x".concat(qrlBlockNumber.toString(16));
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_TRANSACTION_RECEIPT) {
         const [txHashForTransactionReceipt] = message.data.params;
-        const transactionReceipt = await zond.getTransactionReceipt(
+        const transactionReceipt = await qrl.getTransactionReceipt(
           txHashForTransactionReceipt,
         );
         return getSerializableObject(transactionReceipt);
-      } else if (method === UNRESTRICTED_METHODS.ZOND_NEW_BLOCK_FILTER) {
-        const filterIdentifier = await zondRpcMethods.newBlockFilter(
+      } else if (method === UNRESTRICTED_METHODS.QRL_NEW_BLOCK_FILTER) {
+        const filterIdentifier = await qrlRpcMethods.newBlockFilter(
           new Web3RequestManager(provider),
         );
         return filterIdentifier;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_NEW_FILTER) {
-        const [filter] = message?.data?.params;
-        const filterIdentifier = await zondRpcMethods.newFilter(
+      } else if (method === UNRESTRICTED_METHODS.QRL_NEW_FILTER) {
+        const [filter] = message?.data?.params ?? [];
+        const filterIdentifier = await qrlRpcMethods.newFilter(
           new Web3RequestManager(provider),
           filter,
         );
         return filterIdentifier;
       } else if (
-        method === UNRESTRICTED_METHODS.ZOND_NEW_PENDING_TRANSACTION_FILTER
+        method === UNRESTRICTED_METHODS.QRL_NEW_PENDING_TRANSACTION_FILTER
       ) {
         const filterIdentifier =
-          await zondRpcMethods.newPendingTransactionFilter(
+          await qrlRpcMethods.newPendingTransactionFilter(
             new Web3RequestManager(provider),
           );
         return filterIdentifier;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_SEND_RAW_TRANSACTION) {
-        const [rawTransaction] = message?.data?.params;
+      } else if (method === UNRESTRICTED_METHODS.QRL_SEND_RAW_TRANSACTION) {
+        const [rawTransaction] = message?.data?.params ?? [];
         const transactionHash = (
-          await zond.sendSignedTransaction(rawTransaction)
+          await qrl.sendSignedTransaction(rawTransaction)
         )?.transactionHash;
         return transactionHash;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_SUBSCRIBE) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_SUBSCRIBE) {
         const params = message.data.params;
-        const response = await axios.post(`${defaultWsRpcUrl}/zond_subscribe`, {
+        const response = await axios.post(`${defaultWsRpcUrl}/qrl_subscribe`, {
           params,
         });
         const subscriptionId = response?.data?.subscriptionId as string;
         return subscriptionId;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_TRANSACTION_BY_HASH) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_TRANSACTION_BY_HASH) {
         const [txHashForTransactionByHash] = message.data.params;
-        const transactionDetails = await zond.getTransaction(
+        const transactionDetails = await qrl.getTransaction(
           txHashForTransactionByHash,
         );
         return getSerializableObject(transactionDetails);
-      } else if (method === UNRESTRICTED_METHODS.ZOND_CALL) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_CALL) {
         const [transactionObj, blockParam] = message.data.params;
-        const zondCallResponse = await zond.call(transactionObj, blockParam);
-        return zondCallResponse;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_CODE) {
+        const qrlCallResponse = await qrl.call(transactionObj, blockParam);
+        return qrlCallResponse;
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_CODE) {
         const [address, blockNumber] = message.data.params;
-        const byteCode = await zond.getCode(address, blockNumber);
+        const byteCode = await qrl.getCode(address, blockNumber);
         return byteCode;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_FILTER_CHANGES) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_FILTER_CHANGES) {
         const [filterIdentifier] = message.data.params;
-        const logObjects = await zondRpcMethods.getFilterChanges(
+        const logObjects = await qrlRpcMethods.getFilterChanges(
           new Web3RequestManager(provider),
           filterIdentifier,
         );
         return getSerializableObject(logObjects);
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_FILTER_LOGS) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_FILTER_LOGS) {
         const [filterIdentifier] = message.data.params;
-        const logObjects = await zondRpcMethods.getFilterLogs(
+        const logObjects = await qrlRpcMethods.getFilterLogs(
           new Web3RequestManager(provider),
           filterIdentifier,
         );
         return getSerializableObject(logObjects);
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_LOGS) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_LOGS) {
         const [filter] = message.data.params;
-        const logs = await zond.getPastLogs(filter);
+        const logs = await qrl.getPastLogs(filter);
         return getSerializableObject(logs);
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_PROOF) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_PROOF) {
         const [address, storageKeys, blockNumber] = message.data.params;
-        const proof = await zond.getProof(address, storageKeys, blockNumber);
+        const proof = await qrl.getProof(address, storageKeys, blockNumber);
         return getSerializableObject(proof);
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_STORAGE_AT) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_STORAGE_AT) {
         const [address, storageSlot, blockNumber] = message.data.params;
-        const storageAt = await zond.getStorageAt(
+        const storageAt = await qrl.getStorageAt(
           address,
           storageSlot,
           blockNumber,
@@ -375,32 +376,32 @@ const prepareListeners = () => {
         return storageAt;
       } else if (
         method ===
-          UNRESTRICTED_METHODS.ZOND_GET_TRANSACTION_BY_BLOCK_HASH_AND_INDEX ||
+          UNRESTRICTED_METHODS.QRL_GET_TRANSACTION_BY_BLOCK_HASH_AND_INDEX ||
         method ===
-          UNRESTRICTED_METHODS.ZOND_GET_TRANSACTION_BY_BLOCK_NUMBER_AND_INDEX
+          UNRESTRICTED_METHODS.QRL_GET_TRANSACTION_BY_BLOCK_NUMBER_AND_INDEX
       ) {
-        const [blockHashOrNumber, transactionIndex] = message?.data?.params;
-        const transactionInformation = zond?.getTransactionFromBlock(
+        const [blockHashOrNumber, transactionIndex] = message?.data?.params ?? [];
+        const transactionInformation = qrl?.getTransactionFromBlock(
           blockHashOrNumber,
           transactionIndex,
         );
         return getSerializableObject(transactionInformation);
-      } else if (method === UNRESTRICTED_METHODS.ZOND_CHAIN_ID) {
-        const chainId = await zond.getChainId({
+      } else if (method === UNRESTRICTED_METHODS.QRL_CHAIN_ID) {
+        const chainId = await qrl.getChainId({
           number: FMT_NUMBER.HEX,
           bytes: FMT_BYTES.HEX,
         });
         return chainId;
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_TRANSACTION_COUNT) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_TRANSACTION_COUNT) {
         const [address, block] = message.data.params;
-        const transactionCount = await zond.getTransactionCount(address, block);
+        const transactionCount = await qrl.getTransactionCount(address, block);
         return "0x".concat(transactionCount.toString(16));
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GAS_PRICE) {
-        const gasPrice = await zond.getGasPrice();
+      } else if (method === UNRESTRICTED_METHODS.QRL_GAS_PRICE) {
+        const gasPrice = await qrl.getGasPrice();
         return "0x".concat(gasPrice.toString(16));
-      } else if (method === UNRESTRICTED_METHODS.ZOND_GET_BLOCK_BY_HASH) {
+      } else if (method === UNRESTRICTED_METHODS.QRL_GET_BLOCK_BY_HASH) {
         const [blockHash, hydrated] = message.data.params;
-        const blockInformation = await zond.getBlock(blockHash, hydrated);
+        const blockInformation = await qrl.getBlock(blockHash, hydrated);
         return getSerializableObject(blockInformation);
       } else {
         return "";
@@ -414,9 +415,9 @@ const keepServiceWorkerActive = () => {
   setInterval(() => {
     browser.runtime
       .connect({
-        name: ZOND_POST_MESSAGE_STREAM.CONTENT_SCRIPT_KEEP_ALIVE,
+        name: QRL_POST_MESSAGE_STREAM.CONTENT_SCRIPT_KEEP_ALIVE,
       })
-      .postMessage(ZOND_POST_MESSAGE_STREAM.CONTENT_SCRIPT_KEEP_ALIVE);
+      .postMessage(QRL_POST_MESSAGE_STREAM.CONTENT_SCRIPT_KEEP_ALIVE);
   }, 3000);
 };
 
@@ -428,7 +429,7 @@ const initializeContentScript = () => {
     keepServiceWorkerActive();
   } catch (error) {
     console.warn(
-      "ZondWeb3Wallet: Failed to initialize the content script\n",
+      "QrlWeb3Wallet: Failed to initialize the content script\n",
       error,
     );
   }

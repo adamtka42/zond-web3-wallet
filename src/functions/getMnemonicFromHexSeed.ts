@@ -1,4 +1,4 @@
-import { SeedBinToMnemonic } from "@theqrl/wallet.js";
+import { binToMnemonic } from "./mnemonicHelper";
 import { Buffer } from "buffer";
 
 export const getMnemonicFromHexSeed = (hexSeed?: string) => {
@@ -6,5 +6,5 @@ export const getMnemonicFromHexSeed = (hexSeed?: string) => {
   const trimmedHexSeed = hexSeed.trim();
   if (!trimmedHexSeed) return "";
   const hexSeedBin = Buffer.from(trimmedHexSeed.substring(2), "hex");
-  return SeedBinToMnemonic(hexSeedBin);
+  return binToMnemonic(hexSeedBin);
 };

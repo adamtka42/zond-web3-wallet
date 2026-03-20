@@ -1,16 +1,25 @@
-import { BlockchainDataType } from "@/configuration/zondBlockchainConfig";
+import { BlockchainDataType } from "@/configuration/qrlBlockchainConfig";
 import { AdditionalJsonRpcRequestKeys } from "@theqrl/zond-wallet-provider/utils";
+
+export type PhishingCheckResult = {
+  isDomainPhishing: boolean;
+  matchType?: string;
+  matchedDomain?: string;
+};
 
 export type DAppRequestType = {
   method: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params?: any;
   requestData?: AdditionalJsonRpcRequestKeys;
+  phishingResult?: PhishingCheckResult;
 };
 
 export type DAppResponseType = {
   method: string;
   action: string;
   hasApproved: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   response?: any;
 };
 
@@ -23,12 +32,13 @@ type CaveatsTypeType = (typeof CAVEAT_TYPES)[keyof typeof CAVEAT_TYPES];
 
 type Caveat = {
   type: CaveatsTypeType;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 };
 
 export const PARENT_CAPABILITIES = Object.freeze({
-  ZOND_ACCOUNTS: "zond_accounts",
-  ZOND_CHAINS: "zond_chains",
+  QRL_ACCOUNTS: "qrl_accounts",
+  QRL_CHAINS: "qrl_chains",
 });
 
 type ParentCapabilityType =
